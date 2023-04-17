@@ -1,0 +1,173 @@
+{
+   dependencies =
+   (
+      {
+         description="🔀 Cross-platform C compiler glue (and some cpp conveniences)";
+         domain="clib";
+         name="mulle-c11";
+         repo="mulle-c11";
+         url="https://github.com/mulle-c/mulle-c11";
+         user="mulle-c";
+      },
+      {
+         description="🔄 Flexible C memory allocation scheme";
+         domain="clib";
+         name="mulle-allocator";
+         repo="mulle-allocator";
+         url="https://github.com/mulle-c/mulle-allocator";
+         user="mulle-c";
+      },
+      {
+         description="↗️ A growable C char array and also a stream";
+         domain="clib";
+         name="mulle-buffer";
+         repo="mulle-buffer";
+         url="https://github.com/mulle-c/mulle-buffer";
+         user="mulle-c";
+      },
+      {
+         description="🛄 Arrays, hashtables and a queue";
+         domain="clib";
+         name="mulle-container";
+         repo="mulle-container";
+         url="https://github.com/mulle-c/mulle-container";
+         user="mulle-c";
+      },
+      {
+         description="#️⃣ A collection of hash functions";
+         domain="clib";
+         name="mulle-data";
+         repo="mulle-data";
+         url="https://github.com/mulle-c/mulle-data";
+         user="mulle-c";
+      },
+      {
+         description="🈚 http URL parser";
+         domain="clib";
+         name="mulle-http";
+         repo="mulle-http";
+         url="https://github.com/mulle-c/mulle-http";
+         user="mulle-c";
+      },
+      {
+         description="🐌 Creates URL slugs";
+         domain="clib";
+         name="mulle-slug";
+         repo="mulle-slug";
+         url="https://github.com/mulle-c/mulle-slug";
+         user="mulle-c";
+      },
+      {
+         description="🈚 Unicode ctype like library";
+         domain="clib";
+         name="mulle-unicode";
+         repo="mulle-unicode";
+         url="https://github.com/mulle-c/mulle-unicode";
+         user="mulle-c";
+      },
+      {
+         description="🈷️ Support for URL parsing";
+         domain="clib";
+         name="mulle-url";
+         repo="mulle-url";
+         url="https://github.com/mulle-c/mulle-url";
+         user="mulle-c";
+      },
+      {
+         description="🔤 UTF8-16-32 analysis and manipulation library";
+         domain="clib";
+         name="mulle-utf";
+         repo="mulle-utf";
+         url="https://github.com/mulle-c/mulle-utf";
+         user="mulle-c";
+      },
+      {
+         description=" ⏪ Access variable arguments in struct layout fashion in C";
+         domain="clib";
+         name="mulle-vararg";
+         repo="mulle-vararg";
+         url="https://github.com/mulle-c/mulle-vararg";
+         user="mulle-c";
+      },
+      {
+         description="C99 translation of Geoff Pike's and Jyrki Alakuijala's FarmHash.";
+         domain="clib";
+         name="farmhash-c";
+         repo="farmhash-c";
+         url="https://github.com/mulle-c/farmhash-c";
+         user="mulle-c";
+      },
+      {
+         description="🔠 Cross-platform thread/mutex/tss/atomic operations in C";
+         domain="clib";
+         name="mulle-thread";
+         repo="mulle-thread";
+         url="https://github.com/mulle-concurrent/mulle-thread";
+         user="mulle-concurrent";
+      },
+      {
+         description="🚮 A lock-free, cross-platform solution to the ABA problem";
+         domain="clib";
+         name="mulle-aba";
+         repo="mulle-aba";
+         url="https://github.com/mulle-concurrent/mulle-aba";
+         user="mulle-concurrent";
+      },
+      {
+         description="📶 A lock- and wait-free hashtable (and an array too), written in C";
+         domain="clib";
+         name="mulle-concurrent";
+         repo="mulle-concurrent";
+         url="https://github.com/mulle-concurrent/mulle-concurrent";
+         user="mulle-concurrent";
+      },
+      {
+         description="🐍 mulle-fifo fixed sized producer/consumer FIFOs holding `void *`";
+         domain="clib";
+         name="mulle-fifo";
+         repo="mulle-fifo";
+         url="https://github.com/mulle-concurrent/mulle-fifo";
+         user="mulle-concurrent";
+      },
+      {
+         description="🐛 mulle-multififo multi-producer/multi-consumer FIFO holding `void *`";
+         domain="clib";
+         name="mulle-multififo";
+         repo="mulle-multififo";
+         url="https://github.com/mulle-concurrent/mulle-multififo";
+         user="mulle-concurrent";
+      },
+      {
+         description="🇧🇿 Memory mapped file access";
+         domain="clib";
+         name="mulle-mmap";
+         repo="mulle-mmap";
+         url="https://github.com/mulle-core/mulle-mmap";
+         user="mulle-core";
+      },
+      {
+         description="👣 Stracktrace support for various OS";
+         domain="clib";
+         name="mulle-stacktrace";
+         repo="mulle-stacktrace";
+         url="https://github.com/mulle-core/mulle-stacktrace";
+         user="mulle-core";
+      },
+      {
+         description="🕕 Simple time types with arithmetic on timespec and timeval";
+         domain="clib";
+         name="mulle-time";
+         repo="mulle-time";
+         url="https://github.com/mulle-core/mulle-time";
+         user="mulle-core";
+      },
+      {
+         description="♿️ Shared library helper";
+         domain="clib";
+         name="mulle-dlfcn";
+         repo="mulle-dlfcn";
+         url="https://github.com/mulle-core/mulle-dlfcn";
+         user="mulle-core";
+      }
+   )
+}

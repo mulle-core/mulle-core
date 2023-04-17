@@ -1,0 +1,12 @@
+{
+   project =
+   {
+      description="🌋 Almagamated library of mulle-core and mulle-c";
+      domain="github";
+      name="mulle-core";
+      user="mulle-core";
+      repo="mulle-core";
+      homepage="https://github.com/mulle-core/mulle-core";
+      license="BSD-3-Clause"
+   };
+}

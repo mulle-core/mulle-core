@@ -1,0 +1,12 @@
+This is an almagamation of the [mulle-core](//github.com/mulle-core),
+[mulle-concurrent](//github.com/mulle-concurrent),
+[mulle-c](//github.com/mulle-c) projects that need not be forced linked. See
+the [constituting projects](#Constituents) for documentation, bug reports,
+pull requests.
+
+The advantages of using **mulle-core** are:
+
+* compiles faster than two dozens of individual projects
+* you only need to link against one library file
+* `#include` statements may remain unchanged or simplify to `#include <mulle-core/mulle-core.h>`
+

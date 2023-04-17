@@ -1,0 +1,7 @@
+## Add
+
+Use [mulle-sde](//github.com/mulle-sde) to add {{ project.name }} to your project:
+
+``` sh
+mulle-sde add {{ project.domain }}:{{ project.user }}/{{ project.repo }}
+```

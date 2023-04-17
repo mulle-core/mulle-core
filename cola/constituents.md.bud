@@ -1,0 +1,23 @@
+## Constituents
+{%
+   file     = nil
+   taskInfo = [NSTask mulleStringSystemCallWithCommandString:"mulle-sde project-dir"]
+   if taskInfo[ "standardOutputString"]
+      directory = taskInfo[ "standardOutputString"]
+      file      = [directory stringByAppendingPathComponent:"overview.dot.svg"]
+   endif
+%}
+{% if not config.skipOverviewGraphic %}
+{%  if [exists file:file] %}
+![Overview](overview.dot.svg)
+{%  endif %}
+{% endif %}
+
+{% if [dependencies count] %}
+| Requirement                                  | Description
+|----------------------------------------------|-----------------------
+{% for item in dependencies %}
+| [{{ item.name}}]({{ item.url }})             | {{ item.description }}
+{% endfor %}
+{% endif %}
+
