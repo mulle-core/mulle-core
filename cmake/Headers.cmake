@@ -76,21 +76,21 @@ set( PROJECT_INSTALLABLE_HEADERS
 #
 
 set( MINTOMIC_PUBLIC_HEADERS
-mintomic/include/mintomic/core.h
-mintomic/include/mintomic/mintomic.h
-mintomic/include/mintomic/platform_detect.h)
+mintomic/core.h
+mintomic/mintomic.h
+mintomic/platform_detect.h)
 
 
 set( MINTOMIC_PRIVATE_HEADERS
-mintomic/include/mintomic/private/core_gcc.h
-mintomic/include/mintomic/private/core_msvc.h
-mintomic/include/mintomic/private/mintomic_gcc_arm.h
-mintomic/include/mintomic/private/mintomic_gcc_x86-64.h
-mintomic/include/mintomic/private/mintomic_msvc.h
-mintomic/include/mintomic/private/mintomic_stdint.h
+mintomic/core_gcc.h
+mintomic/core_msvc.h
+mintomic/mintomic_gcc_arm.h
+mintomic/mintomic_gcc_x86-64.h
+mintomic/mintomic_msvc.h
+mintomic/mintomic_stdint.h
 )
 
 include_directories(
-AFTER SYSTEM mintomic/include
+AFTER SYSTEM mintomic
 )
 
