@@ -67,7 +67,7 @@ src/mulle-sprintf/mulle-sprintf-return.c
 src/mulle-sprintf/mulle-sprintf-string.c
 src/mulle-stacktrace/mulle-stacktrace.c
 src/mulle-stacktrace/mulle-stacktrace-execinfo.c
-src/mulle-stacktrace/mulle-stacktrace-windows.c
+src/mulle-stacktrace/mulle-stacktrace-nop.c
 src/mulle-thread/mintomic-empty.c
 src/mulle-thread/mulle-thread-linkage.c
 src/mulle-thread/mulle-thread-windows.c

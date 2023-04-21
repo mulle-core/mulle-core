@@ -97,6 +97,12 @@ elseif( "${MULLE_PROJECT_TYPE}" STREQUAL "Library")
       install( FILES ${REMAINING_HEADER} DESTINATION "include/${PROJECT_NAME}")
       # install( FILES ${INSTALL_CMAKE_INCLUDES} DESTINATION "include/${PROJECT_NAME}/cmake")
 
+      # manually maintained!
+      install( FILES ${MINTOMIC_PUBLIC_HEADERS}  DESTINATION "include/mintomic")
+      # NOTE: it's really private subdir!
+      install( FILES ${MINTOMIC_PRIVATE_HEADERS} DESTINATION "include/mintomic/private")
+
+
       # short cut out
       if( NOT COMPILE_PHASE AND NOT LINK_PHASE)
          return()

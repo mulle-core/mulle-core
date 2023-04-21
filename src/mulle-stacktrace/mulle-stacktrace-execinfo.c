@@ -33,7 +33,7 @@
 //  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 //  POSSIBILITY OF SUCH DAMAGE.
 //
-#ifndef _WIN32
+#if ! (defined( _WIN32) || defined( __MULLE_MUSL__))
 
 #define _GNU_SOURCE
 
@@ -44,7 +44,6 @@
 #include <string.h>
 #include <stdlib.h>
 #include <execinfo.h>
-
 
 // clang speciality
 #ifdef __has_include

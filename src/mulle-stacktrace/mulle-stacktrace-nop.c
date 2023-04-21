@@ -1,4 +1,4 @@
-#ifdef _WIN32
+#if defined( _WIN32) || defined( __MULLE_MUSL__)
 
 #include "mulle-stacktrace.h"
 
