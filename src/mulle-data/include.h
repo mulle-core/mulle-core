@@ -23,13 +23,13 @@
 #include <mulle-c11/mulle-c11.h>
 
 
-#ifdef MULLE_DATA_BUILD
-# define MULLE_DATA_GLOBAL    MULLE_C_GLOBAL
+#ifdef MULLE__DATA_BUILD
+# define MULLE__DATA_GLOBAL    MULLE_C_GLOBAL
 #else
 # if defined( MULLE_DATA_INCLUDE_DYNAMIC) || (defined( MULLE_INCLUDE_DYNAMIC) && ! defined( MULLE_DATA_INCLUDE_STATIC))
-#  define MULLE_DATA_GLOBAL   MULLE_C_EXTERN_GLOBAL
+#  define MULLE__DATA_GLOBAL   MULLE_C_EXTERN_GLOBAL
 # else
-#  define MULLE_DATA_GLOBAL   extern
+#  define MULLE__DATA_GLOBAL   extern
 # endif
 #endif
 /* You can add some more include statements here */

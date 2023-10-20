@@ -27,29 +27,29 @@ static inline size_t   mulle_utf32_strlen( mulle_utf32_t *s)
    return( p - s);
 }
 
-MULLE_UTF_GLOBAL
+MULLE__UTF_GLOBAL
 size_t  mulle_utf32_strnlen( mulle_utf32_t *src, size_t len);
 
 
-MULLE_UTF_GLOBAL
+MULLE__UTF_GLOBAL
 mulle_utf32_t  *mulle_utf32_strncpy( mulle_utf32_t *dst, mulle_utf32_t *src, size_t len);
 
-MULLE_UTF_GLOBAL
+MULLE__UTF_GLOBAL
 mulle_utf32_t  *mulle_utf32_strchr( mulle_utf32_t *s, mulle_utf32_t c);
 
-MULLE_UTF_GLOBAL
+MULLE__UTF_GLOBAL
 int            _mulle_utf32_atoi( mulle_utf32_t **s);
 
-MULLE_UTF_GLOBAL
+MULLE__UTF_GLOBAL
 mulle_utf32_t  *mulle_utf32_strstr( mulle_utf32_t *s1, mulle_utf32_t *s2);
 
-MULLE_UTF_GLOBAL
+MULLE__UTF_GLOBAL
 int             mulle_utf32_strncmp( mulle_utf32_t *s1, mulle_utf32_t *s2, size_t len);
 
-MULLE_UTF_GLOBAL
+MULLE__UTF_GLOBAL
 size_t          mulle_utf32_strspn( mulle_utf32_t *s1, mulle_utf32_t *s2);
 
-MULLE_UTF_GLOBAL
+MULLE__UTF_GLOBAL
 size_t          mulle_utf32_strcspn( mulle_utf32_t *s1, mulle_utf32_t *s2);
 
 

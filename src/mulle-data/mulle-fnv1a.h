@@ -91,10 +91,10 @@ static inline uintptr_t   _mulle_fnv1a_step( uintptr_t hash, unsigned char value
 }
 
 
-MULLE_DATA_GLOBAL
+MULLE__DATA_GLOBAL
 uint32_t   _mulle_fnv1a_chained_32( void *buf, size_t len, uint32_t hash);
 
-MULLE_DATA_GLOBAL
+MULLE__DATA_GLOBAL
 uint64_t   _mulle_fnv1a_chained_64( void *buf, size_t len, uint64_t hash);
 
 

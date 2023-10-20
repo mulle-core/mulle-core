@@ -26,7 +26,7 @@
 #include "_mulle-slug-include.h"
 
 // mulle-c11::feature...
-// #ifdef MULLE_SLUG_BUILD
+// #ifdef MULLE__SLUG_BUILD
 // # define MULLE_SLUG_EXTERN_GLOBAL  MULLE_C_GLOBAL
 // #else
 // # define MULLE_SLUG_EXTERN_GLOBAL  MULLE_C_EXTERN_GLOBAL

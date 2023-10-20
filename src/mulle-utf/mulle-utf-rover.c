@@ -42,7 +42,7 @@
 static mulle_utf32_t   mulle_utf8_rover_get_character( struct mulle_utf_rover *rover)
 {
    mulle_utf32_t   c;
-   mulle_utf8_t    *p;
+   char           *p;
 
    assert( _mulle_utf_rover_has_character( rover));
 
@@ -85,7 +85,7 @@ static mulle_utf32_t   mulle_utf32_rover_get_character( struct mulle_utf_rover *
 
 static void   mulle_utf8_rover_dial_back( struct mulle_utf_rover *rover)
 {
-   mulle_utf8_t   *p;
+   char   *p;
 
    p        = rover->s;
    rover->s = --p;
@@ -133,7 +133,7 @@ void   _mulle_utf16_rover_init( struct mulle_utf_rover *rover,
 
 
 void   _mulle_utf8_rover_init( struct mulle_utf_rover *rover,
-                               mulle_utf8_t *s,
+                               char *s,
                                size_t len)
 {
    rover->s        = s;

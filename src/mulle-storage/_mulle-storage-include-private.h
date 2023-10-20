@@ -11,8 +11,8 @@
  *
  */
 
-#ifndef _mulle_aba_include_private_h__
-#define _mulle_aba_include_private_h__
+#ifndef _mulle_storage_include_private_h__
+#define _mulle_storage_include_private_h__
 
 /* no headers */
 

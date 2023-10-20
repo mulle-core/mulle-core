@@ -28,6 +28,9 @@ int   mulle_utf16_is_noncharacter( mulle_utf16_t c)
    if( c >= 0xFDD0 && c <= 0xFDEF)
       return( 1);
 
+   // It's important to note that code points 0xFFFE and 0xFFFF are not
+   // considered invalid; they are known as the anti-BOM (U+FFFE) and the
+   // Private Use Area (PUA) (U+FFFF) reddit.com. (hmm)
    if( c >= 0xfffe && c <= 0xffff)
       return( 1);
    return( 0);

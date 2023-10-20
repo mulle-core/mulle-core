@@ -108,8 +108,7 @@ void   _mulle__pointerarray_compact( struct mulle__pointerarray *array,
    for( ; p < sentinel; p++)
    {
       if( *p != notakey)
-         continue;
-      *q++ = *p;
+         *q++ = *p;
    }
 
    array->_curr = q;
@@ -238,3 +237,4 @@ void  _mulle__pointerarray_absorb( struct mulle__pointerarray *array,
    // clean out victim
    _mulle__pointerarray_reset( victim);
 }
+

@@ -34,13 +34,13 @@
 #include "_mulle-dlfcn-include.h"
 
 // could also set MULLE_C_GLOBAL but we use cmake all export
-#ifdef MULLE_DLFCN_BUILD
-# define MULLE_DLFCN_GLOBAL    MULLE_C_GLOBAL
+#ifdef MULLE__DLFCN_BUILD
+# define MULLE__DLFCN_GLOBAL    MULLE_C_GLOBAL
 #else
 # if defined( MULLE_DLFCN_INCLUDE_DYNAMIC) || (defined( MULLE_INCLUDE_DYNAMIC) && ! defined( MULLE_DLFCN_INCLUDE_STATIC))
-#  define MULLE_DLFCN_GLOBAL   MULLE_C_EXTERN_GLOBAL
+#  define MULLE__DLFCN_GLOBAL   MULLE_C_EXTERN_GLOBAL
 # else
-#  define MULLE_DLFCN_GLOBAL   extern
+#  define MULLE__DLFCN_GLOBAL   extern
 # endif
 #endif
 

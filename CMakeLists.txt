@@ -24,7 +24,8 @@ include( Environment)
 
 include( Files)
 
-include( IDESupport OPTIONAL)
+# Don't have this as default
+# include( IDESupport OPTIONAL)
 
 unset( SUB_PROJECT_NAMES)
 file( GLOB SUB_PROJECT_PATHS src/mulle-*)
@@ -100,7 +101,7 @@ elseif( "${MULLE_PROJECT_TYPE}" STREQUAL "Library")
       # manually maintained!
       install( FILES ${MINTOMIC_PUBLIC_HEADERS}  DESTINATION "include/mintomic")
       # NOTE: it's really private subdir!
-      install( FILES ${MINTOMIC_PRIVATE_HEADERS} DESTINATION "include/mintomic/private")
+      install( FILES ${MINTOMIC_PRIVATE_HEADERS} DESTINATION "include/mintomic")
 
 
       # short cut out
@@ -118,6 +119,10 @@ elseif( "${MULLE_PROJECT_TYPE}" STREQUAL "Library")
    # use LIBRARY_COMPILE_TARGET for compiler options
    target_compile_definitions( "${LIBRARY_COMPILE_TARGET}" PUBLIC)
    target_compile_options( "${LIBRARY_COMPILE_TARGET}" PUBLIC)
+   if( NOT MSVC)
+      target_compile_options( "${LIBRARY_COMPILE_TARGET}" PUBLIC -Wunused)
+   endif()
+
    # use LIBRARY_LINK_TARGET for linker options
    if( LINK_PHASE)
       target_link_options( "${LIBRARY_LINK_TARGET}" PUBLIC)

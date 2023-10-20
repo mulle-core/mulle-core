@@ -14,11 +14,11 @@
 #include "include.h"
 #include <stdint.h>
 
-MULLE_URL_GLOBAL
+MULLE__URL_GLOBAL
 int   mulle_unicode16_is_validurluser( uint16_t c);
-MULLE_URL_GLOBAL
+MULLE__URL_GLOBAL
 int   mulle_unicode_is_validurluser( int32_t c);
-MULLE_URL_GLOBAL
+MULLE__URL_GLOBAL
 int   mulle_unicode_is_validurluserplane( unsigned int plane);
 
 #endif /* mulle_unicode_is_validurluser_h */

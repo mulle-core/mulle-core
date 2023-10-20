@@ -9,4 +9,11 @@
  *
  *      mulle-sde environment set MULLE_MATCH_TO_C_RUN DISABLE
  */
+#ifndef mulle_http_provide_h__
+#define mulle_http_provide_h__
+
+
 #include "http_parser.h"
+
+
+#endif

@@ -61,6 +61,13 @@ struct mulle_calendartimerange
 };
 
 
+#define MULLE_CALENDARTIMERANGE_INIT( start, end)  \
+   ((struct mulle_calendartimerange)               \
+   {                                               \
+      (start),                                     \
+      (end)                                        \
+   })
+
 static inline struct mulle_calendartimerange
    mulle_calendartimerange_make( mulle_calendartime_t start,
                                  mulle_calendartime_t end)

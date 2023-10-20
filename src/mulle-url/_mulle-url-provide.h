@@ -9,6 +9,10 @@
  *
  *      mulle-sde environment set MULLE_MATCH_TO_C_RUN DISABLE
  */
+#ifndef mulle_url_provide_h__
+#define mulle_url_provide_h__
+
+
 #include "mulle-unicode-is-nonpercentescape.h"
 #include "mulle-unicode-is-validurlfragment.h"
 #include "mulle-unicode-is-validurlhost.h"
@@ -17,3 +21,6 @@
 #include "mulle-unicode-is-validurlquery.h"
 #include "mulle-unicode-is-validurlscheme.h"
 #include "mulle-unicode-is-validurluser.h"
+
+
+#endif

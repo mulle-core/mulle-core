@@ -3,13 +3,13 @@
 
 #include <mulle-c11/mulle-c11.h>
 
-#ifdef MULLE_TIME_BUILD
-# define MULLE_TIME_GLOBAL    MULLE_C_GLOBAL
+#ifdef MULLE__TIME_BUILD
+# define MULLE__TIME_GLOBAL    MULLE_C_GLOBAL
 #else
 # if defined( MULLE_TIME_INCLUDE_DYNAMIC) || (defined( MULLE_INCLUDE_DYNAMIC) && ! defined( MULLE_TIME_INCLUDE_STATIC))
-#  define MULLE_TIME_GLOBAL   MULLE_C_EXTERN_GLOBAL
+#  define MULLE__TIME_GLOBAL   MULLE_C_EXTERN_GLOBAL
 # else
-#  define MULLE_TIME_GLOBAL   extern
+#  define MULLE__TIME_GLOBAL   extern
 # endif
 #endif
 

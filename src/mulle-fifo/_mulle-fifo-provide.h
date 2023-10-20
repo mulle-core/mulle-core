@@ -9,6 +9,10 @@
  *
  *      mulle-sde environment set MULLE_MATCH_TO_C_RUN DISABLE
  */
+#ifndef mulle_fifo_provide_h__
+#define mulle_fifo_provide_h__
+
+
 #include "mulle--pointerfifo1024.h"
 #include "mulle--pointerfifo128.h"
 #include "mulle--pointerfifo16.h"
@@ -22,3 +26,6 @@
 #include "mulle--pointerfifo8192.h"
 #include "mulle--pointerfifo8.h"
 #include "mulle-pointerfifo.h"
+
+
+#endif

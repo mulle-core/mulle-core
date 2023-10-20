@@ -40,6 +40,8 @@
 
 //
 // Memo: integer multiplication should be unprolematic
+// There is always a 32 bit and a 64 bit version, and uintptr_t is the
+// platform specific preferencel, which chooses between both.
 //
 static inline uint32_t  mulle_hash_avalanche32( uint32_t h)
 {
@@ -128,10 +130,10 @@ static inline uintptr_t   mulle_long_long_hash( long long value)
 // length == -1 is not supported here. Use _mulle_hash_string for C
 // strings.
 //
-MULLE_DATA_GLOBAL
+MULLE__DATA_GLOBAL
 uint32_t   _mulle_hash_chained_32( void *bytes, size_t length, uint32_t hash);
 
-MULLE_DATA_GLOBAL
+MULLE__DATA_GLOBAL
 uint64_t   _mulle_hash_chained_64( void *bytes, size_t length, uint64_t hash);
 
 
@@ -152,10 +154,10 @@ static inline uintptr_t   mulle_hash_chained( void *bytes, size_t length, uintpt
 
 
 
-MULLE_DATA_GLOBAL
+MULLE__DATA_GLOBAL
 uint32_t   _mulle_hash_32( void *bytes, size_t length);
 
-MULLE_DATA_GLOBAL
+MULLE__DATA_GLOBAL
 uint64_t   _mulle_hash_64( void *bytes, size_t length);
 
 

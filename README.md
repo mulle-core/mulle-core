@@ -46,14 +46,14 @@ mulle-thread  C,TreePrivate  mulle-core,mulle-thread
 mulle-dlfcn   C,TreePrivate  mulle-core,mulle-dlfcn
 ```
 
-*mulle-core* is now searchef for in preference over *mulle-thread* and
+*mulle-core* is now searched for in preference over *mulle-thread* and
 *mulle-dlfcn*.
 Because of `TreePrivate` any "benefactor" of *mulle-atinit*, will not fetch or
 build *mulle-thread* or *mulle-dlfcn*.
 
 ## Constituents
 
-| Requirement                                  | Description
+| Constituent                                  | Description
 |----------------------------------------------|-----------------------
 | [mulle-c11](https://github.com/mulle-c/mulle-c11)             | 🔀 Cross-platform C compiler glue (and some cpp conveniences)
 | [mulle-allocator](https://github.com/mulle-c/mulle-allocator)             | 🔄 Flexible C memory allocation scheme
@@ -100,7 +100,7 @@ mulle-sde install --prefix /usr/local \
 
 ### Manual Installation
 
-Download the latest tar or zip archive and unpack it. Then install
+Download the latest [tar](https://github.com/mulle-core/mulle-core/archive/refs/tags/latest.tar.gz) or [zip](https://github.com/mulle-core/mulle-core/archive/refs/tags/latest.zip) archive and unpack it. Then install
 **mulle-core** into `/usr/local` with [cmake](https://cmake.org):
 
 ``` sh

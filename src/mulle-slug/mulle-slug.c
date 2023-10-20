@@ -10,7 +10,7 @@ int   __MULLE_SLUG_ranlib__;
 
 uint32_t   mulle_slug_get_version( void)
 {
-   return( MULLE_SLUG_VERSION);
+   return( MULLE__SLUG_VERSION);
 }
 
 
@@ -28,16 +28,15 @@ static struct map_entry
 void  mulle_buffer_slugify_utf8data( struct mulle_buffer *buffer,
                                      struct mulle_utf8data data)
 {
-   mulle_utf32_t          c;
-   mulle_utf32_t          prev;
-   mulle_utf8_t           *walk;
-   mulle_utf8_t           *sentinel;
-   struct mulle_utf8data  slug;
-   struct map_entry       *p;
-   int                    first;
-   int                    last;
-   int                    middle;
-   size_t                 length;
+   mulle_utf32_t      c;
+   mulle_utf32_t      prev;
+   char       *walk;
+   char       *sentinel;
+   struct map_entry   *p;
+   int                first;
+   int                last;
+   int                middle;
+   size_t             length;
 
    if( ! data.characters)
       return;
@@ -163,7 +162,7 @@ char   *mulle_utf8_slugify( char *s)
    if( ! s)
       return( NULL);
 
-   data = mulle_utf8data_make( (mulle_utf8_t *) s, -1);
+   data = mulle_utf8data_make( (char *) s, -1);
    slug = mulle_utf8data_slugify( data, NULL);
    if( ! slug.length)
       return( mulle_strdup( ""));

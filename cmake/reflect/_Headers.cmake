@@ -24,11 +24,14 @@ src/mulle-dlfcn
 src/mulle-fifo
 src/mulle-fprintf
 src/mulle-http
+src/mulle-linkedlist
 src/mulle-mmap
 src/mulle-multififo
+src/mulle-rbtree
 src/mulle-slug
 src/mulle-sprintf
 src/mulle-stacktrace
+src/mulle-storage
 src/mulle-thread
 src/mulle-time
 src/mulle-unicode
@@ -50,7 +53,6 @@ src/reflect/_mulle-core-include-private.h
 #
 set( PRIVATE_GENERIC_HEADERS
 src/generic/include-private.h
-src/mulle-aba/include-private.h
 src/mulle-buffer/include-private.h
 src/mulle-concurrent/include-private.h
 src/mulle-container/include-private.h
@@ -63,6 +65,7 @@ src/mulle-multififo/include-private.h
 src/mulle-slug/include-private.h
 src/mulle-sprintf/include-private.h
 src/mulle-stacktrace/include-private.h
+src/mulle-storage/include-private.h
 src/mulle-thread/include-private.h
 src/mulle-unicode/include-private.h
 src/mulle-url/include-private.h
@@ -73,7 +76,6 @@ src/mulle-utf/include-private.h
 # contents selected with patternfile ??-header--private-headers
 #
 set( PRIVATE_HEADERS
-src/mulle-aba/_mulle-aba-include-private.h
 src/mulle-buffer/_mulle-buffer-include-private.h
 src/mulle-concurrent/_mulle-concurrent-include-private.h
 src/mulle-container/_mulle-container-include-private.h
@@ -86,6 +88,7 @@ src/mulle-multififo/_mulle-multififo-include-private.h
 src/mulle-slug/_mulle-slug-include-private.h
 src/mulle-sprintf/_mulle-sprintf-include-private.h
 src/mulle-stacktrace/_mulle-stacktrace-include-private.h
+src/mulle-storage/_mulle-storage-include-private.h
 src/mulle-thread/_mulle-thread-include-private.h
 src/mulle-unicode/_mulle-unicode-include-private.h
 src/mulle-url/_mulle-url-include-private.h
@@ -113,11 +116,14 @@ src/mulle-dlfcn/include.h
 src/mulle-fifo/include.h
 src/mulle-fprintf/include.h
 src/mulle-http/include.h
+src/mulle-linkedlist/include.h
 src/mulle-mmap/include.h
 src/mulle-multififo/include.h
+src/mulle-rbtree/include.h
 src/mulle-slug/include.h
 src/mulle-sprintf/include.h
 src/mulle-stacktrace/include.h
+src/mulle-storage/include.h
 src/mulle-thread/include.h
 src/mulle-unicode/include.h
 src/mulle-url/include.h
@@ -131,7 +137,6 @@ set( PUBLIC_HEADERS
 src/mulle-aba/mulle-aba-defines.h
 src/mulle-aba/mulle-aba.h
 src/mulle-aba/_mulle-aba-include.h
-src/mulle-aba/mulle-aba-linkedlist.h
 src/mulle-aba/_mulle-aba-provide.h
 src/mulle-aba/mulle-aba-storage.h
 src/mulle-aba/_mulle-aba-versioncheck.h
@@ -154,6 +159,8 @@ src/mulle-concurrent/mulle-concurrent-types.h
 src/mulle-concurrent/_mulle-concurrent-versioncheck.h
 src/mulle-container/mulle--array.h
 src/mulle-container/mulle-array.h
+src/mulle-container/mulle--assoc.h
+src/mulle-container/mulle-assoc.h
 src/mulle-container/mulle-container-callback-global.h
 src/mulle-container/mulle-container-callback.h
 src/mulle-container/mulle-container-compiler-attributes.h
@@ -179,11 +186,14 @@ src/mulle-container/mulle-pointerqueue.h
 src/mulle-container/mulle--pointerset-generic.h
 src/mulle-container/mulle--pointerset.h
 src/mulle-container/mulle--pointerset-struct.h
+src/mulle-container/mulle-qsort.h
 src/mulle-container/mulle--rangeset.h
 src/mulle-container/mulle--set.h
 src/mulle-container/mulle-set.h
 src/mulle-container/mulle--structarray.h
 src/mulle-container/mulle-structarray.h
+src/mulle-container/mulle--structqueue.h
+src/mulle-container/mulle-structqueue.h
 src/mulle-container/mulle--uniquepointerarray.h
 src/mulle-container/mulle-uniquepointerarray.h
 src/mulle-core.h
@@ -226,6 +236,10 @@ src/mulle-http/mulle-http.h
 src/mulle-http/_mulle-http-include.h
 src/mulle-http/_mulle-http-provide.h
 src/mulle-http/_mulle-http-versioncheck.h
+src/mulle-linkedlist/mulle-concurrent-linkedlist.h
+src/mulle-linkedlist/mulle-linkedlist.h
+src/mulle-linkedlist/_mulle-linkedlist-include.h
+src/mulle-linkedlist/_mulle-linkedlist-versioncheck.h
 src/mulle-mmap/mulle-mmap.h
 src/mulle-mmap/_mulle-mmap-include.h
 src/mulle-mmap/_mulle-mmap-versioncheck.h
@@ -235,8 +249,13 @@ src/mulle-multififo/_mulle-multififo-include-public.h
 src/mulle-multififo/_mulle-multififo-provide.h
 src/mulle-multififo/_mulle-multififo-versioncheck.h
 src/mulle-multififo/mulle-pointermultififo.h
+src/mulle-rbtree/mulle--rbtree.h
+src/mulle-rbtree/mulle-rbtree.h
+src/mulle-rbtree/_mulle-rbtree-include.h
+src/mulle-rbtree/_mulle-rbtree-versioncheck.h
 src/mulle-slug/mulle-slug.h
 src/mulle-slug/_mulle-slug-include.h
+src/mulle-slug/_mulle-slug-versioncheck.h
 src/mulle-sprintf/mulle-sprintf-character.h
 src/mulle-sprintf/mulle-sprintf-escape.h
 src/mulle-sprintf/mulle-sprintf-fp.h
@@ -251,6 +270,10 @@ src/mulle-sprintf/_mulle-sprintf-versioncheck.h
 src/mulle-stacktrace/mulle-stacktrace.h
 src/mulle-stacktrace/_mulle-stacktrace-include.h
 src/mulle-stacktrace/_mulle-stacktrace-versioncheck.h
+src/mulle-storage/mulle-indexedstorage.h
+src/mulle-storage/mulle-storage.h
+src/mulle-storage/_mulle-storage-include.h
+src/mulle-storage/_mulle-storage-provide.h
 src/mulle-thread/mulle-atomic-c11.h
 src/mulle-thread/mulle-atomic.h
 src/mulle-thread/mulle-atomic-mintomic.h

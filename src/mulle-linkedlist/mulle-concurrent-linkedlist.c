@@ -1,6 +1,6 @@
 //
-//  mulle_aba_linkedlist.c
-//  mulle-aba
+//  mulle-concurrent-linkedlist.c
+//  mulle-linkedlist
 //
 //  Created by Nat! on 01.07.15.
 //  Copyright (c) 2015 Mulle kybernetiK. All rights reserved.
@@ -33,74 +33,28 @@
 //
 #pragma clang diagnostic ignored "-Wparentheses"
 
-#include "mulle-aba-linkedlist.h"
+#include "mulle-concurrent-linkedlist.h"
 
-#include "include-private.h"
-#include "mulle-aba-defines.h"
 #include <assert.h>
 
-
-//
-// retrieves the current head pointer and sets it to NULL in one atomic
-// operation
-//
-struct _mulle_aba_linkedlistentry  *
-   _mulle_aba_linkedlist_remove_all( struct _mulle_aba_linkedlist *list)
-{
-   struct _mulle_aba_linkedlistentry  *head;
-
-   assert( list);
-
-   do
-   {
-      head = _mulle_atomic_pointer_read( &list->_head.pointer);
-      if( ! head)
-         break;
-   }
-   while( ! _mulle_atomic_pointer_weakcas( &list->_head.pointer, NULL, head));
-
-   return( head);
-}
-
-
-
-void  _mulle_aba_linkedlist_add( struct _mulle_aba_linkedlist *list,
-                                 struct _mulle_aba_linkedlistentry  *entry)
-{
-   struct _mulle_aba_linkedlistentry  *head;
-
-   assert( list);
-   assert( entry);
-   assert( ! entry->_next);
-
-   do
-   {
-      head = _mulle_atomic_pointer_read( &list->_head.pointer);
-      assert( head != entry);
-
-      MULLE_THREAD_UNPLEASANT_RACE_YIELD();
-      entry->_next = head;
-   }
-   while( ! _mulle_atomic_pointer_cas( &list->_head.pointer, entry, head));
-}
 
 
 //
 // extract top entry from list
 // this is surprisingly difficult, as when done naively this is ABA all over
 // again
-// use _mulle_aba_linkedlist_remove_all to get the whole chain
+// use _mulle_concurrent_linkedlist_remove_all to get the whole chain
 // then lop one off, and keep removing and chaining stuff from the original list
 // until we can finally place the whole chain back into an empty list
 //
-struct _mulle_aba_linkedlistentry  *
-   _mulle_aba_linkedlist_remove_one( struct _mulle_aba_linkedlist *list)
+struct _mulle_concurrent_linkedlistentry  *
+   _mulle_concurrent_linkedlist_remove_one( struct _mulle_concurrent_linkedlist *list)
 {
-   struct _mulle_aba_linkedlistentry   *prev_chain;
-   struct _mulle_aba_linkedlistentry   *chain;
-   struct _mulle_aba_linkedlistentry   *next;
-   struct _mulle_aba_linkedlistentry   *tail;
-   struct _mulle_aba_linkedlistentry   *entry;
+   struct _mulle_concurrent_linkedlistentry   *prev_chain;
+   struct _mulle_concurrent_linkedlistentry   *chain;
+   struct _mulle_concurrent_linkedlistentry   *next;
+   struct _mulle_concurrent_linkedlistentry   *tail;
+   struct _mulle_concurrent_linkedlistentry   *entry;
 
    assert( list);
 
@@ -110,7 +64,7 @@ struct _mulle_aba_linkedlistentry  *
    do
    {
       prev_chain = chain;
-      chain      = _mulle_aba_linkedlist_remove_all( list);
+      chain      = _mulle_concurrent_linkedlist_remove_all( list);
       MULLE_THREAD_UNPLEASANT_RACE_YIELD();
       if( chain)
       {
@@ -147,19 +101,17 @@ struct _mulle_aba_linkedlistentry  *
 }
 
 
-
-
 int
-   _mulle_aba_linkedlist_walk( struct _mulle_aba_linkedlist *list,
-                               int (*callback)( struct _mulle_aba_linkedlistentry *,
-                                                struct _mulle_aba_linkedlistentry *,
-                                                void *),
-                              void *userinfo)
+   _mulle_concurrent_linkedlist_walk( struct _mulle_concurrent_linkedlist *list,
+                                      int (*callback)( struct _mulle_concurrent_linkedlistentry *,
+                                                       struct _mulle_concurrent_linkedlistentry *,
+                                                       void *),
+                                      void *userinfo)
 {
-   struct _mulle_aba_linkedlistentry   *entry;
-   struct _mulle_aba_linkedlistentry   *prev;
-   struct _mulle_aba_linkedlistentry   *next;
-   int                                 rval;
+   struct _mulle_concurrent_linkedlistentry   *entry;
+   struct _mulle_concurrent_linkedlistentry   *prev;
+   struct _mulle_concurrent_linkedlistentry   *next;
+   int                                        rval;
 
    assert( list);
    assert( callback);
@@ -184,5 +136,4 @@ int
 
    return( rval);
 }
-
 

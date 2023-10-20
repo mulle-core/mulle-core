@@ -42,16 +42,29 @@
 #include <stdio.h>
 
 
-uintptr_t   mulle_container_keycallback_pointer_hash( struct mulle_container_keycallback *callback,
-                                                      void *p)
+uintptr_t
+   mulle_container_keycallback_pointer_hash( struct mulle_container_keycallback *callback,
+                                             void *p)
 {
    return( mulle_pointer_hash( p));
 }
 
 
-int   mulle_container_keycallback_pointer_is_equal( struct mulle_container_keycallback *callback,
-                                                    void *a,
-                                                    void *b)
+// just here so that we can distinguish between this and pointer types
+int
+   mulle_container_keycallback_intptr_is_equal( struct mulle_container_keycallback *callback,
+                                                void *a,
+                                                void *b)
+{
+   return( (intptr_t) a == (intptr_t) b);
+}
+
+
+
+int
+   mulle_container_keycallback_pointer_is_equal( struct mulle_container_keycallback *callback,
+                                                 void *a,
+                                                 void *b)
 {
    return( a == b);
 }
@@ -182,7 +195,7 @@ int
 struct mulle_container_keycallback   mulle_container_keycallback_int =
 {
    .hash     = mulle_container_keycallback_pointer_hash,
-   .is_equal = mulle_container_keycallback_pointer_is_equal,
+   .is_equal = mulle_container_keycallback_intptr_is_equal,
    .retain   = mulle_container_keycallback_self,
    .release  = mulle_container_keycallback_nop,
    .describe = (mulle_container_keycallback_describe_t *) mulle_container_callback_int_describe,
@@ -194,7 +207,7 @@ struct mulle_container_keycallback   mulle_container_keycallback_int =
 struct mulle_container_keycallback   mulle_container_keycallback_intptr =
 {
    .hash     = mulle_container_keycallback_pointer_hash,
-   .is_equal = mulle_container_keycallback_pointer_is_equal,
+   .is_equal = mulle_container_keycallback_intptr_is_equal,
    .retain   = mulle_container_keycallback_self,
    .release  = mulle_container_keycallback_nop,
    .describe = (mulle_container_keycallback_describe_t *) mulle_container_callback_intptr_describe,

@@ -54,10 +54,9 @@ mulle_utf16_t  *_mulle_utf32_convert_to_utf16_as_surrogatepair( mulle_utf32_t x,
 
 
 // must be proper UTF32 code!
-mulle_utf8_t  *_mulle_utf32_convert_to_utf8( mulle_utf32_t *src,
-                                             size_t len,
-                                             mulle_utf8_t *dst)
+char  *_mulle_utf32_convert_to_utf8( mulle_utf32_t *src, size_t len, char *_dst)
 {
+   unsigned char   *dst = (unsigned char *) _dst;
    mulle_utf32_t   *sentinel;
    mulle_utf32_t   x;
 
@@ -74,10 +73,10 @@ mulle_utf8_t  *_mulle_utf32_convert_to_utf8( mulle_utf32_t *src,
       {
          if( x < 0x80)
          {
-            *dst++ = (mulle_utf8_t) x;
+            *dst++ = (unsigned char) x;
          }
 
-         *dst++ = 0xC0 | (mulle_utf8_t) (x >> 6);
+         *dst++ = 0xC0 | (unsigned char) (x >> 6);
          *dst++ = 0x80 | (x & 0x3F);
          continue;
       }
@@ -87,7 +86,7 @@ mulle_utf8_t  *_mulle_utf32_convert_to_utf8( mulle_utf32_t *src,
          {
             assert( ! mulle_utf32_is_surrogatecharacter( x));
 
-            *dst++ = 0xE0 | (mulle_utf8_t) (x >> 12);
+            *dst++ = 0xE0 | (unsigned char) (x >> 12);
             *dst++ = 0x80 | ((x >> 6) & 0x3F);
             *dst++ = 0x80 | (x & 0x3F);
             continue;
@@ -95,13 +94,13 @@ mulle_utf8_t  *_mulle_utf32_convert_to_utf8( mulle_utf32_t *src,
 
          assert( x <= 0x10FFFF);
 
-         *dst++ = 0xF0 | (mulle_utf8_t) (x >> 18);
+         *dst++ = 0xF0 | (unsigned char) (x >> 18);
          *dst++ = 0x80 | ((x >> 12) & 0x3F);
          *dst++ = 0x80 | ((x >> 6) & 0x3F);
          *dst++ = 0x80 | (x & 0x3F);
       }
    }
-   return( dst);
+   return( (char *) dst);
 }
 
 
@@ -134,38 +133,6 @@ mulle_utf16_t   *_mulle_utf32_convert_to_utf16( mulle_utf32_t *src,
 }
 
 
-void  mulle_utf32_bufferconvert_to_utf16_as_surrogatepair(
-            mulle_utf32_t x,
-            void *buffer,
-            mulle_utf_add_bytes_function_t addbytes)
-{
-   uint16_t  top;
-   uint16_t  bottom;
-   uint16_t  hi;
-   uint16_t  lo;
-
-   assert( x >= 0x10000 && x <= 0x10FFFF);
-
-   x -= 0x10000;
-
-   assert( (x >> 10) <= 0x3FF);
-
-   top    = (uint16_t) (x >> 10);
-   bottom = (uint16_t) (x & 0x3FF);
-
-   hi = 0xD800 + top;
-   lo = 0xDC00 + bottom;
-
-   assert( hi >= 0xD800 && hi < 0xDC00);
-   assert( lo >= 0xDC00 && lo < 0xE000);
-
-   // (nat) I used to flip those adds around based on endianness, but I think
-   // that was wrong
-   (*addbytes)( buffer, &hi, sizeof( uint16_t));
-   (*addbytes)( buffer, &lo, sizeof( uint16_t));
-}
-
-
 // must be proper UTF32 code!
 void  mulle_utf32_bufferconvert_to_utf8( mulle_utf32_t *src,
                                          size_t len,
@@ -174,7 +141,9 @@ void  mulle_utf32_bufferconvert_to_utf8( mulle_utf32_t *src,
 {
    mulle_utf32_t   *sentinel;
    mulle_utf32_t   x;
-   mulle_utf8_t    s[ 4];
+   unsigned char   *s;
+   unsigned char   *s_flush;
+   unsigned char   tmp[ 128];
 
    if( len == (size_t) -1)
       len = mulle_utf32_strlen( src);
@@ -182,23 +151,29 @@ void  mulle_utf32_bufferconvert_to_utf8( mulle_utf32_t *src,
    // if dst_len == -1, then sentinel - 1 = dst_sentinel (OK!)
 
    sentinel = &src[ len];
+   s        = tmp;
+   s_flush  = &tmp[ sizeof( tmp) / sizeof( char) - 4];
 
    while( src < sentinel)
    {
+      if( s >= s_flush)
+      {
+         (*addbytes)( buffer, tmp, s - tmp);
+         s = tmp;
+      }
+
       x = *src++;
 
       if( x < 0x800)
       {
          if( x < 0x80)
          {
-            s[ 0] = (mulle_utf8_t) x;
-            (*addbytes)( buffer, s, 1);
+            *s++ = (unsigned char) x;
             continue;
          }
 
-         s[ 0] = 0xC0 | (mulle_utf8_t) (x >> 6);
-         s[ 1] = 0x80 | (x & 0x3F);
-         (*addbytes)( buffer, s, 2);
+         *s++ = 0xC0 | (unsigned char) (x >> 6);
+         *s++ = 0x80 | (x & 0x3F);
          continue;
       }
       else
@@ -207,22 +182,23 @@ void  mulle_utf32_bufferconvert_to_utf8( mulle_utf32_t *src,
          {
             assert( ! mulle_utf32_is_surrogatecharacter( x));
 
-            s[ 0] = 0xE0 | (mulle_utf8_t) (x >> 12);
-            s[ 1] = 0x80 | ((x >> 6) & 0x3F);
-            s[ 2] = 0x80 | (x & 0x3F);
-            (*addbytes)( buffer, s, 3);
+            *s++ = 0xE0 | (unsigned char) (x >> 12);
+            *s++ = 0x80 | ((x >> 6) & 0x3F);
+            *s++ = 0x80 | (x & 0x3F);
             continue;
          }
 
          assert( x <= 0x10FFFF);
 
-         s[ 0] = 0xF0 | (mulle_utf8_t) (x >> 18);
-         s[ 1] = 0x80 | ((x >> 12) & 0x3F);
-         s[ 2] = 0x80 | ((x >> 6) & 0x3F);
-         s[ 3] = 0x80 | (x & 0x3F);
-         (*addbytes)( buffer, s, 4);
+         *s++ = 0xF0 | (unsigned char) (x >> 18);
+         *s++ = 0x80 | ((x >> 12) & 0x3F);
+         *s++ = 0x80 | ((x >> 6) & 0x3F);
+         *s++ = 0x80 | (x & 0x3F);
       }
    }
+
+   if( s != tmp)
+      (*addbytes)( buffer, tmp, s - tmp);
 }
 
 
@@ -233,7 +209,9 @@ void   mulle_utf32_bufferconvert_to_utf16( mulle_utf32_t *src,
 {
    mulle_utf32_t   *sentinel;
    mulle_utf32_t   x;
-   mulle_utf16_t   _w;
+   mulle_utf16_t   *s;
+   mulle_utf16_t   *s_flush;
+   mulle_utf16_t   tmp[ 64];
 
    if( len == (size_t) -1)
       len = mulle_utf32_strlen( src);
@@ -241,9 +219,17 @@ void   mulle_utf32_bufferconvert_to_utf16( mulle_utf32_t *src,
    // if dst_len == -1, then sentinel - 1 = dst_sentinel (OK!)
 
    sentinel = &src[ len];
+   s        = tmp;
+   s_flush  = &tmp[ sizeof( tmp) / sizeof( mulle_utf16_t) - 2];
 
    while( src < sentinel)
    {
+      if( s >= s_flush)
+      {
+         (*addbytes)( buffer, tmp, sizeof( mulle_utf16_t) * (s - tmp));
+         s = tmp;
+      }
+
       x = *src++;
       assert( x >= 0 && x <= mulle_utf32_max);
 
@@ -251,12 +237,15 @@ void   mulle_utf32_bufferconvert_to_utf16( mulle_utf32_t *src,
       {
          assert( ! mulle_utf32_is_surrogatecharacter( x));
 
-         _w = (uint16_t) x;
-         (*addbytes)( buffer, &_w, sizeof( _w));
+         *s++ = (uint16_t) x;
          continue;
       }
-      mulle_utf32_bufferconvert_to_utf16_as_surrogatepair( x, buffer, addbytes);
+
+      s = _mulle_utf32_convert_to_utf16_as_surrogatepair( x, s);
    }
+
+   if( s != tmp)
+      (*addbytes)( buffer, tmp, sizeof( mulle_utf16_t) * (s - tmp));
 }
 
 
@@ -303,6 +292,39 @@ size_t   mulle_utf32_utf8length( mulle_utf32_t *src,
 
       assert( x <= 0x10FFFF);
       len += 3;
+   }
+   return( len);
+}
+
+
+// must be proper UTF32 code!
+size_t   mulle_utf32_utf16length( mulle_utf32_t *src,
+                                 size_t len)
+{
+   mulle_utf32_t  *sentinel;
+   uint32_t       x;
+
+   if( ! src)
+      return( 0);
+
+   if( len == (size_t) -1)
+      len = mulle_utf32_strlen( src);
+   if( ! len)
+      return( 0);
+
+   // if dst_len == -1, then sentinel - 1 = dst_sentinel (OK!)
+
+   sentinel = &src[ len];
+
+   // assume double
+   while( src < sentinel)
+   {
+      x = *src++;
+
+      assert( x >= 0 && x <= mulle_utf32_max);
+
+      if( x >= 0xFFFF)
+         len++;
    }
    return( len);
 }
@@ -408,42 +430,39 @@ fail:
 
 
 
-mulle_utf8_t   *_mulle_utf32_as_utf8( mulle_utf32_t x, mulle_utf8_t *dst)
+char   *_mulle_utf32_as_utf8_not_ascii( mulle_utf32_t x, char *_dst)
 {
+   unsigned char  *dst = (unsigned char *) _dst;
    assert( x >= 0 && x <= mulle_utf32_max);
 
    if( x < 0x800)
    {
-      if( x >= 0x80)
-      {
-         *dst++ = 0xC0 | (mulle_utf8_t) (x >> 6);
-         *dst++ = 0x80 | (x & 0x3F);
-         return( dst);
-      }
-
-      *dst++ = (mulle_utf8_t) x;
-      return( dst);
+      assert( x >= 0x80);
+      *dst++ = 0xC0 | (unsigned char) (x >> 6);
+      *dst++ = 0x80 | (x & 0x3F);
+      return( (char *) dst);
    }
 
    if( x < 0x10000)
    {
       assert( ! mulle_utf32_is_surrogatecharacter( x));
 
-      *dst++ = 0xE0 | (mulle_utf8_t) (x >> 12);
+      *dst++ = 0xE0 | (unsigned char) (x >> 12);
       *dst++ = 0x80 | ((x >> 6) & 0x3F);
       *dst++ = 0x80 | (x & 0x3F);
-      return( dst);
+      return( (char *) dst);
    }
 
    assert( x <= 0x10FFFF);
 
-   *dst++ = 0xF0 | (mulle_utf8_t) (x >> 18);
+   *dst++ = 0xF0 | (unsigned char) (x >> 18);
    *dst++ = 0x80 | ((x >> 12) & 0x3F);
    *dst++ = 0x80 | ((x >> 6) & 0x3F);
    *dst++ = 0x80 | (x & 0x3F);
 
-   return( dst);
+   return( (char *) dst);
 }
+
 
 // same as mulle_utf16_is_invalid_char really
 static inline int  mulle_utf32_is_invalid_char( mulle_utf32_t c)

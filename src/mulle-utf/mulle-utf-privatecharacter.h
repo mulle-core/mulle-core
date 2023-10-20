@@ -15,11 +15,11 @@
 #include <assert.h>
 
 
-MULLE_UTF_GLOBAL
+MULLE__UTF_GLOBAL
 int   mulle_utf16_is_privatecharacter( uint16_t c);
-MULLE_UTF_GLOBAL
+MULLE__UTF_GLOBAL
 int   mulle_utf32_is_privatecharacter( int32_t c);
-MULLE_UTF_GLOBAL
+MULLE__UTF_GLOBAL
 int   mulle_utf_is_privatecharacterplane( unsigned int plane);
 
 #endif

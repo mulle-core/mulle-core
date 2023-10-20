@@ -74,7 +74,9 @@ typedef enum
 // per default, this is stored in a global variable
 // when "threading" gets linked it, this will be
 // stored thread locally
-//
+// TODO: maybe put in a '\n' replacement, to expand '\n' into '\r\n'
+//       this could also help with indentation to expand '\n' into '\n\t\t'
+//       maybe ?
 struct mulle_sprintf_malloc_storage
 {
    char                                        **starts;
@@ -821,7 +823,11 @@ static int  setup_context( struct mulle_sprintf_context *ctxt,
       return( ctxt->n);  // if we have a malformed % we bail usual printf
                          // just prints, but I don't like it
 
-   allocator    = mulle_buffer_get_allocator( buffer);
+//
+// use stdlib allocator(it will not show up as a leak in other
+// projects, necessarily)
+//
+   allocator    = &mulle_stdlib_allocator;
    ctxt->before = (int) mulle_buffer_get_length( buffer);
 
    ctxt->starts = ctxt->startsBuf;
@@ -832,12 +838,12 @@ static int  setup_context( struct mulle_sprintf_context *ctxt,
       ctxt->infos  = space_for_infos( ctxt->n, allocator);
       memcpy( ctxt->starts, ctxt->startsBuf, STACKABLE_N * sizeof( char *));
 
-
-      number_of_conversions( remaining_format,
-                             &ctxt->starts[ STACKABLE_N],
-                             &ctxt->starts[ ctxt->n],
-                             &remaining_format,
-                             table);
+      if( remaining_format)
+         number_of_conversions( remaining_format,
+                                &ctxt->starts[ STACKABLE_N],
+                                &ctxt->starts[ ctxt->n],
+                                &remaining_format,
+                                table);
    }
 
    //

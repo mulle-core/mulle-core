@@ -14,7 +14,7 @@
 {% endif %}
 
 {% if [dependencies count] %}
-| Requirement                                  | Description
+| Constituent                                  | Description
 |----------------------------------------------|-----------------------
 {% for item in dependencies %}
 | [{{ item.name}}]({{ item.url }})             | {{ item.description }}

@@ -89,6 +89,8 @@
 #define uint64_t_in_expected_order(x) (bswap64(x))
 #endif
 
+// don't care about these static inline unused warnings
+#pragma clang diagnostic ignored "-Wunused-function"
 
 // OpenBSD defines some of these
 #undef swap32

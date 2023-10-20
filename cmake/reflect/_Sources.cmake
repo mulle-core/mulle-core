@@ -12,7 +12,6 @@ endif()
 #
 set( SOURCES
 src/mulle-aba/mulle-aba.c
-src/mulle-aba/mulle-aba-linkedlist.c
 src/mulle-aba/mulle-aba-storage.c
 src/mulle-allocator/mulle-allocator.c
 src/mulle-buffer/mulle--buffer.c
@@ -21,6 +20,8 @@ src/mulle-concurrent/mulle-concurrent-hashmap.c
 src/mulle-concurrent/mulle-concurrent-pointerarray.c
 src/mulle-container/mulle--array.c
 src/mulle-container/mulle-array.c
+src/mulle-container/mulle--assoc.c
+src/mulle-container/mulle-assoc.c
 src/mulle-container/mulle-container-callback.c
 src/mulle-container/mulle--map.c
 src/mulle-container/mulle-map.c
@@ -30,20 +31,23 @@ src/mulle-container/mulle--pointermap-generic.c
 src/mulle-container/mulle--pointermap-struct.c
 src/mulle-container/mulle--pointerpairarray.c
 src/mulle-container/mulle-pointerpairarray.c
+src/mulle-container/mulle-pointerpair.c
 src/mulle-container/mulle--pointerqueue.c
 src/mulle-container/mulle-pointerqueue.c
 src/mulle-container/mulle--pointerset-generic.c
 src/mulle-container/mulle--pointerset-struct.c
+src/mulle-container/mulle-qsort.c
 src/mulle-container/mulle--rangeset.c
 src/mulle-container/mulle--set.c
 src/mulle-container/mulle-set.c
 src/mulle-container/mulle--structarray.c
 src/mulle-container/mulle-structarray.c
+src/mulle-container/mulle--structqueue.c
+src/mulle-container/mulle-structqueue.c
 src/mulle-container/mulle--uniquepointerarray.c
 src/mulle-container/mulle-uniquepointerarray.c
 src/mulle-core.c
 src/mulle-data/farmhash.c
-src/mulle-data/main.c
 src/mulle-data/mulle-data.c
 src/mulle-data/mulle-fnv1a.c
 src/mulle-data/mulle-hash.c
@@ -53,8 +57,12 @@ src/mulle-dlfcn/mulle-dlfcn.c
 src/mulle-fifo/mulle-fifo.c
 src/mulle-fprintf/mulle-fprintf.c
 src/mulle-http/http_parser.c
+src/mulle-linkedlist/mulle-concurrent-linkedlist.c
+src/mulle-linkedlist/mulle-linkedlist.c
 src/mulle-mmap/mulle-mmap.c
 src/mulle-multififo/mulle-pointermultififo.c
+src/mulle-rbtree/mulle--rbtree.c
+src/mulle-rbtree/mulle-rbtree.c
 src/mulle-slug/mulle-slug.c
 src/mulle-sprintf/mulle-sprintf.c
 src/mulle-sprintf/mulle-sprintf-character.c
@@ -68,6 +76,7 @@ src/mulle-sprintf/mulle-sprintf-string.c
 src/mulle-stacktrace/mulle-stacktrace.c
 src/mulle-stacktrace/mulle-stacktrace-execinfo.c
 src/mulle-stacktrace/mulle-stacktrace-nop.c
+src/mulle-storage/mulle-storage.c
 src/mulle-thread/mintomic-empty.c
 src/mulle-thread/mulle-thread-linkage.c
 src/mulle-thread/mulle-thread-windows.c
@@ -119,7 +128,6 @@ src/mulle-vararg/mulle-vararg.c
 # contents selected with patternfile ??-source--standalone-sources
 #
 set( STANDALONE_SOURCES
-src/mulle-aba/mulle-aba-standalone.c
 src/mulle-buffer/mulle-buffer-standalone.c
 src/mulle-concurrent/mulle-concurrent-standalone.c
 src/mulle-dlfcn/mulle-dlfcn-standalone.c

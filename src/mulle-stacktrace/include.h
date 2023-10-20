@@ -31,13 +31,13 @@
 
 #include <mulle-c11/mulle-c11.h>  // lazy fix for missing dependency
 
-#ifdef MULLE_STACKTRACE_BUILD
-# define MULLE_STACKTRACE_GLOBAL    MULLE_C_GLOBAL
+#ifdef MULLE__STACKTRACE_BUILD
+# define MULLE__STACKTRACE_GLOBAL    MULLE_C_GLOBAL
 #else
 # if defined( MULLE_STACKTRACE_INCLUDE_DYNAMIC) || (defined( MULLE_INCLUDE_DYNAMIC) && ! defined( MULLE_STACKTRACE_INCLUDE_STATIC))
-#  define MULLE_STACKTRACE_GLOBAL   MULLE_C_EXTERN_GLOBAL
+#  define MULLE__STACKTRACE_GLOBAL   MULLE_C_EXTERN_GLOBAL
 # else
-#  define MULLE_STACKTRACE_GLOBAL   extern
+#  define MULLE__STACKTRACE_GLOBAL   extern
 # endif
 #endif
 

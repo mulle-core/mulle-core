@@ -11,7 +11,7 @@
 
 uint32_t   mulle_fprintf_get_version( void)
 {
-   return( MULLE_FPRINTF_VERSION);
+   return( MULLE__FPRINTF_VERSION);
 }
 
 
@@ -51,15 +51,16 @@ int   mulle_vfprintf( FILE *fp, char *format, va_list args)
 
    if( ! fp || ! format)
    {
-   	  errno = EINVAL;
+   	errno = EINVAL;
       return( -1);
    }
 
-   mulle_flushablebuffer_init( &flushable_buffer,
-                               storage,
-                               sizeof( storage),
-                               (mulle_flushablebuffer_flusher_t) fwrite,
-                               fp);
+   mulle_flushablebuffer_init_with_static_bytes( &flushable_buffer,
+                                                 storage,
+                                                 sizeof( storage),
+                                                 (mulle_flushablebuffer_flusher_t) fwrite,
+                                                 fp,
+                                                 NULL);
 
    buffer = mulle_flushablebuffer_as_buffer( &flushable_buffer);
    rval   = mulle_buffer_vsprintf( buffer, format, args);

@@ -10,24 +10,24 @@
  *
  *  version:  major, minor, patch
  */
-#define MULLE_SLUG_VERSION  ((0 << 20) | (0 << 8) | 1)
+#define MULLE__SLUG_VERSION  ((0 << 20) | (0 << 8) | 2)
 
 
 static inline unsigned int   mulle_slug_get_version_major( void)
 {
-   return( MULLE_SLUG_VERSION >> 20);
+   return( MULLE__SLUG_VERSION >> 20);
 }
 
 
 static inline unsigned int   mulle_slug_get_version_minor( void)
 {
-   return( (MULLE_SLUG_VERSION >> 8) & 0xFFF);
+   return( (MULLE__SLUG_VERSION >> 8) & 0xFFF);
 }
 
 
 static inline unsigned int   mulle_slug_get_version_patch( void)
 {
-   return( MULLE_SLUG_VERSION & 0xFF);
+   return( MULLE__SLUG_VERSION & 0xFF);
 }
 
 // mulle-c11 feature: MULLE_SLUG__GLOBAL

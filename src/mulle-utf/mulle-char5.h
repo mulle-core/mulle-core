@@ -24,7 +24,7 @@
 // 32 bit can hold up to 6 chars  with 2 bits left over
 // 64 bit can hold up to 12 chars with 4 bits left over
 //
-MULLE_UTF_GLOBAL
+MULLE__UTF_GLOBAL
 int   mulle_char5_encode_character( int c);
 
 // this is usually faster
@@ -36,7 +36,7 @@ static inline int   mulle_char5_lookup_character( int c)
 }
 
 
-static inline int   mulle_utf8_is_char5character( mulle_utf8_t c)
+static inline int   mulle_utf8_is_char5character( char c)
 {
    return( mulle_char5_lookup_character( c) >= 0);
 }
@@ -71,34 +71,34 @@ static inline int   mulle_char5_decode_character( int c)
 }
 
 
-MULLE_UTF_GLOBAL
+MULLE__UTF_GLOBAL
 int   mulle_char5_is_char5string32( char *src, size_t len);
-MULLE_UTF_GLOBAL
+MULLE__UTF_GLOBAL
 int   mulle_char5_is_char5string64( char *src, size_t len);
 
-MULLE_UTF_GLOBAL
+MULLE__UTF_GLOBAL
 uint32_t   mulle_char5_encode32( char *src, size_t len);
-MULLE_UTF_GLOBAL
+MULLE__UTF_GLOBAL
 uint64_t   mulle_char5_encode64( char *src, size_t len);
 
-MULLE_UTF_GLOBAL
+MULLE__UTF_GLOBAL
 uint32_t   mulle_char5_encode32_utf16( mulle_utf16_t *src, size_t len);
-MULLE_UTF_GLOBAL
+MULLE__UTF_GLOBAL
 uint64_t   mulle_char5_encode64_utf16( mulle_utf16_t *src, size_t len);
 
-MULLE_UTF_GLOBAL
+MULLE__UTF_GLOBAL
 uint32_t   mulle_char5_encode32_utf32( mulle_utf32_t *src, size_t len);
-MULLE_UTF_GLOBAL
+MULLE__UTF_GLOBAL
 uint64_t   mulle_char5_encode64_utf32( mulle_utf32_t *src, size_t len);
 
-MULLE_UTF_GLOBAL
+MULLE__UTF_GLOBAL
 size_t   mulle_char5_decode32( uint32_t value, char *dst, size_t len);
-MULLE_UTF_GLOBAL
+MULLE__UTF_GLOBAL
 size_t   mulle_char5_decode64( uint64_t value, char *src, size_t len);
 
-MULLE_UTF_GLOBAL
+MULLE__UTF_GLOBAL
 int   mulle_char5_get64( uint64_t value, unsigned int index);
-MULLE_UTF_GLOBAL
+MULLE__UTF_GLOBAL
 int   mulle_char5_get32( uint32_t value, unsigned int index);
 
 

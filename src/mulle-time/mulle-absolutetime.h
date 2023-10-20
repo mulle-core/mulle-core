@@ -58,6 +58,14 @@ struct mulle_absolutetimerange
 };
 
 
+#define MULLE_ABSOLUTETIMERANGE_INIT( start, end)  \
+   ((struct mulle_absolutetimerange)               \
+   {                                               \
+      (start),                                     \
+      (end)                                        \
+   })
+
+
 static inline struct mulle_absolutetimerange
    mulle_absolutetimerange_make( mulle_absolutetime_t start,
                                  mulle_absolutetime_t end)

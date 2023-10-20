@@ -69,7 +69,7 @@ struct mulle__pointermap
 #define MULLE__POINTERMAP_INIT   { 0, 0, 0 }
 
 
-MULLE_CONTAINER_GLOBAL
+MULLE__CONTAINER_GLOBAL
 struct mulle_container_keyvaluecallback  mulle__pointermap_keyvaluecallback;
 
 
@@ -97,28 +97,28 @@ static inline unsigned int   mulle__pointermap_hash_for_size( uintptr_t  hash,
 #pragma mark - setup and takedown
 
 
-MULLE_CONTAINER_GLOBAL
+MULLE__CONTAINER_GLOBAL
 struct mulle__pointermap   *mulle__pointermap_create( unsigned int capacity,
                                                       size_t extra,
                                                       struct mulle_allocator *allocator);
 
-MULLE_CONTAINER_GLOBAL
+MULLE__CONTAINER_GLOBAL
 MULLE_C_NONNULL_FIRST
 void   _mulle__pointermap_destroy( struct mulle__pointermap *map,
                                    struct mulle_allocator *allocator);
 
-MULLE_CONTAINER_GLOBAL
+MULLE__CONTAINER_GLOBAL
 MULLE_C_NONNULL_FIRST
 void   _mulle__pointermap_init( struct mulle__pointermap *map,
                                 unsigned int capacity,
                                 struct mulle_allocator *allocator);
 
-MULLE_CONTAINER_GLOBAL
+MULLE__CONTAINER_GLOBAL
 MULLE_C_NONNULL_FIRST
 void   _mulle__pointermap_done( struct mulle__pointermap *map,
                                 struct mulle_allocator *allocator);
 
-MULLE_CONTAINER_GLOBAL
+MULLE__CONTAINER_GLOBAL
 MULLE_C_NONNULL_FIRST
 void   _mulle__pointermap_reset( struct mulle__pointermap *map,
                                  struct mulle_allocator *allocator);
@@ -190,12 +190,12 @@ static inline unsigned int   mulle__pointermap_get_size( struct mulle__pointerma
 // call this after remove operations, to make enumerations quicker and
 // conserve memory
 //
-MULLE_CONTAINER_GLOBAL
+MULLE__CONTAINER_GLOBAL
 MULLE_C_NONNULL_FIRST
 void  _mulle__pointermap_shrink_if_needed( struct mulle__pointermap *map,
                                            struct mulle_allocator *allocator);
 
-MULLE_CONTAINER_GLOBAL
+MULLE__CONTAINER_GLOBAL
 MULLE_C_NONNULL_FIRST
 void   *_mulle__pointermap_get( struct mulle__pointermap *map,
                                 void *key);
@@ -211,6 +211,11 @@ static inline void   *mulle__pointermap_get( struct mulle__pointermap *map,
 }
 
 
+// check for mulle_pointerpair_is_invalid if found or not
+MULLE__CONTAINER_GLOBAL
+struct mulle_pointerpair
+   mulle__pointermap_find_by_value( struct mulle__pointermap *map, void *value);
+
 
 // Experimental!
 // You need to provide zeroed space on the initial call for the return value.
@@ -218,12 +223,12 @@ static inline void   *mulle__pointermap_get( struct mulle__pointermap *map,
 // The intended use is for iterating over and deleting contents. This could be
 // fairly efficient, but its untested.
 //
-MULLE_CONTAINER_GLOBAL
+MULLE__CONTAINER_GLOBAL
 MULLE_C_NONNULL_FIRST_SECOND
 struct mulle_pointerpair   *_mulle__pointermap_get_any_pair( struct mulle__pointermap *map,
                                                              struct mulle_pointerpair *space);
 
-MULLE_CONTAINER_GLOBAL
+MULLE__CONTAINER_GLOBAL
 MULLE_C_NONNULL_FIRST
 void   _mulle__pointermap_insert_values_for_keysv( struct mulle__pointermap *map,
                                                    void *firstvalue,
@@ -234,13 +239,13 @@ void   _mulle__pointermap_insert_values_for_keysv( struct mulle__pointermap *map
 
 # pragma mark - copy
 
-MULLE_CONTAINER_GLOBAL
+MULLE__CONTAINER_GLOBAL
 MULLE_C_NONNULL_FIRST_SECOND
 int   _mulle__pointermap_copy_items( struct mulle__pointermap *dst,
                                      struct mulle__pointermap *src,
                                      struct mulle_allocator *allocator);
 
-MULLE_CONTAINER_GLOBAL
+MULLE__CONTAINER_GLOBAL
 MULLE_C_NONNULL_FIRST
 struct mulle__pointermap   *_mulle__pointermap_copy( struct mulle__pointermap *set,
                                                      struct mulle_allocator *allocator);
@@ -248,7 +253,7 @@ struct mulle__pointermap   *_mulle__pointermap_copy( struct mulle__pointermap *s
 
 # pragma mark - debugging
 
-MULLE_CONTAINER_GLOBAL
+MULLE__CONTAINER_GLOBAL
 MULLE_C_NONNULL_FIRST
 char   *_mulle__pointermap_describe( struct mulle__pointermap *set,
                                      struct mulle_allocator *allocator);
@@ -257,10 +262,9 @@ char   *_mulle__pointermap_describe( struct mulle__pointermap *set,
 # pragma mark - enumeration
 
 #define MULLE__POINTERMAPENUMERATOR_BASE  \
-   struct mulle_pointerpair   _space;     \
-   void                       **_curr;    \
-   unsigned int               _left;      \
-   unsigned int               _offset
+   void           **_curr;                \
+   unsigned int   _left;                  \
+   unsigned int   _offset
 
 
 struct mulle__pointermapenumerator
@@ -301,13 +305,18 @@ static inline struct mulle__pointermapenumerator
 // efficient, therefore it's important to shrink after lots of removes
 //
 MULLE_C_NONNULL_FIRST
-static inline struct mulle_pointerpair *
-   _mulle__pointermapenumerator_next_pair( struct mulle__pointermapenumerator *rover)
+static inline int
+   _mulle__pointermapenumerator_next_pair( struct mulle__pointermapenumerator *rover,
+                                           struct mulle_pointerpair *pair)
 {
    void   **p;
 
    if( ! rover->_left)
-      return( NULL);
+   {
+      if( pair)
+         *pair = mulle_pointerpair_make_invalid();
+      return( 0);
+   }
 
    rover->_left--;
    for(;;)
@@ -315,9 +324,12 @@ static inline struct mulle_pointerpair *
       p = rover->_curr++;
       if( *p != mulle_not_a_pointer)
       {
-         rover->_space.key   = *p;
-         rover->_space.value = p[ rover->_offset];
-         return( &rover->_space);
+         if( pair)
+         {
+            pair->key   = *p;
+            pair->value = p[ rover->_offset];
+         }
+         return( 1);
       }
    }
 }

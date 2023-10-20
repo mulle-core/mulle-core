@@ -42,10 +42,10 @@
 #include <stddef.h>
 
 
+// these types hold multiple characters of a reduced instruction set
 typedef uintptr_t  mulle_char5_t;
 typedef uintptr_t  mulle_char7_t;
 
-typedef uint8_t    mulle_utf8_t;
 typedef uint16_t   mulle_utf16_t;
 
 // this is signed, so any function returning an error can return -1

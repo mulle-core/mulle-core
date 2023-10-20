@@ -41,7 +41,7 @@
 
 
 //
-// mulle_pointerarray adds _storage of allocator to
+// mulle_pointerarray adds 'allocator' to the struct of
 // mulle__pointerarray, otherwise its the same
 //
 #define MULLE_POINTERARRAY_BASE          \
@@ -53,6 +53,17 @@ struct mulle_pointerarray
 {
    MULLE_POINTERARRAY_BASE;
 };
+
+
+#define MULLE_POINTERARRAY_INIT( storage, count, allocator) \
+   ((struct mulle_structarray)                              \
+   {                                                        \
+      storage,                                              \
+      storage,                                              \
+      &storage[ count],                                     \
+      storage,                                              \
+      allocator                                             \
+   })
 
 
 MULLE_C_NONNULL_FIRST
@@ -73,6 +84,22 @@ static inline void   mulle_pointerarray_init( struct mulle_pointerarray *array,
 {
    if( array)
       _mulle_pointerarray_init( array, capacity, allocator);
+}
+
+
+static inline void
+   mulle_pointerarray_init_with_static_pointer( struct mulle_pointerarray *array,
+                                                void **pointers,
+                                                unsigned int capacity,
+                                                struct mulle_allocator *allocator)
+{
+   if( array)
+   {
+      _mulle__pointerarray_init_with_static_pointers( (struct mulle__pointerarray *) array,
+                                                      pointers,
+                                                      capacity);
+      array->allocator = allocator;
+   }
 }
 
 
@@ -453,6 +480,30 @@ static inline uintptr_t
 }
 
 
+
+MULLE_C_NONNULL_FIRST
+static inline void
+   _mulle_pointerarray_qsort_r_inline( struct mulle_pointerarray *array,
+                                       mulle_pointerarray_cmp_t *compare,
+                                       void *userinfo)
+{
+   _mulle__pointerarray_qsort_r_inline( (struct mulle__pointerarray *) array,
+                                         compare, 
+                                         userinfo);
+}
+
+
+static inline void
+   mulle_pointerarray_qsort_r_inline( struct mulle_pointerarray *array,
+                                      mulle_pointerarray_cmp_t *compare,
+                                      void *userinfo)
+{
+   if( array)
+      _mulle_pointerarray_qsort_r_inline( array, compare, userinfo);
+}
+
+
+
 MULLE_C_NONNULL_FIRST
 static inline void   *_mulle_pointerarray_set( struct mulle_pointerarray *array,
                                                unsigned int i,
@@ -474,6 +525,67 @@ static inline void   *mulle_pointerarray_set( struct mulle_pointerarray *array,
                                      p));
 }
 
+
+#pragma mark - random access set/get
+
+//
+// you can random/access with "set" here, if the pointerarray is too small
+// it's grown and the new space is zeroed
+//
+MULLE_C_NONNULL_FIRST
+static inline void   _mulle_pointerarray_set_zeroing( struct mulle_pointerarray *array,
+                                                      unsigned int i,
+                                                      void *value)
+{
+   _mulle__pointerarray_set_zeroing( (struct mulle__pointerarray *) array,
+                                     i,
+                                     value,
+                                     array->allocator);
+}
+
+
+static inline void   mulle_pointerarray_set_zeroing( struct mulle_pointerarray *array,
+                                                     unsigned int i,
+                                                     void *value)
+{
+   if( ! array)
+      return;
+   _mulle_pointerarray_set_zeroing( array, i, value);
+}
+
+
+MULLE_C_NONNULL_FIRST
+static inline void   *_mulle_pointerarray_get_zeroing( struct mulle_pointerarray *array,
+                                                       unsigned int i)
+{
+   return( _mulle__pointerarray_get_zeroing( (struct mulle__pointerarray *) array,
+                                             i));
+}
+
+
+static inline void   *mulle_pointerarray_get_zeroing( struct mulle_pointerarray *array,
+                                                      unsigned int i)
+{
+   if( ! array)
+      return( NULL);
+   return( _mulle_pointerarray_get_zeroing( array, i));
+}
+
+
+// makes no sense if array is nil
+MULLE_C_NONNULL_FIRST
+static inline void
+   **_mulle_pointerarray_get_zeroing_address( struct mulle_pointerarray *array,
+                                              unsigned int i)
+{
+   return( _mulle__pointerarray_get_zeroing_address( (struct mulle__pointerarray *) array,
+                                                      i,
+                                                      array->allocator));
+}
+
+
+
+#pragma mark - reset
 
 MULLE_C_NONNULL_FIRST
 static inline void

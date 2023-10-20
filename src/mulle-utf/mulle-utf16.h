@@ -75,17 +75,33 @@ static inline int   mulle_utf16_is_char5character( mulle_utf16_t c)
 }
 
 
-MULLE_UTF_GLOBAL
+MULLE__UTF_GLOBAL
 int     mulle_utf16_information( mulle_utf16_t *src, size_t len, struct mulle_utf_information *info);
 
-MULLE_UTF_GLOBAL
+MULLE__UTF_GLOBAL
 size_t  mulle_utf16_utf8length( mulle_utf16_t *src, size_t len);
 
-MULLE_UTF_GLOBAL
+MULLE__UTF_GLOBAL
+size_t  mulle_utf16_utf32length( mulle_utf16_t *src, size_t len);
+
+MULLE__UTF_GLOBAL
 size_t  mulle_utf16_length( mulle_utf16_t *src, size_t len);
 
-MULLE_UTF_GLOBAL
-int     mulle_utf16_is_ascii( mulle_utf16_t *src, size_t len);
+MULLE__UTF_GLOBAL
+int   mulle_utf16_contains_character_larger_or_equal( mulle_utf16_t *src,
+                                                      size_t len,
+                                                      mulle_utf16_t d);
+
+static inline int   mulle_utf16_is_ascii( mulle_utf16_t *src, size_t len)
+{
+   return( ! mulle_utf16_contains_character_larger_or_equal( src, len, 0x80));
+}
+
+
+static inline int   mulle_utf16_is_utf15( mulle_utf16_t *src, size_t len)
+{
+   return( ! mulle_utf16_contains_character_larger_or_equal( src, len, 0x8000));
+}
 
 
 static inline size_t  mulle_utf16_utf8maxlength( size_t len)
@@ -93,49 +109,49 @@ static inline size_t  mulle_utf16_utf8maxlength( size_t len)
    return( len * 4);
 }
 
-MULLE_UTF_GLOBAL
+MULLE__UTF_GLOBAL
 mulle_utf16_t  *mulle_utf16_validate( mulle_utf16_t *src, size_t len);
 
 // hi and lo MUST be surrogates
-MULLE_UTF_GLOBAL
+MULLE__UTF_GLOBAL
 int  mulle_utf16_is_valid_surrogatepair( mulle_utf16_t hi, mulle_utf16_t lo);
 
 // step through string characters
-MULLE_UTF_GLOBAL
+MULLE__UTF_GLOBAL
 mulle_utf32_t   _mulle_utf16_next_utf32character( mulle_utf16_t **s_p);
 
-MULLE_UTF_GLOBAL
+MULLE__UTF_GLOBAL
 mulle_utf32_t   _mulle_utf16_previous_utf32character( mulle_utf16_t **s_p);
 
 
 // low level conversion, no checks dst is assumed to be wide enough
 // returns end of dst
-MULLE_UTF_GLOBAL
+MULLE__UTF_GLOBAL
 mulle_utf32_t  *_mulle_utf16_convert_to_utf32( mulle_utf16_t *src,
                                                size_t len,
                                                mulle_utf32_t *dst);
-MULLE_UTF_GLOBAL
-mulle_utf8_t  *_mulle_utf16_convert_to_utf8( mulle_utf16_t *src,
+MULLE__UTF_GLOBAL
+char  *_mulle_utf16_convert_to_utf8( mulle_utf16_t *src,
                                              size_t len,
-                                             mulle_utf8_t *dst);
+                                             char *dst);
 //
 // This will not stop on a zero. It will not by itself append a zero.
 // return value = 0  means OK!
 // these routines do not skip BOM characters
 //
-MULLE_UTF_GLOBAL
+MULLE__UTF_GLOBAL
 void   mulle_utf16_bufferconvert_to_utf8( mulle_utf16_t *src,
                                           size_t len,
                                           void *buffer,
                                           mulle_utf_add_bytes_function_t addbytes);
 
-MULLE_UTF_GLOBAL
+MULLE__UTF_GLOBAL
 void   mulle_utf16_bufferconvert_to_utf32( mulle_utf16_t *src,
                                            size_t len,
                                            void *buffer,
                                            mulle_utf_add_bytes_function_t addbytes);
 
-MULLE_UTF_GLOBAL
+MULLE__UTF_GLOBAL
 enum mulle_utf_charinfo   _mulle_utf16_charinfo( mulle_utf16_t *src, size_t len);
 
 #endif

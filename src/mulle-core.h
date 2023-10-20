@@ -10,24 +10,24 @@
  *
  *  version:  major, minor, patch
  */
-#define MULLE_CORE_VERSION  ((0 << 20) | (1 << 8) | 0)
+#define MULLE__CORE_VERSION  ((0 << 20) | (2 << 8) | 0)
 
 
 static inline unsigned int   mulle_core_get_version_major( void)
 {
-   return( MULLE_CORE_VERSION >> 20);
+   return( MULLE__CORE_VERSION >> 20);
 }
 
 
 static inline unsigned int   mulle_core_get_version_minor( void)
 {
-   return( (MULLE_CORE_VERSION >> 8) & 0xFFF);
+   return( (MULLE__CORE_VERSION >> 8) & 0xFFF);
 }
 
 
 static inline unsigned int   mulle_core_get_version_patch( void)
 {
-   return( MULLE_CORE_VERSION & 0xFF);
+   return( MULLE__CORE_VERSION & 0xFF);
 }
 
 // mulle-c11 feature: MULLE_CORE__GLOBAL

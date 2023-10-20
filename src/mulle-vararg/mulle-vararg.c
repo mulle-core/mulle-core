@@ -12,4 +12,4 @@
 
 
 // for the linker something to do
-uint32_t  __mulle_vararg_version =  MULLE_VARARG_VERSION;
+uint32_t  __mulle_vararg_version =  MULLE__VARARG_VERSION;

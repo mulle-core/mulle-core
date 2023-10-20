@@ -31,8 +31,6 @@
 //  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 //  POSSIBILITY OF SUCH DAMAGE.
 //
-#include "include-private.h"
-
 #include "mulle-aba-storage.h"
 
 #include "mulle-aba-defines.h"
@@ -41,8 +39,9 @@
 #include <stdio.h>
 #include <string.h>
 
-
+#if MULLE_ABA_TRACE || MULLE_ABA_TRACE_SWAP || STATE_STATS || ! defined( NDEBUG)
 static int   _mulle_aba_worldpointer_state( _mulle_aba_worldpointer_t world_p);
+#endif
 
 
 void   _mulle_aba_freeentry_set( struct _mulle_aba_freeentry *entry,
@@ -78,9 +77,9 @@ static int   print( struct _mulle_aba_freeentry   *entry,
 }
 
 
-void   _mulle_aba_linkedlist_print( struct _mulle_aba_linkedlist *p)
+void   _mulle_concurrent_linkedlist_print( struct _mulle_concurrent_linkedlist *p)
 {
-   _mulle_aba_linkedlist_walk( p, (void *)  print, NULL);
+   _mulle_concurrent_linkedlist_walk( p, (void *)  print, NULL);
 }
 #endif
 
@@ -425,7 +424,7 @@ struct _mulle_aba_freeentry
 {
    struct _mulle_aba_freeentry  *entry;
 
-   entry = (void *) _mulle_aba_linkedlist_remove_one( &q->_free_entries);
+   entry = (void *) _mulle_concurrent_linkedlist_remove_one( &q->_free_entries);
    if( entry)
    {
       entry->_link._next = 0;
@@ -462,7 +461,7 @@ void   _mulle_aba_storage_free_freeentry( struct _mulle_aba_storage *q,
                                           struct _mulle_aba_freeentry  *entry)
 {
    memset( entry, 0, sizeof( *entry));
-   _mulle_aba_linkedlist_add( &q->_free_entries, (void *) entry);
+   _mulle_concurrent_linkedlist_add( &q->_free_entries, (void *) entry);
 #if MULLE_ABA_TRACE || MULLE_ABA_TRACE_FREE || MULLE_ABA_TRACE_LIST
    fprintf( stderr, "%s: put entry %p on reuse chain %p\n",
                         mulle_aba_thread_name(),
@@ -498,7 +497,7 @@ static int  free_pointer_and_entry( struct _mulle_aba_freeentry *entry,
 
 
 static void   _mulle_aba_storage_linkedlist_free( struct _mulle_aba_storage *q,
-                                                  struct _mulle_aba_linkedlist  *list)
+                                                  struct _mulle_concurrent_linkedlist  *list)
 {
    assert( q);
    assert( list);
@@ -506,7 +505,7 @@ static void   _mulle_aba_storage_linkedlist_free( struct _mulle_aba_storage *q,
 #if MULLE_ABA_TRACE || MULLE_ABA_TRACE_LIST
    fprintf( stderr, "%s: free linked list %p\n", mulle_aba_thread_name(), list);
 #endif
-   _mulle_aba_linkedlist_walk( list, (void *) free_pointer_and_entry, q);
+   _mulle_concurrent_linkedlist_walk( list, (void *) free_pointer_and_entry, q);
 }
 
 
@@ -521,7 +520,7 @@ struct _mulle_aba_world   *_mulle_aba_storage_alloc_world( struct _mulle_aba_sto
 
    for(;;)
    {
-      world = (void *) _mulle_aba_linkedlist_remove_one( &q->_free_worlds);
+      world = (void *) _mulle_concurrent_linkedlist_remove_one( &q->_free_worlds);
       if( ! world)
          break;
 
@@ -571,7 +570,7 @@ void   _mulle_aba_storage_free_world( struct _mulle_aba_storage *q,
 
    memset( world, 0, _mulle_aba_world_get_size( world));
 
-   _mulle_aba_linkedlist_add( &q->_free_worlds, (void *) world);
+   _mulle_concurrent_linkedlist_add( &q->_free_worlds, (void *) world);
 
 #if MULLE_ABA_TRACE || MULLE_ABA_TRACE_FREE
    fprintf( stderr, "%s: put world %p on reuse chain %p\n",
@@ -582,7 +581,7 @@ void   _mulle_aba_storage_free_world( struct _mulle_aba_storage *q,
 }
 
 
-MULLE_ABA_GLOBAL
+MULLE__ABA_GLOBAL
 void   _mulle_aba_storage_owned_pointer_free_world( struct _mulle_aba_world *world,
                                                     struct _mulle_aba_storage *q)
 {
@@ -592,7 +591,7 @@ void   _mulle_aba_storage_owned_pointer_free_world( struct _mulle_aba_world *wor
 
    memset( world, 0, _mulle_aba_world_get_size( world));
 
-   _mulle_aba_linkedlist_add( &q->_free_worlds, (void *) world);
+   _mulle_concurrent_linkedlist_add( &q->_free_worlds, (void *) world);
 
 #if MULLE_ABA_TRACE || MULLE_ABA_TRACE_FREE
    fprintf( stderr, "%s: put world %p on reuse chain %p\n",
@@ -621,31 +620,31 @@ static int  free_world( struct _mulle_aba_world *world,
 
 void   _mulle_aba_storage_free_leak_worlds( struct _mulle_aba_storage *q)
 {
-   struct _mulle_aba_linkedlist        list;
-   struct _mulle_aba_linkedlistentry  *entry;
+   struct _mulle_concurrent_linkedlist        list;
+   struct _mulle_concurrent_linkedlistentry  *entry;
 
 #if MULLE_ABA_TRACE
    fprintf( stderr, "%s: freeing leaked worlds %p of storage %p\n", mulle_aba_thread_name(), &q->_leaks, q);
 #endif
-   entry = _mulle_aba_linkedlist_remove_all( &q->_leaks);
+   entry = _mulle_concurrent_linkedlist_remove_all( &q->_leaks);
    _mulle_atomic_pointer_write( &list._head.pointer, entry);
 
-   _mulle_aba_linkedlist_walk( &list, (void *) free_world, q->_allocator);
+   _mulle_concurrent_linkedlist_walk( &list, (void *) free_world, q->_allocator);
 }
 
 
 void   _mulle_aba_storage_free_unused_worlds( struct _mulle_aba_storage *q)
 {
-   struct _mulle_aba_linkedlist        list;
-   struct _mulle_aba_linkedlistentry  *entry;
+   struct _mulle_concurrent_linkedlist        list;
+   struct _mulle_concurrent_linkedlistentry  *entry;
 
 #if MULLE_ABA_TRACE || MULLE_ABA_TRACE_LIST || MULLE_ABA_TRACE_FREE
    fprintf( stderr, "%s: freeing unused worlds %p of storage %p\n", mulle_aba_thread_name(), &q->_free_worlds, q);
 #endif
-   entry = _mulle_aba_linkedlist_remove_all( &q->_free_worlds);
+   entry = _mulle_concurrent_linkedlist_remove_all( &q->_free_worlds);
    _mulle_atomic_pointer_write( &list._head.pointer, entry);
 
-   _mulle_aba_linkedlist_walk( &list, (void *) free_world, q->_allocator);
+   _mulle_concurrent_linkedlist_walk( &list, (void *) free_world, q->_allocator);
 }
 
 
@@ -666,16 +665,16 @@ static int  free_entry( struct _mulle_aba_freeentry *entry,
 
 void   _mulle_aba_storage_free_unused_free_entries( struct _mulle_aba_storage *q)
 {
-   struct _mulle_aba_linkedlist        list;
-   struct _mulle_aba_linkedlistentry  *entry;
+   struct _mulle_concurrent_linkedlist        list;
+   struct _mulle_concurrent_linkedlistentry  *entry;
 
 #if MULLE_ABA_TRACE || MULLE_ABA_TRACE_LIST || MULLE_ABA_TRACE_FREE
    fprintf( stderr, "%s: freeing unused entries %p of storage %p\n", mulle_aba_thread_name(), &q->_free_entries, q);
 #endif
-   entry = _mulle_aba_linkedlist_remove_all( &q->_free_entries);
+   entry = _mulle_concurrent_linkedlist_remove_all( &q->_free_entries);
    _mulle_atomic_pointer_write( &list._head.pointer, entry);
 
-   _mulle_aba_linkedlist_walk( &list, (void *) free_entry, q->_allocator);
+   _mulle_concurrent_linkedlist_walk( &list, (void *) free_entry, q->_allocator);
 }
 
 
@@ -921,29 +920,29 @@ static inline void  log_swap_worlds( enum _mulle_swap_intent intention,
 #endif
 
 // this only works with guard malloc, if addresses aren't reused
-#ifndef NDEBUG
-{
-   static struct
-   {
-      _mulle_aba_worldpointer_t    world_p;
-      mulle_thread_t               thread;
-   } last_world_ps[ 0x20];
-   static mulle_atomic_pointer_t   last_world_ps_index;
-   unsigned int                    i;
-
-   if( rval)
-   {
-//      for( i = 0; i < 0x20; i++)
-//         if( mulle_thread_self() != last_world_ps[ i].thread)
-//            assert( new_world_p != last_world_ps[ i].world_p);
-
-      i = ((uintptr_t) _mulle_atomic_pointer_read( &last_world_ps_index)) & 0x1F;
-      last_world_ps[ i].world_p = new_world_p;
-      last_world_ps[ i].thread  = mulle_thread_self();
-      _mulle_atomic_pointer_increment( &last_world_ps_index);
-   }
-}
-#endif
+// #ifndef NDEBUG
+// {
+//    static struct
+//    {
+//       _mulle_aba_worldpointer_t    world_p;
+//       mulle_thread_t               thread;
+//    } last_world_ps[ 0x20];
+//    static mulle_atomic_pointer_t   last_world_ps_index;
+//    unsigned int                    i;
+//
+//    if( rval)
+//    {
+// //      for( i = 0; i < 0x20; i++)
+// //         if( mulle_thread_self() != last_world_ps[ i].thread)
+// //            assert( new_world_p != last_world_ps[ i].world_p);
+//
+//       i = ((uintptr_t) _mulle_atomic_pointer_read( &last_world_ps_index)) & 0x1F;
+//       last_world_ps[ i].world_p = new_world_p;
+//       last_world_ps[ i].thread  = mulle_thread_self();
+//       _mulle_atomic_pointer_increment( &last_world_ps_index);
+//    }
+// }
+// #endif
 
 #if STATE_STATS
    mulle_transitions_count[ _mulle_aba_worldpointer_state( old_world_p)][ _mulle_aba_worldpointer_state( new_world_p)]++;
@@ -1050,6 +1049,7 @@ struct _mulle_aba_worldpointers
 /*
  *
  */
+#if MULLE_ABA_TRACE || MULLE_ABA_TRACE_SWAP || STATE_STATS || ! defined( NDEBUG)
 
 static int   _mulle_aba_worldpointer_state( _mulle_aba_worldpointer_t world_p)
 {
@@ -1064,6 +1064,8 @@ static int   _mulle_aba_worldpointer_state( _mulle_aba_worldpointer_t world_p)
       state += 8;
    return( state);
 }
+
+#endif
 
 
 _mulle_aba_worldpointer_t
@@ -1151,7 +1153,6 @@ struct _mulle_aba_worldpointers
    _mulle_aba_worldpointer_t         locked_world_p;
    _mulle_aba_worldpointer_t         new_world_p;
    int                               fail;
-   int                               loops;
    int                               rval;
    struct _mulle_aba_callback_info   ctxt;
    struct _mulle_aba_world           *tofree;
@@ -1163,7 +1164,7 @@ struct _mulle_aba_worldpointers
 
    *dealloced = NULL;
 
-   for( loops = 0;; loops++) // loops is just for debugging
+   for(;;) // loops is just for debugging
    {
       world_ps       = _mulle_aba_storage_lock_worldpointer( q);
 
@@ -1265,20 +1266,18 @@ struct _mulle_aba_worldpointers
 
 struct _mulle_aba_worldpointers
    _mulle_aba_storage_copy_change_worldpointer( struct _mulle_aba_storage *q,
-                                                 enum _mulle_swap_intent  intention,
-                                                 _mulle_aba_worldpointer_t   old_world_p,
-                                                 int (*callback)( int, struct _mulle_aba_callback_info *, void *),
-                                                 void *userinfo)
+                                                enum _mulle_swap_intent  intention,
+                                                _mulle_aba_worldpointer_t   old_world_p,
+                                                int (*callback)( int, struct _mulle_aba_callback_info *, void *),
+                                                void *userinfo)
 {
-   _mulle_aba_worldpointer_t        new_world_p;
+   _mulle_aba_worldpointer_t         new_world_p;
    int                               rval;
    struct _mulle_aba_callback_info   ctxt;
-   int                               loops;
    int                               cmd;
 
    assert( old_world_p);
 
-   loops = 0;
    ctxt.new_world  = NULL;
    ctxt.new_bit    = 0;
    ctxt.new_locked = 0;
@@ -1287,7 +1286,6 @@ struct _mulle_aba_worldpointers
 
    do
    {
-      ++loops;
       cmd            = _mulle_aba_world_reuse;
       old_world_p    = _mulle_aba_storage_get_worldpointer( q);
 start_with_old_world:
@@ -1473,7 +1471,7 @@ void   _mulle_aba_world_check_timerange( struct _mulle_aba_world *world,
    unsigned int                          ts_index;
    unsigned int                          index;
    void                                  *rc;
-   struct _mulle_aba_linkedlist         free_list;
+   struct _mulle_concurrent_linkedlist         free_list;
 
    if( ! world->_timestamp)
       return;
@@ -1517,7 +1515,7 @@ void   _mulle_aba_world_check_timerange( struct _mulle_aba_world *world,
                               &ts_entry->_pointer_list,
                               timestamp,
                               (intptr_t) _mulle_atomic_pointer_read( &ts_entry->_retain_count_1) + 1);
-      _mulle_aba_linkedlist_print( &ts_entry->_pointer_list);
+      _mulle_concurrent_linkedlist_print( &ts_entry->_pointer_list);
 #endif
 
       //

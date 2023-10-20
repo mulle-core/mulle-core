@@ -11,7 +11,7 @@ mulle-sde install --prefix /usr/local \
 
 ### Manual Installation
 
-Download the latest tar or zip archive and unpack it. Then install
+Download the latest [tar](https://github.com/{{ project.user }}/{{ project.name }}/archive/refs/tags/latest.tar.gz) or [zip](https://github.com/{{ project.user }}/{{ project.name }}/archive/refs/tags/latest.zip) archive and unpack it. Then install
 **{{ project.name }}** into `/usr/local` with [cmake](https://cmake.org):
 
 ``` sh

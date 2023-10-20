@@ -73,16 +73,20 @@ static inline int   mulle_utf32_is_char5character( mulle_utf32_t c)
 }
 
 
-MULLE_UTF_GLOBAL
+MULLE__UTF_GLOBAL
 size_t   mulle_utf32_utf8length( mulle_utf32_t *src,
                                  size_t len);
 
-MULLE_UTF_GLOBAL
+MULLE__UTF_GLOBAL
+size_t   mulle_utf32_utf16length( mulle_utf32_t *src,
+                                  size_t len);
+
+MULLE__UTF_GLOBAL
 int   mulle_utf32_information( mulle_utf32_t *src,
                                size_t len,
                                struct mulle_utf_information *info);
 
-MULLE_UTF_GLOBAL
+MULLE__UTF_GLOBAL
 mulle_utf32_t  *mulle_utf32_validate( mulle_utf32_t *src, size_t len);
 
 //
@@ -102,59 +106,66 @@ static inline mulle_utf32_t   _mulle_utf32_previous_utf32character( mulle_utf32_
 
 // low level conversion, no checks dst is assumed to be wide enough
 // returns end of dst
-MULLE_UTF_GLOBAL
+MULLE__UTF_GLOBAL
 mulle_utf16_t  *_mulle_utf32_convert_to_utf16_as_surrogatepair( mulle_utf32_t x,
                                                                 mulle_utf16_t *dst);
 
-MULLE_UTF_GLOBAL
+MULLE__UTF_GLOBAL
 mulle_utf16_t   *_mulle_utf32_convert_to_utf16( mulle_utf32_t *src,
                                                 size_t len,
                                                 mulle_utf16_t *dst);
-MULLE_UTF_GLOBAL
-mulle_utf8_t  *_mulle_utf32_convert_to_utf8( mulle_utf32_t *src,
-                                             size_t len,
-                                             mulle_utf8_t *dst);
+MULLE__UTF_GLOBAL
+char  *_mulle_utf32_convert_to_utf8( mulle_utf32_t *src, size_t len, char *dst);
 
 // these routines do not skip BOM characters
-MULLE_UTF_GLOBAL
+MULLE__UTF_GLOBAL
 void   mulle_utf32_bufferconvert_to_utf8( mulle_utf32_t *src,
                                           size_t len,
                                           void *buffer,
                                           mulle_utf_add_bytes_function_t addbytes);
 
-MULLE_UTF_GLOBAL
+MULLE__UTF_GLOBAL
 void   mulle_utf32_bufferconvert_to_utf16( mulle_utf32_t *src,
                                            size_t len,
                                            void *buffer,
                                            mulle_utf_add_bytes_function_t addbytes);
 
-
-MULLE_UTF_GLOBAL
-void
+// unused nowadays
+static inline void
    mulle_utf32_bufferconvert_to_utf16_as_surrogatepair(
-                       mulle_utf32_t x,
-                       void *buffer,
-                       void (*addbytes)( void *buffer, void *bytes, size_t size));
-
-
-MULLE_UTF_GLOBAL
-mulle_utf8_t   *_mulle_utf32_as_utf8( mulle_utf32_t x, mulle_utf8_t *dst);
-
-// no error checks whatsoever
-static inline mulle_utf8_t   *mulle_utf32_as_utf8( mulle_utf32_t x, mulle_utf8_t *dst)
+            mulle_utf32_t x,
+            void *buffer,
+            mulle_utf_add_bytes_function_t addbytes)
 {
+   mulle_utf16_t   hilo[ 2];
 
-   if( (uint32_t) x < 0x80)
-   {
-      *dst++ = (mulle_utf8_t) x;
-      return( dst);
-   }
-   return( _mulle_utf32_as_utf8( x, dst));
+   _mulle_utf32_convert_to_utf16_as_surrogatepair( x, hilo);
+
+   // (nat) I used to flip those adds around based on endianness, but I think
+   // that was wrong
+   (*addbytes)( buffer, hilo, sizeof( mulle_utf16_t) * 2);
 }
 
 
 
-MULLE_UTF_GLOBAL
+MULLE__UTF_GLOBAL
+char   *_mulle_utf32_as_utf8_not_ascii( mulle_utf32_t x, char *dst);
+
+// no error checks whatsoever
+// returns end of `dst`
+static inline char   *mulle_utf32_as_utf8( mulle_utf32_t x, char *dst)
+{
+   if( (uint32_t) x < 0x80)
+   {
+      *dst++ = (char) x;
+      return( dst);
+   }
+   return( _mulle_utf32_as_utf8_not_ascii( x, dst));
+}
+
+
+
+MULLE__UTF_GLOBAL
 enum mulle_utf_charinfo   _mulle_utf32_charinfo( mulle_utf32_t *src, size_t len);
 
 #endif

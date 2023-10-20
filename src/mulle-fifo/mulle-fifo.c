@@ -12,5 +12,5 @@ int   __MULLE_FIFO_ranlib__;
 
 uint32_t   mulle_fifo_get_version( void)
 {
-   return( MULLE_FIFO_VERSION);
+   return( MULLE__FIFO_VERSION);
 }

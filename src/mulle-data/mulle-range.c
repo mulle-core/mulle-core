@@ -12,8 +12,8 @@ struct mulle_range   mulle_range_intersect( struct mulle_range range,
    uintptr_t            end2;
    struct mulle_range   result;
 
-   end1 = mulle_range_get_end( range);
-   end2 = mulle_range_get_end( other);
+   end1 = mulle_range_get_max( range);
+   end2 = mulle_range_get_max( other);
    min  = (end1 < end2) ? end1 : end2;
    location  = (range.location > other.location) ? range.location : other.location;
 
@@ -43,8 +43,8 @@ struct mulle_range   mulle_range_union( struct mulle_range range,
    if( ! range.length)
       return( other);
 
-   end1      = mulle_range_get_end( range);
-   end2      = mulle_range_get_end( other);
+   end1      = mulle_range_get_max( range);
+   end2      = mulle_range_get_max( other);
    end       = (end1 > end2) ? end1 : end2;
    location  = (range.location < other.location) ? range.location : other.location;
 
@@ -157,7 +157,7 @@ struct mulle_range   *mulle_range_intersects_bsearch( struct mulle_range *buf,
    while( first <= last)
    {
       p = &buf[ middle];
-      if( p->location < mulle_range_get_end( search))
+      if( p->location < mulle_range_get_max( search))
       {
          if( mulle_range_intersect( *p, search).length)
             return( p);
@@ -183,8 +183,8 @@ unsigned int   mulle_range_subtract( struct mulle_range a,
 
    // 1. completely separate
    //
-   //   b.....b_end
    //                 a.........a_end
+   //   b.....b_end
    //
 
    if( ! mulle_range_intersect( a, b).length)
@@ -193,8 +193,8 @@ unsigned int   mulle_range_subtract( struct mulle_range a,
       return( 1);
    }
 
-   a_end = mulle_range_get_end( a);
-   b_end = mulle_range_get_end( b);
+   a_end = mulle_range_get_max( a);
+   b_end = mulle_range_get_max( b);
 
    // 2.
    //
@@ -211,9 +211,8 @@ unsigned int   mulle_range_subtract( struct mulle_range a,
 
 
    // 3.
-   //
-   //              b.....b_end
    //          a..............a_end
+   //              b.....b_end
    //
    //     make a hole
    //
@@ -226,8 +225,8 @@ unsigned int   mulle_range_subtract( struct mulle_range a,
 
    // 4. range removes part of the front
    //
-   //   b.....b_end
    //      a.........a_end
+   //   b.....b_end
    //
    if( a_end > b_end)
    {
@@ -237,9 +236,63 @@ unsigned int   mulle_range_subtract( struct mulle_range a,
 
    // 5. range removes part of the back
    //
-   //        b.......b_end
    //  a.........a_end
+   //        b.......b_end
    //
    result[ 0] = mulle_range_make( a.location, b.location - a.location);
    return( 1);
+}
+
+
+MULLE__DATA_GLOBAL
+unsigned int   mulle_range_insert( struct mulle_range a,
+                                   struct mulle_range b,
+                                   struct mulle_range result[ 2])
+{
+   uintptr_t   a_end;
+   uintptr_t   b_end;
+
+   if( ! mulle_range_is_valid( a))
+      return( 0);
+
+   if( ! b.length)
+      return( 0); // no like
+
+   a_end = _mulle_range_get_max( a);
+   b_end = _mulle_range_get_max( b);
+
+   // 1. completely separate
+   //
+   //                 a.........a_end
+   //   b.....b_end
+   //
+   if( b.location > a_end || b_end < a.location)
+      return( 0); // no like
+
+
+   // 2.
+   //           111 2222222222
+   //          a...|..........a_end
+   //              b.....b_end
+   //
+   // same as
+   //           111 2222222222
+   //          a...|..........a_end
+   //              b..................b_end
+   //     make a hole
+   //
+   if( b.location >= a.location)
+   {
+      result[ 0] = mulle_range_make( a.location, b.location - a.location);
+      result[ 1] = mulle_range_make( b_end, a_end - b.location);
+      return( 2);
+   }
+
+   // 3.
+   //           111 2222222222
+   //          a..............a_end
+   //       b.....b_end
+   result[ 0] = mulle_range_zero;
+   result[ 1] = mulle_range_make( b_end, a.length);
+   return( 2);
 }

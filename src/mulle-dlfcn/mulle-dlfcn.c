@@ -8,5 +8,5 @@ int   __MULLE_DLFCN_ranlib__;
 
 uint32_t   mulle_dlfcn_get_version( void)
 {
-   return( MULLE_DLFCN_VERSION);
+   return( MULLE__DLFCN_VERSION);
 }

@@ -21,13 +21,13 @@
 
 #include "_mulle-http-include.h"
 
-#ifdef MULLE_HTTP_BUILD
-# define MULLE_HTTP_GLOBAL    MULLE_C_GLOBAL
+#ifdef MULLE__HTTP_BUILD
+# define MULLE__HTTP_GLOBAL    MULLE_C_GLOBAL
 #else
 # if defined( MULLE_HTTP_INCLUDE_DYNAMIC) || (defined( MULLE_INCLUDE_DYNAMIC) && ! defined( MULLE_HTTP_INCLUDE_STATIC))
-#  define MULLE_HTTP_GLOBAL   MULLE_C_EXTERN_GLOBAL
+#  define MULLE__HTTP_GLOBAL   MULLE_C_EXTERN_GLOBAL
 # else
-#  define MULLE_HTTP_GLOBAL   extern
+#  define MULLE__HTTP_GLOBAL   extern
 # endif
 #endif
 

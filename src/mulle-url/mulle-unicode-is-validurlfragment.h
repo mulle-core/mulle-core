@@ -14,11 +14,11 @@
 #include "include.h"
 #include <stdint.h>
 
-MULLE_URL_GLOBAL
+MULLE__URL_GLOBAL
 int   mulle_unicode16_is_validurlfragment( uint16_t c);
-MULLE_URL_GLOBAL
+MULLE__URL_GLOBAL
 int   mulle_unicode_is_validurlfragment( int32_t c);
-MULLE_URL_GLOBAL
+MULLE__URL_GLOBAL
 int   mulle_unicode_is_validurlfragmentplane( unsigned int plane);
 
 #endif /* mulle_unicode_is_validurlfragment_h */

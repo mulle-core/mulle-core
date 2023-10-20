@@ -7,13 +7,15 @@
 typedef mulle_timeinterval_t   mulle_relativetime_t;
 
 
-static inline void   _mulle_relativetime_init( mulle_relativetime_t *p, mulle_timeinterval_t value)
+static inline void   _mulle_relativetime_init( mulle_relativetime_t *p, 
+                                               mulle_timeinterval_t value)
 {
    *p = value;
 }
 
 
-static inline void   mulle_relativetime_init( mulle_relativetime_t *p, mulle_timeinterval_t value)
+static inline void   mulle_relativetime_init( mulle_relativetime_t *p, 
+                                              mulle_timeinterval_t value)
 {
    if( p)
       _mulle_relativetime_init( p, value);
@@ -33,6 +35,14 @@ struct mulle_relativetimerange
    mulle_relativetime_t   delay;
    mulle_relativetime_t   duration;
 };
+
+
+#define MULLE_RELATIVETIMERANGE_INIT( delay, duration)  \
+   ((struct mulle_relativetimerange)                    \
+   {                                                    \
+      (delay),                                          \
+      (duration)                                        \
+   })
 
 
 static inline struct mulle_relativetimerange
