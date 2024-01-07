@@ -11,6 +11,10 @@
 
 #include "mulle-char5.h"
 
+#include "mulle-utf8.h"
+#include "mulle-utf16.h"
+#include "mulle-utf32.h"
+
 
 char   mulle_char5_lookup_table[ 128] =
 {
@@ -89,6 +93,12 @@ int   mulle_char5_is_char5string32( char *src, size_t len)
 {
    char   *sentinel;
 
+   if( ! src)
+      return( 0);
+
+   if( len == (size_t ) -1)
+      len = mulle_utf8_strlen( src);
+
    if( len > mulle_char5_maxlength32)
       return( 0);
 
@@ -107,6 +117,12 @@ int   mulle_char5_is_char5string32( char *src, size_t len)
 int   mulle_char5_is_char5string64( char *src, size_t len)
 {
    char   *sentinel;
+
+   if( ! src)
+      return( 0);
+
+   if( len == (size_t ) -1)
+      len = mulle_utf8_strlen( src);
 
    if( len > mulle_char5_maxlength64)
       return( 0);
@@ -131,14 +147,18 @@ uint32_t   mulle_char5_encode32( char *src, size_t len)
    int        char5;
    uint32_t   value;
 
+   if( len == (size_t ) -1)
+      len = mulle_utf8_strlen( src);
+
+   assert( len <= mulle_char5_maxlength32);
+
    value    = 0;
    sentinel = src;
    s        = &src[ len];
    while( s > sentinel)
    {
       c = *--s;
-      if( ! c)
-         continue;
+      assert(  c);
 
       char5   = mulle_char5_lookup_character( c);
       assert( char5 > 0 && char5 < 0x20);
@@ -158,14 +178,18 @@ uint64_t   mulle_char5_encode64( char *src, size_t len)
    int        char5;
    uint64_t   value;
 
+   if( len == (size_t ) -1)
+      len = mulle_utf8_strlen( src);
+
+   assert( len <= mulle_char5_maxlength64);
+
    value    = 0;
    sentinel = src;
    s        = &src[ len];
    while( s > sentinel)
    {
       c = *--s;
-      if( ! c)
-         continue;
+      assert( c);
 
       char5 = mulle_char5_lookup_character( c);
       assert( char5 > 0 && char5 < 0x20);
@@ -185,14 +209,18 @@ uint32_t   mulle_char5_encode32_utf16( mulle_utf16_t *src, size_t len)
    int             char5;
    uint32_t        value;
 
+   if( len == (size_t ) -1)
+      len = mulle_utf16_strlen( src);
+
+   assert( len <= mulle_char5_maxlength32);
+
    value    = 0;
    sentinel = src;
    s        = &src[ len];
    while( s > sentinel)
    {
       c = *--s;
-      if( ! c)
-         continue;
+      assert( c);
 
       char5   = mulle_char5_lookup_character( c);
       assert( char5 > 0 && char5 < 0x20);
@@ -212,14 +240,18 @@ uint64_t   mulle_char5_encode64_utf16( mulle_utf16_t *src, size_t len)
    int             char5;
    uint64_t        value;
 
+   if( len == (size_t ) -1)
+      len = mulle_utf16_strlen( src);
+
+   assert( len <= mulle_char5_maxlength64);
+
    value    = 0;
    sentinel = src;
    s        = &src[ len];
    while( s > sentinel)
    {
       c = *--s;
-      if( ! c)
-         continue;
+      assert( c);
 
       char5 = mulle_char5_lookup_character( c);
       assert( char5 > 0 && char5 < 0x20);
@@ -231,8 +263,6 @@ uint64_t   mulle_char5_encode64_utf16( mulle_utf16_t *src, size_t len)
 }
 
 
-
-
 uint32_t   mulle_char5_encode32_utf32( mulle_utf32_t *src, size_t len)
 {
    mulle_utf32_t   *s;
@@ -241,14 +271,18 @@ uint32_t   mulle_char5_encode32_utf32( mulle_utf32_t *src, size_t len)
    int             char5;
    uint32_t        value;
 
+   if( len == (size_t ) -1)
+      len = mulle_utf32_strlen( src);
+
+   assert( len <= mulle_char5_maxlength32);
+
    value    = 0;
    sentinel = src;
    s        = &src[ len];
    while( s > sentinel)
    {
       c = *--s;
-      if( ! c)
-         continue;
+      assert( c);
 
       char5   = mulle_char5_lookup_character( c);
       assert( char5 > 0 && char5 < 0x20);
@@ -268,14 +302,18 @@ uint64_t   mulle_char5_encode64_utf32( mulle_utf32_t *src, size_t len)
    int             char5;
    uint64_t        value;
 
+   if( len == (size_t ) -1)
+      len = mulle_utf32_strlen( src);
+
+   assert( len <= mulle_char5_maxlength64);
+
    value    = 0;
    sentinel = src;
    s        = &src[ len];
    while( s > sentinel)
    {
       c = *--s;
-      if( ! c)
-         continue;
+      assert( c);
 
       char5 = mulle_char5_lookup_character( c);
       assert( char5 > 0 && char5 < 0x20);
@@ -300,9 +338,8 @@ size_t  mulle_char5_decode32( uint32_t value, char *dst, size_t len)
       if( ! value)
          break;
 
-      char5  = value & 0x1F;
-      *s++ = (char) mulle_char5_decode_character( char5);
-
+      char5   = value & 0x1F;
+      *s++    = (char) mulle_char5_decode_character( char5);
       value >>= 5;
    }
    return( s - dst);
@@ -322,9 +359,8 @@ size_t  mulle_char5_decode64( uint64_t value, char *dst, size_t len)
       if( ! value)
          break;
 
-      char5 = value & 0x1F;
-      *s++  = (char) mulle_char5_decode_character( char5);
-
+      char5   = value & 0x1F;
+      *s++    = (char) mulle_char5_decode_character( char5);
       value >>= 5;
    }
    return( s - dst);
@@ -335,12 +371,12 @@ int   mulle_char5_get64( uint64_t value, unsigned int index)
 {
    int   char5;
 
+
+   assert( index < 12);
+
    do
    {
-      char5 = value & 0x1F;
-      if( ! value)
-         break;
-
+      char5   = value & 0x1F;
       value >>= 5;
    }
    while( index--);
@@ -353,12 +389,11 @@ int   mulle_char5_get32( uint32_t value, unsigned int index)
 {
    int   char5;
 
+   assert( index < 6);
+
    do
    {
       char5 = value & 0x1F;
-      if( ! value)
-         break;
-
       value >>= 5;
    }
    while( index--);

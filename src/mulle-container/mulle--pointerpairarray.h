@@ -59,8 +59,7 @@ struct mulle__pointerpairarray
 
 
 static inline struct mulle__pointerpairarray  *
-   mulle__pointerpairarray_alloc( void *notakey,
-                                  struct mulle_allocator *allocator)
+   mulle__pointerpairarray_alloc( struct mulle_allocator *allocator)
 {
    struct mulle__pointerpairarray   *array;
 
@@ -74,7 +73,7 @@ static inline void
                                   unsigned int  capacity,
                                   struct mulle_allocator *allocator)
 {
-   memset( array, 0, sizeof( *array));
+   *array = (struct mulle__pointerpairarray) { 0 };
 
    if( capacity)
    {
@@ -98,9 +97,20 @@ static inline void
 }
 
 
+static inline struct mulle__pointerpairarray  *
+   mulle__pointerpairarray_create( struct mulle_allocator *allocator)
+{
+   struct mulle__pointerpairarray   *array;
+
+   array = mulle__pointerpairarray_alloc( allocator);
+   _mulle__pointerpairarray_init( array, 0, allocator);
+   return( array);
+}
+
+
 static inline void
    _mulle__pointerpairarray_destroy( struct mulle__pointerpairarray *array,
-                                    struct mulle_allocator *allocator)
+                                     struct mulle_allocator *allocator)
 {
    _mulle__pointerpairarray_done( array, allocator);
    mulle_allocator_free( allocator, array);
@@ -356,72 +366,63 @@ static inline void   mulle__pointerpairarray_qsort_r( struct mulle__pointerpaira
                                                       mulle_pointerpair_compare_t *compare,
                                                       void *userinfo)
 {
-   mulle_pointerpair_qsort_r( array->_storage,
-                              mulle__pointerpairarray_get_count( array),
-                              compare,
-                              userinfo);
+   if( array)
+      mulle_pointerpair_qsort_r( array->_storage,
+                                 mulle__pointerpairarray_get_count( array),
+                                 compare,
+                                 userinfo);
 }
 
 
 
 MULLE_C_NONNULL_FIRST
-static inline struct mulle_pointerpair
-   _mulle__pointerpairarray_search_compare( struct mulle__pointerpairarray *array,
+static inline uintptr_t
+   _mulle__pointerpairarray_find_compare( struct mulle__pointerpairarray *array,
                                             struct mulle_pointerpair search,
                                             mulle_pointerpair_compare_t *compare,
                                             void *userinfo)
 {
-   uintptr_t   i;
-
-   i = _mulle_pointerpair_find_in_range_compare( array->_storage,
-                                                 search,
-                                                 mulle_range_make( 0, array->_curr - array->_storage),
-                                                 compare,
-                                                 userinfo);
-   if( i == mulle_not_found_e)
-      return( mulle_pointerpair_make_invalid());
-   return( array->_storage[ i]);
+   return( _mulle_pointerpair_find_in_range_compare( array->_storage,
+                                                     search,
+                                                     mulle_range_make( 0, array->_curr - array->_storage),
+                                                     compare,
+                                                     userinfo));
 }
 
 
-static inline struct mulle_pointerpair
-   mulle__pointerpairarray_search_compare( struct mulle__pointerpairarray *array,
+static inline uintptr_t
+   mulle__pointerpairarray_find_compare( struct mulle__pointerpairarray *array,
                                            struct mulle_pointerpair search,
                                             mulle_pointerpair_compare_t *compare,
                                             void *userinfo)
 {
    if( ! array)
-      return( mulle_pointerpair_make_invalid());
-   return( _mulle__pointerpairarray_search_compare( array, search, compare, userinfo));
+      return( mulle_not_found_e);
+   return( _mulle__pointerpairarray_find_compare( array, search, compare, userinfo));
 }
 
 
 MULLE_C_NONNULL_FIRST
-static inline struct mulle_pointerpair
-   _mulle__pointerpairarray_search_callback( struct mulle__pointerpairarray *array,
-                                             struct mulle_pointerpair search,
-                                             struct mulle_container_keyvaluecallback *callback)
+static inline uintptr_t
+   _mulle__pointerpairarray_find_callback( struct mulle__pointerpairarray *array,
+                                           struct mulle_pointerpair search,
+                                           struct mulle_container_keyvaluecallback *callback)
 {
-   uintptr_t   i;
-
-   i = _mulle_pointerpair_find_in_range_callback( array->_storage,
-                                                  search,
-                                                  mulle_range_make( 0, array->_curr - array->_storage),
-                                                  callback);
-   if( i == mulle_not_found_e)
-      return( mulle_pointerpair_make_invalid());
-   return( array->_storage[ i]);
+   return( _mulle_pointerpair_find_in_range_callback( array->_storage,
+                                                      search,
+                                                      mulle_range_make( 0, array->_curr - array->_storage),
+                                                      callback));
 }
 
 
-static inline struct mulle_pointerpair
-   mulle__pointerpairarray_search_callback( struct mulle__pointerpairarray *array,
-                                            struct mulle_pointerpair search,
-                                            struct mulle_container_keyvaluecallback *callback)
+static inline uintptr_t
+   mulle__pointerpairarray_find_callback( struct mulle__pointerpairarray *array,
+                                          struct mulle_pointerpair search,
+                                          struct mulle_container_keyvaluecallback *callback)
 {
    if( ! array)
-      return( mulle_pointerpair_make_invalid());
-   return( _mulle__pointerpairarray_search_callback( array, search, callback));
+      return( mulle_not_found_e);
+   return( _mulle__pointerpairarray_find_callback( array, search, callback));
 }
 
 
@@ -435,7 +436,6 @@ void   mulle__pointerpairarray_assert_no_dupes( struct mulle__pointerpairarray *
 static inline void
    mulle__pointerpairarray_assert_no_dupes( struct mulle__pointerpairarray *array)
 {
-
 }
 
 #endif
@@ -523,9 +523,35 @@ static inline void
 }
 
 
-#define mulle__pointerpairarray_for( array, pair)                                                             \
-   for( struct mulle__pointerpairarrayenumerator rover__ ## pair = mulle__pointerpairarray_enumerate( array); \
-        _mulle__pointerpairarrayenumerator_next( &rover__ ## pair, (void **) &pair);)
+// created by make-container-do.sh -v -ls --type struct mulle_pointerpair    mulle--pointerpairarray.c
+
+#define mulle__pointerpairarray_do( name)                              \
+   for( struct mulle__pointerpairarray                                 \
+           name ## __container = { 0 },                                \
+           *name = &name ## __container,                               \
+           *name ## __i = NULL;                                        \
+        ! name ## __i;                                                 \
+        name ## __i =                                                  \
+        (                                                              \
+           _mulle__pointerpairarray_done( &name ## __container, NULL), \
+           (void *) 0x1                                                \
+        )                                                              \
+      )                                                                \
+      for( int  name ## __j = 0;    /* break protection */             \
+           name ## __j < 1;                                            \
+           name ## __j++)
+
+
+// TODO: Use standard key, value for this ?
+//
+#define mulle__pointerpairarray_for( name, pair)                                               \
+   for( struct mulle__pointerpairarrayenumerator                                               \
+           rover__ ## pair = mulle__pointerpairarray_enumerate( name),                         \
+           *rover___  ## pair ## __i = (void *) 0;                                             \
+        ! rover___  ## pair ## __i;                                                            \
+        rover___ ## pair ## __i = (_mulle__pointerpairarrayenumerator_done( &rover__ ## pair), \
+                                   (void *) 1))                                                \
+      while( _mulle__pointerpairarrayenumerator_next( &rover__ ## pair, &pair))
 
 
 #endif

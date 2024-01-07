@@ -42,7 +42,7 @@
 #define MULLE_FNV1A_64_INIT    0xcbf29ce484222325ULL
 
 
-static inline uintptr_t   _mulle_fnv1a_init_32( void)
+static inline uint32_t   _mulle_fnv1a_init_32( void)
 {
    return( MULLE_FNV1A_32_INIT);
 }

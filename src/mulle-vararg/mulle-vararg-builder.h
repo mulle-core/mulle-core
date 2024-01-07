@@ -15,13 +15,16 @@
 //
 // Intended use:
 //
-// mulle_vararg_builderbuffer_t  buf[ mulle_vararg_builderbuffer_n( sizeof( int) + sizeof( long))];
-// mulle_vararg_list             p = mulle_vararg_list_make( buf);
-// mulle_vararg_list             q;
+// #define size                                                            \
+//     mulle_vararg_builderbuffer_n( mulle_vararg_sizeof_integer( int) +   \
+//                                   mulle_vararg_sizeof_integer( long))
+// mulle_vararg_builderbuffer_t  buf[ size];
+// mulle_vararg_list             varargs = mulle_vararg_list_make( buf);
+// mulle_vararg_list             p = varargs;
 //
-// q = mulle_vararg_push_integer( p, 18);
-// q = mulle_vararg_push_integer( q, 48L);
-// mulle_mvsprintf( buffer, "%d %ld", p);
+// mulle_vararg_push_integer( p, 18);
+// mulle_vararg_push_integer( p, 48L);
+// mulle_mvsprintf( buffer, "%d %ld", varargs);
 
 // use double for alignment
 typedef double   mulle_vararg_builderbuffer_t;
@@ -40,6 +43,68 @@ do                                                                     \
 }                                                                      \
 while( 0)                                                              \
 
+
+#define mulle_vararg_sizeof_integer( type)          \
+   ((sizeof( type) <= sizeof( int))                 \
+   ? sizeof( int)                                   \
+   : ((sizeof( type) <= sizeof( long))              \
+      ? sizeof( long)                               \
+      : sizeof( long long)))
+
+#define mulle_vararg_alignof_integer( type)         \
+   ((sizeof( type) <= sizeof( int))                 \
+   ? alignof( int)                                  \
+   : ((sizeof( type) <= sizeof( long))              \
+      ? alignof( long)                              \
+      : alignof( long long)))
+
+#define mulle_vararg_sizeof_fp( type)               \
+   ((sizeof( type) <= sizeof( double))              \
+   ? sizeof( double)                                \
+   : sizeof( long double))
+
+#define mulle_vararg_alignof_fp( type)              \
+   ((sizeof( type) <= sizeof( int))                 \
+   ? alignof( double)                               \
+   : alignof( long double))
+
+#define mulle_vararg_sizeof_pointer( type)          \
+   sizeof( void *)                                  \
+
+#define mulle_vararg_alignof_pointer( type)         \
+   alignof( void *)                                 \
+
+#define mulle_vararg_sizeof_functionpointer( type)  \
+   sizeof( void (*)( void))                         \
+
+#define mulle_vararg_alignof_functionpointer( type) \
+   alignof( void (*)( void))                        \
+
+#define mulle_vararg_sizeof_struct( type)           \
+   sizeof( type)                                    \
+
+#define mulle_vararg_alignof_struct( type)          \
+   alignof( type)                                   \
+
+
+#define mulle_vararg_sizeof_char()               mulle_vararg_sizeof_integer( char)
+#define mulle_vararg_sizeof_short()              mulle_vararg_sizeof_integer( short)
+#define mulle_vararg_sizeof_int()                mulle_vararg_sizeof_integer( int)
+#define mulle_vararg_sizeof_long()               mulle_vararg_sizeof_integer( long)
+#define mulle_vararg_sizeof_longlong()           mulle_vararg_sizeof_integer( long long)
+#define mulle_vararg_sizeof_int32()              mulle_vararg_sizeof_integer( int32_t)
+#define mulle_vararg_sizeof_int64()              mulle_vararg_sizeof_integer( int64_t)
+
+#define mulle_vararg_sizeof_unsignedchar()       mulle_vararg_sizeof_integer( unsigned char)
+#define mulle_vararg_sizeof_unsignedshort()      mulle_vararg_sizeof_integer( unsigned short)
+#define mulle_vararg_sizeof_unsignedint()        mulle_vararg_sizeof_integer( unsigned int)
+#define mulle_vararg_sizeof_unsignedlong()       mulle_vararg_sizeof_integer( unsigned long)
+#define mulle_vararg_sizeof_unsignedlonglong()   mulle_vararg_sizeof_integer( unsigned long long)
+#define mulle_vararg_sizeof_uint32()             mulle_vararg_sizeof_integer( uint32_t)
+#define mulle_vararg_sizeof_uint64()             mulle_vararg_sizeof_integer( uint64_t)
+
+#define mulle_vararg_sizeof_float()              mulle_vararg_sizeof_integer( float)
+#define mulle_vararg_sizeof_double()             mulle_vararg_sizeof_integer( double)
 
 
 #define mulle_vararg_push_integer( ap, type, value)                    \

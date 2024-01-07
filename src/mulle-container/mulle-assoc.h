@@ -34,8 +34,8 @@
 //  POSSIBILITY OF SUCH DAMAGE.
 //
 
-#ifndef mulle_assoc__h__
-#define mulle_assoc__h__
+#ifndef mulle_assoc_h__
+#define mulle_assoc_h__
 
 #include "mulle--assoc.h"
 #include "mulle-container-operation.h"
@@ -55,8 +55,8 @@
 #define MULLE_ASSOC_BASE                                  \
    MULLE__ASSOC_BASE;                                     \
    struct mulle_container_keyvaluecallback   *callback;   \
-   struct mulle_allocator                    *allocator;  \
    mulle_pointerpair_compare_t               *compare;    \
+   struct mulle_allocator                    *allocator;  \
    int                                       _is_sorted
 
 
@@ -65,6 +65,14 @@ struct mulle_assoc
    MULLE_ASSOC_BASE;
 };
 
+
+#define MULLE_ASSOC_INIT( xcallback, xcompare, xallocator) \
+   ((struct mulle_assoc)                                   \
+   {                                                       \
+      .callback         = (xcallback),                     \
+      .allocator        = (xallocator),                    \
+      .compare          = (xcompare),                      \
+   })
 
 MULLE_C_NONNULL_THIRD
 static inline void    mulle_assoc_init( struct mulle_assoc *assoc,
@@ -82,6 +90,13 @@ static inline void    mulle_assoc_init( struct mulle_assoc *assoc,
    assoc->allocator  = allocator;
    assoc->compare    = compare ? compare : _mulle_pointerpair_compare_pointer_key;
    assoc->_is_sorted = 0;
+}
+
+static inline void   _mulle_assoc_done( struct mulle_assoc *assoc)
+{
+   _mulle__assoc_done( (struct mulle__assoc *) assoc,
+                       assoc->callback,
+                       assoc->allocator);
 }
 
 
@@ -281,6 +296,30 @@ static inline void   *mulle_assoc_get_notakey( struct mulle_assoc *assoc)
 #pragma mark - sort and search
 
 
+//
+// you can pass NULL for callback, and it will just compare pointer equality
+// TODO: make this uniform across library for find ? also for search ?
+//
+static inline uintptr_t
+   mulle_assoc_find_in_range( struct mulle_assoc *assoc,
+                              void *key,
+                              struct mulle_range range)
+{
+   return( mulle__assoc_find_in_range( (struct mulle__assoc *) assoc,
+                                       key,
+                                       range,
+                                       assoc->callback));
+}
+
+static inline uintptr_t
+   mulle_assoc_find( struct mulle_assoc *assoc, void *key)
+{
+   return( mulle__assoc_find( (struct mulle__assoc *) assoc,
+                              key,
+                              assoc->callback));
+}
+
+
 static inline void   mulle_assoc_qsort( struct mulle_assoc *assoc)
 {
    mulle__assoc_qsort_r( (struct mulle__assoc *) assoc,
@@ -362,8 +401,8 @@ static inline void
 MULLE_C_NONNULL_FIRST
 static inline void   _mulle_assoc_add( struct mulle_assoc *assoc, void *key, void *value)
 {
-   assert( mulle_pointerpair_is_invalid(
-               _mulle__assoc_search_callback( (struct mulle__assoc *) assoc, key, assoc->callback)));
+   assert( mulle_not_found_e ==
+               _mulle__assoc_find_callback( (struct mulle__assoc *) assoc, key, assoc->callback));
 
    assoc->_is_sorted = 0;
 
@@ -674,16 +713,42 @@ static inline void   mulle_assocenumerator_done( struct mulle_assocenumerator *r
 {
 }
 
-//
-// sizeof( item) must be sizeof( void *)
-//
-#define mulle_assoc_for( assoc, key, value)                                           \
-   assert( sizeof( key) == sizeof( void *));                                          \
-   assert( sizeof( value) == sizeof( void *));                                        \
-   for( struct mulle_assocenumerator rover__ ## item = mulle_assoc_enumerate( assoc); \
-        _mulle_assocenumerator_next( &rover__ ## item,                                \
-                                     (void **) &key,                                  \
-                                     (void **) &value);)
+// created by make-container-do.sh -ls --compare --type struct mulle_pointerpair    mulle-assoc.c
+
+#define mulle_assoc_do( name, callback, compare)                             \
+   for( struct mulle_assoc                                                   \
+           name ## __container = MULLE_ASSOC_INIT( callback, compare, NULL), \
+           *name = &name ## __container,                                     \
+           *name ## __i = NULL;                                              \
+        ! name ## __i;                                                       \
+        name ## __i =                                                        \
+        (                                                                    \
+           _mulle_assoc_done( &name ## __container),                         \
+           (void *) 0x1                                                      \
+        )                                                                    \
+      )                                                                      \
+      for( int  name ## __j = 0;    /* break protection */                   \
+           name ## __j < 1;                                                  \
+           name ## __j++)
+
+
+
+// created by make-container-for.sh src/assoc/mulle-assoc.c
+
+#define mulle_assoc_for( name, key, value)                                                                     \
+   assert( sizeof( key) == sizeof( void *));                                                                   \
+   assert( sizeof( value) == sizeof( void *));                                                                 \
+   for( struct mulle_assocenumerator                                                                           \
+           rover__ ## key ## __ ## value = mulle_assoc_enumerate( name),                                       \
+           *rover___  ## key ## __ ## value ## __i = (void *) 0;                                               \
+        ! rover___  ## key ## __ ## value ## __i;                                                              \
+        rover___ ## key ## __ ## value ## __i = (_mulle_assocenumerator_done( &rover__ ## key ## __ ## value), \
+                                              (void *) 1))                                                     \
+      while( _mulle_assocenumerator_next( &rover__ ## key ## __ ## value,                                      \
+                                      (void **) &key,                                                          \
+                                      (void **) &value))
+
+
 
 
 #endif /* mulle_assoc_h */

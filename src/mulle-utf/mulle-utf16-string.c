@@ -18,15 +18,18 @@
 #include <ctype.h>
 #include <stdlib.h>
 #include <string.h>
-#if _WIN32
-#include <malloc.h> // for alloca
-#endif
 
 
-size_t  mulle_utf16_strnlen( mulle_utf16_t *src, size_t len)
+
+unsigned int  mulle_utf16_strnlen( mulle_utf16_t *src, unsigned int len)
 {
    mulle_utf16_t   *sentinel;
    mulle_utf16_t   *p;
+
+   if( ! src)
+      return( 0);
+
+   assert( len != (unsigned int) -1);
 
    p        = src;
    sentinel = &p[ len];
@@ -39,6 +42,20 @@ size_t  mulle_utf16_strnlen( mulle_utf16_t *src, size_t len)
    }
    return( p - src);
 }
+
+
+
+mulle_utf16_t  *mulle_utf16_strdup( mulle_utf16_t *s)
+{
+   size_t          length;
+   mulle_utf16_t   *dst;
+
+   length = (size_t) (mulle_utf16_strlen( s) + 1) * sizeof( mulle_utf16_t);
+   dst    = mulle_allocator_malloc( NULL, length);
+   memcpy( dst, s, length);
+   return( dst);
+}
+
 
 
 
@@ -61,15 +78,17 @@ size_t  mulle_utf16_strnlen( mulle_utf16_t *src, size_t len)
 /*
  * only terminates, does not fill with zero
  */
-mulle_utf16_t   *mulle_utf16_strncpy( mulle_utf16_t *dst, mulle_utf16_t *src, size_t len)
+mulle_utf16_t   *mulle_utf16_strncpy( mulle_utf16_t *dst, unsigned int len, mulle_utf16_t *src)
 {
    mulle_utf16_t   *memo;
    mulle_utf16_t   *sentinel;
    mulle_utf16_t   c;
 
-   assert( dst);
-   assert( src);
-   assert( src >= &dst[len] || &src[len] <= dst);
+   if( ! dst || ! src)
+      return( dst);
+
+   assert( len != (unsigned int) -1);
+   assert( src >= &dst[ len] || src <= dst); // len for dst is known, but can't be inferred for src
 
    memo     = dst;
    sentinel = &dst[ len];
@@ -93,6 +112,9 @@ mulle_utf16_t   *mulle_utf16_strchr( mulle_utf16_t *s, mulle_utf32_t c)
    mulle_utf16_t   d;
    mulle_utf16_t   e;
    mulle_utf32_t   f;
+
+   if( ! s)
+      return( NULL);
 
    --s;
    for( ;;)
@@ -140,6 +162,9 @@ mulle_utf16_t  *mulle_utf16_strstr( mulle_utf16_t *s, mulle_utf16_t *pattern)
    unsigned int   i;
    unsigned int   n;
 
+   if( ! s || ! pattern)
+      return( NULL);
+
    if( pattern[ 0] == 0)
       return( s);
 
@@ -170,15 +195,18 @@ mulle_utf16_t  *mulle_utf16_strstr( mulle_utf16_t *s, mulle_utf16_t *pattern)
 }
 
 
-int   mulle_utf16_strncmp( mulle_utf16_t *s1, mulle_utf16_t *s2, size_t len)
+int   mulle_utf16_strncmp( mulle_utf16_t *s1, mulle_utf16_t *s2, unsigned int len)
 {
    mulle_utf16_t   *sentinel;
    mulle_utf32_t   c;
    mulle_utf32_t   d;
 
-   sentinel = &s1[ len];
+   if( len == (unsigned int) -1)
+      len = mulle_utf16_strlen( s2);
 
-   while( s1 < sentinel)
+   sentinel = &s2[ len];
+
+   while( s2 < sentinel)
    {
       c = *s1++;
       d = *s2++;
@@ -194,13 +222,14 @@ int   mulle_utf16_strncmp( mulle_utf16_t *s1, mulle_utf16_t *s2, size_t len)
 }
 
 
-
-static int   _compare_mulle_utf32_t( mulle_utf32_t *a, mulle_utf32_t *b)
+static int   compare_mulle_utf32( const void *p_a, const void *p_b)
 {
-   return( *a - *b);
+   mulle_utf32_t   a = *(mulle_utf32_t *) p_a;
+   mulle_utf32_t   b = *(mulle_utf32_t *) p_b;
+
+   return( a - b);
 }
 
-#define compare_mulle_utf32_t   ((int (*)( const void *, const void *)) _compare_mulle_utf32_t)
 
 
 static inline mulle_utf32_t   mulle_utf16_pull_surrogatepair( mulle_utf16_t c, mulle_utf16_t **s)
@@ -226,68 +255,68 @@ static inline mulle_utf32_t   mulle_utf16_pull_surrogatepair( mulle_utf16_t c, m
             order. It will not match 0xDCxx, 0xD8xx. It can match a single
             surrogate though if needed.
 */
-static size_t   _mulle_utf16_strspn( mulle_utf16_t *s1, mulle_utf16_t *s2, int flag)
+static unsigned int   _mulle_utf16_strxspn( mulle_utf16_t *s1, mulle_utf16_t *s2, int flag)
 {
    mulle_utf16_t   *start;
    mulle_utf16_t   *tmp;
    mulle_utf32_t   c;
    mulle_utf32_t   d;
-   size_t          s2_len;
+   mulle_utf32_t   *buf;
+   unsigned int    s2_len;
    unsigned int    i;
+   int             found;
+   mulle_utf32_t   space[ 32];
+
+   if( ! s1)
+      return( 0);
 
    assert( flag == 0 || flag == 1);
 
-   start  = s1;
    s2_len = mulle_utf16_strlen( s2);
    if( ! s2_len)
       return( 0);
 
-   if( s2_len == 1)
-   {
-      d = *s2;
+   i     = 0;
+   start = s1;
+   tmp   = s1;
 
-      --s1;
-      while( (c = *++s1))
-         if( c != d)
-            break;
-      return( s1 - start);
+   // we don't have a flexbuffer here...
+   if( s2_len < 32)
+      buf = space;
+   else
+      buf = mulle_malloc( 32 * sizeof( mulle_utf32_t));
+
+   --s2;
+   while( (d = mulle_utf16_pull_surrogatepair( *++s2, &s2)))
+      buf[ i++] = d;
+   assert( i <= s2_len);
+
+   qsort( buf, i, sizeof( mulle_utf32_t), compare_mulle_utf32);
+
+   --s1;
+   while( tmp = s1, c = mulle_utf16_pull_surrogatepair( *++s1, &s1))
+   {
+      found = ! bsearch( &c, buf, i, sizeof( mulle_utf32_t), compare_mulle_utf32);
+      if( found == flag)
+         break;
    }
 
-   i = 0;
-   {
-#if _WIN32
-      mulle_utf32_t   *buf = alloca( sizeof( mulle_utf32_t) * s2_len);
-#else
-      mulle_utf32_t   buf[ sizeof( mulle_utf32_t) * s2_len];
-#endif
+   if( buf != space)
+      mulle_free( buf);
 
-      --s2;
-      while( (d = mulle_utf16_pull_surrogatepair( *++s2, &s2)))
-         buf[ i++] = d;
-      assert( i <= s2_len);
-
-      qsort( buf, i, sizeof( mulle_utf32_t), compare_mulle_utf32_t);
-
-      --s1;
-      while( tmp = s1, c = mulle_utf16_pull_surrogatepair( *++s1, &s1))
-      {
-         if( (! bsearch( &c, buf, i, sizeof( mulle_utf32_t), compare_mulle_utf32_t)) == flag)
-            break;
-      }
-      return( tmp + 1 - start);
-   }
+   return( tmp + 1 - start);
 }
 
 
-size_t   mulle_utf16_strspn( mulle_utf16_t *s1, mulle_utf16_t *s2)
+unsigned int   mulle_utf16_strspn( mulle_utf16_t *s1, mulle_utf16_t *s2)
 {
-   return( _mulle_utf16_strspn( s1, s2, 1));
+   return( _mulle_utf16_strxspn( s1, s2, 1));
 }
 
 
-size_t   mulle_utf16_strcspn( mulle_utf16_t *s1, mulle_utf16_t *s2)
+unsigned int   mulle_utf16_strcspn( mulle_utf16_t *s1, mulle_utf16_t *s2)
 {
-   return( _mulle_utf16_strspn( s1, s2, 0));
+   return( _mulle_utf16_strxspn( s1, s2, 0));
 }
 
 

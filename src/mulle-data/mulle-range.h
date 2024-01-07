@@ -13,8 +13,15 @@
 // size_t is the "indexing" value for an array
 //
 #ifndef INTPTR_MAX
-# error "intprt_t and friends are needed for this platform"
+//# if defined( _WIN32) || defined( _WIN64)
+   typedef ptrdiff_t  intptr_t
+#  define INTPTR_MIN   PTRDIFF_MIN
+#  define INTPTR_MAX   PTRDIFF_MAX
+//# else
+//# // error "intptr_t and friends are needed for this platform"
+//# endif
 #endif
+
 
 // Convenient to be different to "notakey"
 #define mulle_not_found_e     ((uintptr_t) INTPTR_MAX)
@@ -74,8 +81,22 @@ static inline struct mulle_range
 }
 
 
+//
+// a location is 1 wide, so location 1 to location 4 is 1, 2, 3, 4 = 4 length
+// so 4 - 1 +1
+//
 static inline struct mulle_range
-   mulle_range_make_all( void)
+   mulle_range_make_locations( uintptr_t location, uintptr_t location2)
+{
+   if( location < location2)
+      return( mulle_range_make( location, location2 - location + 1));
+   return( mulle_range_make( location2, location - location2 + 1));
+}
+
+
+
+
+static inline struct mulle_range   mulle_range_make_all( void)
 {
     struct mulle_range   range;
 
@@ -85,8 +106,7 @@ static inline struct mulle_range
 }
 
 
-static inline struct mulle_range
-   mulle_range_make_invalid( void)
+static inline struct mulle_range    mulle_range_make_invalid( void)
 {
     struct mulle_range   range;
 
@@ -260,15 +280,14 @@ static inline struct mulle_range
    // this speeds up these cases, where you want to specify full range
    // but need to call -length first to create the range, and then
    // later call -length again to validate the range...
-   //
    if( range.length == (uintptr_t) -1)
-      range = mulle_range_make( 0, length);
+      range = mulle_range_make( range.location, length - range.location);
 
    //
    // assume NSUInteger is 8 bit and range is { 3, 255 }, then we need to
    // check also for a negative length/location value making things difficult
    //
-   end = mulle_range_get_max( range);
+   end = range.location + range.length;  // don't want to assert here
    if( end > length || end < range.location)
       return( mulle_range_make_invalid());
 
@@ -298,12 +317,32 @@ MULLE__DATA_GLOBAL
 struct mulle_range   mulle_range_union( struct mulle_range range,
                                         struct mulle_range other);
 
-// this punches holes into ranges, you can get 1 or 2 ranges back as the
-// result
+//
+// this punches holes into ranges, you get two ranges back as the
+// result. one is the left side of the hole, and the other the right side
+// if b completely clobbers a, the ranges will be { 0, 0 }, { 0, 0 }
+// If the resulting range starts with a.location it will be in result[ 0]
+// otherwise in result[ 1]. This is so, that 0 is always the prefix and 1 is
+// the suffix. Therefore its possible that result[0].length == 0 and
+// result[1].length > 0 (b cuts of a's head)
+//
 MULLE__DATA_GLOBAL
-unsigned int   mulle_range_subtract( struct mulle_range a,
-                                     struct mulle_range b,
-                                     struct mulle_range result[ 2]);
+void   mulle_range_subtract( struct mulle_range a,
+                             struct mulle_range b,
+                             struct mulle_range result[ 2]);
+
+
+
+// this punches holes into ranges, you can get 2 ranges back as the
+// result, one is the left side of the hole, and the other the right side
+static inline
+void   mulle_range_subtract_location( struct mulle_range a,
+                                      uintptr_t location,
+                                      struct mulle_range result[ 2])
+{
+   mulle_range_subtract( a, mulle_range_make( location, 1), result);
+}
+
 
 //
 // Computes the state of 'a' after insertion of a range 'b'. 'b' must be
@@ -318,17 +357,6 @@ MULLE__DATA_GLOBAL
 unsigned int   mulle_range_insert( struct mulle_range a,
                                    struct mulle_range b,
                                    struct mulle_range result[ 2]);
-
-
-// this punches holes into ranges, you can get 1 or 2 ranges back as the
-// result
-static inline
-unsigned int   mulle_range_subtract_location( struct mulle_range a,
-                                              uintptr_t location,
-                                              struct mulle_range result[ 2])
-{
-   return( mulle_range_subtract( a, mulle_range_make( location, 1), result));
-}
 
 //
 // Find a hole. Or rather the place in buf, were you would insert a new range.

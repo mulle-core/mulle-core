@@ -30,8 +30,8 @@
 //  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 //  POSSIBILITY OF SUCH DAMAGE.
 //
-#ifndef mulle__assoc__h__
-#define mulle__assoc__h__
+#ifndef mulle__assoc_h__
+#define mulle__assoc_h__
 
 #include "mulle--pointerpairarray.h"
 #include "mulle-container-callback.h"
@@ -64,9 +64,6 @@ struct mulle__assoc
 };
 
 
-MULLE__CONTAINER_GLOBAL
-struct mulle__assoc    *mulle__assoc_create( struct mulle_allocator *allocator);
-
 MULLE_C_NONNULL_FIRST
 static inline void    _mulle__assoc_init( struct mulle__assoc *assoc,
                                           unsigned int capacity,
@@ -76,6 +73,14 @@ static inline void    _mulle__assoc_init( struct mulle__assoc *assoc,
                                   capacity,
                                   allocator);
 }
+
+
+static inline struct mulle__assoc   *
+   mulle__assoc_create( struct mulle_allocator *allocator)
+{
+   return( (struct mulle__assoc *) mulle__pointerpairarray_create( allocator));
+}
+
 
 
 MULLE__CONTAINER_GLOBAL
@@ -398,64 +403,59 @@ static inline void *
 
 
 MULLE_C_NONNULL_FIRST
-static inline struct mulle_pointerpair
-   _mulle__assoc_search_callback( struct mulle__assoc *assoc,
-                                  void *key,
-                                  struct mulle_container_keyvaluecallback *callback)
+static inline uintptr_t
+   _mulle__assoc_find_callback( struct mulle__assoc *assoc,
+                                void *key,
+                                struct mulle_container_keyvaluecallback *callback)
 {
    struct mulle_pointerpair   search;
 
    search = mulle_pointerpair_make( key, NULL);
-   return( _mulle__pointerpairarray_search_callback( (struct mulle__pointerpairarray *) assoc,
-                                                     search,
-                                                     callback));
+   return( _mulle__pointerpairarray_find_callback( (struct mulle__pointerpairarray *) assoc,
+                                                   search,
+                                                   callback));
 }
 
 
-static inline struct mulle_pointerpair
-   mulle__assoc_search_callback( struct mulle__assoc *assoc,
-                                 void *key,
-                                 struct mulle_container_keyvaluecallback *callback)
+static inline uintptr_t
+   mulle__assoc_find_callback( struct mulle__assoc *assoc,
+                               void *key,
+                               struct mulle_container_keyvaluecallback *callback)
 {
-   struct mulle_pointerpair   search;
+   if( ! assoc)
+      return( mulle_not_found_e);
 
-   search = mulle_pointerpair_make( key, NULL);
-   return( mulle__pointerpairarray_search_callback( (struct mulle__pointerpairarray *) assoc,
-                                                    search,
-                                                    callback));
+   return( _mulle__assoc_find_callback( assoc, key, callback));
 }
 
 
 MULLE_C_NONNULL_FIRST
-static inline struct mulle_pointerpair
-   _mulle__assoc_search_compare( struct mulle__assoc *assoc,
-                                 void *key,
-                                 mulle_pointerpair_compare_t *compare,
-                                 void *userinfo)
+static inline uintptr_t
+   _mulle__assoc_find_compare( struct mulle__assoc *assoc,
+                               void *key,
+                               mulle_pointerpair_compare_t *compare,
+                               void *userinfo)
 {
    struct mulle_pointerpair   search;
 
    search = mulle_pointerpair_make( key, NULL);
-   return( _mulle__pointerpairarray_search_compare( (struct mulle__pointerpairarray *) assoc,
-                                                     search,
-                                                     compare,
-                                                     userinfo));
+   return( _mulle__pointerpairarray_find_compare( (struct mulle__pointerpairarray *) assoc,
+                                                  search,
+                                                  compare,
+                                                  userinfo));
 }
 
 
-static inline struct mulle_pointerpair
-   mulle__assoc_search_compare( struct mulle__assoc *assoc,
-                                void *key,
-                                mulle_pointerpair_compare_t *compare,
-                                void *userinfo)
+static inline uintptr_t
+   mulle__assoc_find_compare( struct mulle__assoc *assoc,
+                              void *key,
+                              mulle_pointerpair_compare_t *compare,
+                              void *userinfo)
 {
-   struct mulle_pointerpair   search;
+   if( ! assoc)
+      return( mulle_not_found_e);
 
-   search = mulle_pointerpair_make( key, NULL);
-   return( mulle__pointerpairarray_search_compare( (struct mulle__pointerpairarray *) assoc,
-                                                    search,
-                                                    compare,
-                                                    userinfo));
+   return( _mulle__assoc_find_compare( assoc, key, compare, userinfo));
 }
 
 
@@ -597,6 +597,42 @@ static inline void
 int   mulle__assoc_member( struct mulle__assoc *assoc,
                            void *key,
                            struct mulle_container_keyvaluecallback *callback);
+
+// created by make-container-do.sh -ls --compare --type struct mulle_pointerpair    mulle--assoc.c
+
+#define mulle__assoc_do( name, callback)                              \
+   for( struct mulle__assoc                                           \
+           name ## __container = { 0 },                               \
+           *name = &name ## __container,                              \
+           *name ## __i = NULL;                                       \
+        ! name ## __i;                                                \
+        name ## __i =                                                 \
+        (                                                             \
+           _mulle__assoc_done( &name ## __container, callback, NULL), \
+           (void *) 0x1                                               \
+        )                                                             \
+      )                                                               \
+      for( int  name ## __j = 0;    /* break protection */            \
+           name ## __j < 1;                                           \
+           name ## __j++)
+
+
+
+// created by make-container-for.sh src/assoc/mulle--assoc.c
+
+#define mulle__assoc_for( name, callback, key, value)                                                           \
+   assert( sizeof( key) == sizeof( void *));                                                                    \
+   assert( sizeof( value) == sizeof( void *));                                                                  \
+   for( struct mulle__assocenumerator                                                                           \
+           rover__ ## key ## __ ## value = mulle__assoc_enumerate( name, callback),                             \
+           *rover___  ## key ## __ ## value ## __i = (void *) 0;                                                \
+        ! rover___  ## key ## __ ## value ## __i;                                                               \
+        rover___ ## key ## __ ## value ## __i = (_mulle__assocenumerator_done( &rover__ ## key ## __ ## value), \
+                                              (void *) 1))                                                      \
+      while( _mulle__assocenumerator_next( &rover__ ## key ## __ ## value,                                      \
+                                           (void **) &key,                                                           \
+                                           (void **) &value))
+
 
 #endif
 

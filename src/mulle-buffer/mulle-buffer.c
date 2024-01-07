@@ -54,49 +54,9 @@ struct mulle_buffer   *mulle_buffer_create( struct mulle_allocator *allocator)
 }
 
 
-struct mulle_flushablebuffer   *
-   mulle_flushablebuffer_create( size_t length,
-                                 mulle_flushablebuffer_flusher_t flusher,
-                                 void *userinfo,
-                                 struct mulle_allocator *allocator)
-{
-   struct mulle_flushablebuffer  *buffer;
-   void                          *storage;
-
-   if( ! allocator)
-      allocator = &mulle_default_allocator;
-
-   buffer  = mulle_allocator_malloc( allocator, sizeof( struct mulle_flushablebuffer));
-   storage = mulle_allocator_malloc( allocator, length);
-   mulle_flushablebuffer_init_with_allocated_bytes( buffer,
-                                                    storage,
-                                                    length,
-                                                    flusher,
-                                                    userinfo,
-                                                    allocator);
-   return( buffer);
-}
-
-
-
-int   mulle_flushablebuffer_destroy( struct mulle_flushablebuffer *buffer)
-{
-   int   rval;
-
-   if( ! buffer)
-      return( 0);
-
-   rval = mulle_flushablebuffer_done( buffer);
-   if( ! rval)
-      mulle_allocator_free( buffer->_allocator, buffer);
-   return( 0);
-}
-
-
-
 static inline unsigned int   hex( unsigned int c)
 {
-   assert( c >= 0 && c <= 0xf);
+   assert( c <= 0xf);
    return( c >= 0xa ? c + 'a' - 0xa : c + '0');
 }
 
@@ -112,24 +72,26 @@ void   mulle_buffer_hexdump_line( struct mulle_buffer *buffer,
    unsigned int   i;
    unsigned int   value;
    uint8_t        *p;
+   uint32_t       adr;     // limited to 32 bit currently
 
    memo = bytes;
    p    = bytes;
+   adr  = counter;
 
    if( ! (options & mulle_buffer_hexdump_no_offset))
    {
-      s     = mulle_buffer_advance( buffer, 10);
+      s = mulle_buffer_advance( buffer, 10);
       if( s)
       {
-         *s++ = (uint8_t) hex( counter >> 28 & 0xF);
-         *s++ = (uint8_t) hex( counter >> 24 & 0xF);
-         *s++ = (uint8_t) hex( counter >> 20 & 0xF);
-         *s++ = (uint8_t) hex( counter >> 16 & 0xF);
+         *s++ = (uint8_t) hex( adr >> 28 & 0xF);
+         *s++ = (uint8_t) hex( adr >> 24 & 0xF);
+         *s++ = (uint8_t) hex( adr >> 20 & 0xF);
+         *s++ = (uint8_t) hex( adr >> 16 & 0xF);
 
-         *s++ = (uint8_t) hex( counter >> 12 & 0xF);
-         *s++ = (uint8_t) hex( counter >> 8 & 0xF);
-         *s++ = (uint8_t) hex( counter >> 4 & 0xF);
-         *s++ = (uint8_t) hex( counter >> 0 & 0xF);
+         *s++ = (uint8_t) hex( adr >> 12 & 0xF);
+         *s++ = (uint8_t) hex( adr >> 8 & 0xF);
+         *s++ = (uint8_t) hex( adr >> 4 & 0xF);
+         *s++ = (uint8_t) hex( adr >> 0 & 0xF);
 
          *s++ = ' ';
          *s++ = ' ';
@@ -217,6 +179,24 @@ void   mulle_buffer_hexdump_line( struct mulle_buffer *buffer,
       mulle_buffer_add_byte( buffer, '|');
    }
 }
+
+
+void   mulle_buffer_add_bytes_callback( void *buffer,
+                                        void *bytes,
+                                        size_t length)
+{
+   mulle_buffer_add_bytes( buffer, bytes, length);
+}
+
+
+MULLE__BUFFER_GLOBAL
+void   mulle_buffer_add_c_chars_callback( void *buffer,
+                                          void *bytes,
+                                          size_t length)
+{
+   mulle_buffer_add_c_chars( buffer, bytes, length);
+}
+
 
 
 void  mulle_buffer_hexdump( struct mulle_buffer *buffer,

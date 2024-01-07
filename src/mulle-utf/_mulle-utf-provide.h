@@ -9,8 +9,8 @@
  *
  *      mulle-sde environment set MULLE_MATCH_TO_C_RUN DISABLE
  */
-#ifndef mulle_utf_provide_h__
-#define mulle_utf_provide_h__
+#ifndef _mulle__utf__provide_h__
+#define _mulle__utf__provide_h__
 
 
 #include "mulle-ascii.h"
@@ -21,6 +21,7 @@
 #include "mulle-utf32.h"
 #include "mulle-utf32-string.h"
 #include "mulle-utf8.h"
+#include "mulle-utf8-string.h"
 #include "mulle-utf-convenience.h"
 #include "mulle-utf-noncharacter.h"
 #include "mulle-utf-privatecharacter.h"

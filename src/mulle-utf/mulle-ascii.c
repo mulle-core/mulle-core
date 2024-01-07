@@ -90,7 +90,7 @@ mulle_utf32_t   *_mulle_ascii_convert_to_utf32( char *src,
 void   mulle_ascii_bufferconvert_to_utf16( char *src,
                                            size_t len,
                                            void *buffer,
-                                           mulle_utf_add_bytes_function_t addbytes)
+                                           mulle_utf_add_bytes_function_t *addbytes)
 {
    char            *sentinel;
    char            _c;
@@ -118,7 +118,7 @@ void   mulle_ascii_bufferconvert_to_utf16( char *src,
 void  mulle_ascii_bufferconvert_to_utf32( char *src,
                                           size_t len,
                                           void *buffer,
-                                          mulle_utf_add_bytes_function_t addbytes)
+                                          mulle_utf_add_bytes_function_t *addbytes)
 {
    char            *sentinel;
    char            _c;

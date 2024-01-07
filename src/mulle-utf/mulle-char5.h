@@ -160,8 +160,8 @@ static inline size_t  mulle_char5_strlen32( uint32_t value)
 //
 static inline size_t   mulle_char5_fstrlen64( uint64_t value)
 {
-   int64_t     mask;
-   size_t      len;
+   uint64_t     mask;
+   size_t       len;
 
    // if any of m.l.j.i.h.g is set, we know f.e.d.c.b.a exist, so len 6 + strlen( m.l.j.i.h.g)
    mask = ~0x3FFFFFFFLL;  // ~ffffff.eeeee.ddddd.ccccc.bbbbb.aaaaa
@@ -195,8 +195,8 @@ static inline size_t   mulle_char5_fstrlen64( uint64_t value)
 //
 static inline size_t  mulle_char5_fstrlen32( uint32_t value)
 {
-   int32_t   mask;
-   size_t    len;
+   uint32_t   mask;
+   size_t     len;
 
    // if any of f.e.d is set, we know c.b.a exist, so len 3 + strlen( ffffff.eeeee.ddddd)
    mask = ~0x7FFF;  // ~ccccc.bbbbb.aaaaa

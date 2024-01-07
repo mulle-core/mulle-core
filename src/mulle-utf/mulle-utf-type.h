@@ -92,7 +92,7 @@ enum mulle_utf_scan_return
 };
 
 // void * is a user pointer, supplied else
-typedef void   (*mulle_utf_add_bytes_function_t)( void *userinfo, void *bytes, size_t length);
+typedef void   mulle_utf_add_bytes_function_t( void *userinfo, void *bytes, size_t length);
 
 
 enum mulle_utf_charinfo

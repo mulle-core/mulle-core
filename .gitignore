@@ -45,3 +45,7 @@ mulle-template-composer-*
 mulle-markdown-preview-*.html
 sourcetreefix
 TODO.md
+coverage*.html
+*.gcda
+*.gcno
+cola/wilted/

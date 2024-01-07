@@ -4,10 +4,11 @@
 
 #include "mulle-timetype.h"
 
+#include "mulle-timespec.h"
 
-// It's simple. mulle_absolutetime_t is a FP number containing seconds as a timestamp
-// relative to the start of program execution and duration. It should not
-// "jump" if the computer is put into sleep mode.
+// It's simple. mulle_absolutetime_t is a FP number containing seconds as a
+// timestamp relative to the start of system boot (like a diff on `uptime`).
+// It should not "jump" if the computer is put into sleep mode.
 //
 // Arithmetic on mulle_absolutetime_t and mulle_relativetime_t has six useful
 // operations

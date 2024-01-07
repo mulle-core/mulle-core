@@ -120,10 +120,10 @@ static inline unsigned int  mulle_utf8_get_extracharacterslength( char c)
 // returned length does not include BOM
 //
 MULLE__UTF_GLOBAL
-size_t  mulle_utf8_utf16length( char *src, size_t len);
+unsigned int  mulle_utf8_utf16length( char *src, size_t len);
 
 MULLE__UTF_GLOBAL
-size_t  mulle_utf8_utf32length( char *src, size_t len);
+unsigned int  mulle_utf8_utf32length( char *src, size_t len);
 
 
 static inline size_t  mulle_utf8_utf16maxlength( size_t len)
@@ -146,7 +146,7 @@ static inline int  mulle_utf8_has_leading_bomcharacter( char *src, size_t len)
 // if yes, p_c will contain char value
 //
 MULLE__UTF_GLOBAL
-int   mulle_utf8_are_valid_extracharacters( char *s, unsigned int len, mulle_utf32_t *p_c);
+int   mulle_utf8_are_valid_extracharacters( char *s, size_t len, mulle_utf32_t *p_c);
 
 //
 // if len is -1, assume that *s is '\0' terminated
@@ -166,52 +166,6 @@ MULLE__UTF_GLOBAL
 char  *mulle_utf8_validate( char *src, size_t len);
 
 
-static inline size_t  mulle_utf8_strlen( char *s)
-{
-   return( strlen( s));
-}
-
-
-//
-// hand coded because linux doesn't have it by default, and I want to get rid
-// of the warning without having to define __USE_XOPEN2K8
-//
-static inline size_t  mulle_utf8_strnlen( char *s, size_t len)
-{
-   char   *start;
-   char   *sentinel;
-
-   start    = s;
-   sentinel = &s[ len];
-
-   while( s < sentinel)
-   {
-      if( ! *s)
-         break;
-      ++s;
-   }
-   return( (size_t) (s - start));
-}
-
-
-// use the more canonical *, size_t oder
-static inline int  mulle_utf8_strncmp( char *s, size_t len, char *other)
-{
-   return( strncmp( s, other, len));
-}
-
-
-MULLE__UTF_GLOBAL
-char   *mulle_utf8_strnstr( char *s, size_t len, char *search);
-
-MULLE__UTF_GLOBAL
-char   *mulle_utf8_strnchr( char *s, size_t len, char c);
-
-MULLE__UTF_GLOBAL
-size_t         mulle_utf8_strnspn( char *s, size_t len, char *search);
-
-MULLE__UTF_GLOBAL
-size_t         mulle_utf8_strncspn( char *s, size_t len, char *search);
 
 
 // extremely primitive! (Not as primitive anymore...)
@@ -244,12 +198,26 @@ struct mulle_utf8data
 };
 
 
+static inline size_t  mulle_utf8_strlen( char *s)
+{
+   char   *p;
+
+   if( ! s)
+      return( 0);
+
+   /* this produced the nicest looking i386 code :P */
+   for( p = s - 1; *++p;);
+
+   return( p - s);
+}
+
+
 static inline struct mulle_utf8data
    mulle_utf8data_make( char *s, size_t length)
 {
    struct mulle_utf8data   data;
 
-   data.length     = (length == (size_t) -1) ? mulle_utf8_strlen( s) : length;
+   data.length     = (length == (size_t) -1) ? strlen( s) : length;
    data.characters = data.length ? s : "";
    return( data);
 }
@@ -273,6 +241,48 @@ static inline struct mulle_utf8data   mulle_utf8data_make_invalid( void)
    data.characters = NULL;
    data.length     = 0;
    return( data);
+}
+
+
+//
+// use these two functions to allocate and free mulle_utf8data
+// They know that if data.length == 0, that data.characters is a "" 
+// static string
+//
+static inline void   mulle_utf8data_init( struct mulle_utf8data *data,
+                                          char *characters,
+                                          size_t length, 
+                                          struct mulle_allocator *allocator)
+{
+   
+   if( ! data)
+      return;
+
+   if( ! length)
+   {
+      *data = mulle_utf8data_make( NULL, 0);
+      return;
+   }
+
+   data->characters                = mulle_allocator_malloc( allocator, length + 1);
+   if( characters)
+      memcpy( data->characters, characters, length);
+   data->length                    = length;
+   data->characters[ data->length] = 0;
+}
+
+
+static inline void
+   mulle_utf8data_done( struct mulle_utf8data *data, struct mulle_allocator *allocator)
+{
+   if( data && data->length)
+   {
+      mulle_allocator_free( allocator, data->characters);
+#ifdef DEBUG      
+      data->characters = "<freed>";
+      data->length     = UINTPTR_MAX;
+#endif      
+   }
 }
 
 
@@ -377,14 +387,14 @@ MULLE__UTF_GLOBAL
 void   mulle_utf8_bufferconvert_to_utf16( char *src,
                                           size_t len,
                                           void *buffer,
-                                          mulle_utf_add_bytes_function_t addbytes);
+                                          mulle_utf_add_bytes_function_t *addbytes);
 
 // as above, but for utf32
 MULLE__UTF_GLOBAL
 void   mulle_utf8_bufferconvert_to_utf32( char *src,
                                           size_t len,
                                           void *buffer,
-                                          mulle_utf_add_bytes_function_t addbytes);
+                                          mulle_utf_add_bytes_function_t *addbytes);
 
 
 //

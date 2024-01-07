@@ -34,8 +34,8 @@
 //  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 //  POSSIBILITY OF SUCH DAMAGE.
 //
-#ifndef mulle_utf32_rover_h__
-#define mulle_utf32_rover_h__
+#ifndef mulle_utf_rover_h__
+#define mulle_utf_rover_h__
 
 #include "mulle-utf-type.h"
 
@@ -76,11 +76,11 @@ static inline void   _mulle_utf_rover_dial_back( struct mulle_utf_rover *rover)
 MULLE__UTF_GLOBAL
 void   _mulle_utf32_rover_init( struct mulle_utf_rover *rover,
                                 mulle_utf32_t *s,
-                                size_t len);
+                                unsigned int len);
 MULLE__UTF_GLOBAL
 void   _mulle_utf16_rover_init( struct mulle_utf_rover *rover,
                                 mulle_utf16_t *s,
-                                size_t len);
+                                unsigned int len);
 MULLE__UTF_GLOBAL
 void   _mulle_utf8_rover_init( struct mulle_utf_rover *rover,
                                char *s,

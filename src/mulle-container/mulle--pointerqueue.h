@@ -30,8 +30,8 @@
 //  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 //  POSSIBILITY OF SUCH DAMAGE.
 //
-#ifndef mulle__pointerqueue__h__
-#define mulle__pointerqueue__h__
+#ifndef mulle__pointerqueue_h__
+#define mulle__pointerqueue_h__
 
 #include "mulle-container-callback.h"
 
@@ -61,6 +61,15 @@ struct mulle__pointerqueue
    MULLE__POINTERQUEUE_BASE;
 };
 
+
+#define MULLE__POINTERQUEUE_INIT( xbucket_size, xspare_allowance) \
+   ((struct mulle__pointerqueue)                                  \
+   {                                                              \
+      ._bucket_size     = xbucket_size,                           \
+      ._read_index      = xbucket_size,                           \
+      ._write_index     = xbucket_size,                           \
+      ._spare_allowance = xspare_allowance                        \
+   })
 
 struct mulle__pointerqueuebucket
 {
@@ -268,9 +277,37 @@ static inline void   mulle__pointerqueueenumerator_done( struct mulle__pointerqu
 }
 
 
+// created by make-container-do.sh mulle--pointerqueue.c
+// and then hand edited
+#define mulle__pointerqueue_do( name)                              \
+   for( struct mulle__pointerqueue                                 \
+           name ## __container = MULLE__POINTERQUEUE_INIT( 64, 0), \
+           *name = &name ## __container,                           \
+           *name ## __i = NULL;                                    \
+        ! name ## __i;                                             \
+        name ## __i =                                              \
+        (                                                          \
+           _mulle__pointerqueue_done( &name ## __container, NULL), \
+           (void *) 0x1                                            \
+        )                                                          \
+      )                                                            \
+      for( int  name ## __j = 0;    /* break protection */         \
+           name ## __j < 1;                                        \
+           name ## __j++)
 
-#define mulle__pointerqueue_for( queue, item)                                                         \
-   for( struct mulle__pointerqueueenumerator rover__ ## item = mulle__pointerqueue_enumerate( queue); \
-        _mulle__pointerqueueenumerator_next( &rover__ ## item, (void **) &item);)
+
+
+// created by make-container-for.sh src/set/pointer/mulle--pointerqueue.c
+
+#define mulle__pointerqueue_for( name, item)                                               \
+   assert( sizeof( item) == sizeof( void *));                                              \
+   for( struct mulle__pointerqueueenumerator                                               \
+           rover__ ## item = mulle__pointerqueue_enumerate( name),                         \
+           *rover___  ## item ## __i = (void *) 0;                                         \
+        ! rover___  ## item ## __i;                                                        \
+        rover___ ## item ## __i = (_mulle__pointerqueueenumerator_done( &rover__ ## item), \
+                                   (void *) 1))                                            \
+      while( _mulle__pointerqueueenumerator_next( &rover__ ## item, (void **) &item))
+
 
 #endif

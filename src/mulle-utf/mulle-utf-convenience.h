@@ -68,20 +68,20 @@ mulle_utf32_t   *mulle_utf8_convert_to_utf32_string( char *src,
 
 MULLE__UTF_GLOBAL
 char    *mulle_utf16_convert_to_utf8_string( mulle_utf16_t *src,
-                                             size_t len,
+                                             unsigned int len,
                                              struct mulle_allocator *allocator);
 MULLE__UTF_GLOBAL
 mulle_utf32_t   *mulle_utf16_convert_to_utf32_string( mulle_utf16_t *src,
-                                                      size_t len,
+                                                      unsigned int len,
                                                       struct mulle_allocator *allocator);
 
 MULLE__UTF_GLOBAL
 char    *mulle_utf32_convert_to_utf8_string( mulle_utf32_t *src,
-                                             size_t len,
+                                             unsigned int len,
                                              struct mulle_allocator *allocator);
 MULLE__UTF_GLOBAL
 mulle_utf16_t   *mulle_utf32_convert_to_utf16_string( mulle_utf32_t *src,
-                                                      size_t len,
+                                                      unsigned int len,
                                                       struct mulle_allocator *allocator);
 
 
@@ -92,6 +92,7 @@ struct mulle_utf_mogrification_info
      mulle_utf32_t (*f2_conversion)( mulle_utf32_t);
      int           (*is_white)( mulle_utf32_t);
 };
+
 
 typedef int   mulle_utf8_mogrifier_function_t( struct mulle_utf8data *dst,
                                                struct mulle_utf8data *src,
@@ -148,10 +149,5 @@ MULLE__UTF_GLOBAL
 int   _mulle_utf32_word_mogrify( struct mulle_utf32data *dst,
                                  struct mulle_utf32data *src,
                                  struct mulle_utf_mogrification_info *info);
-
-
-#if MULLE__ALLOCATOR_VERSION  < ((1 << 20) | (5 << 8) | 0)
-# error "mulle-allocator is too old"
-#endif
 
 #endif /* mulle_utf_convenience_h */

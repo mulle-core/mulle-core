@@ -85,8 +85,8 @@ void   _mulle__rangeset_reserve( struct mulle__rangeset *p,
 }
 
 
-void   _mulle__rangeset_shrink( struct mulle__rangeset *p,
-                                struct mulle_allocator *allocator)
+static void   _mulle__rangeset_shrink( struct mulle__rangeset *p,
+                                       struct mulle_allocator *allocator)
 {
    uintptr_t   new_size;
    uintptr_t   size;
@@ -851,13 +851,14 @@ void   _mulle__rangeset_fprint( struct mulle__rangeset *p, FILE *fp)
    struct mulle_range   range;
    uintptr_t            i;
 
-   if( ! fp)
-      fp = stderr;
+   assert( fp);
    for( i = 0; i < _mulle__rangeset_get_rangecount( p); i++)
    {
       range = _mulle__rangeset_get_range( p, i);
       fprintf( fp, "#%td: %tu,%tu\n",
-                     i, range.location, range.length);
+                     (ptrdiff_t) i,
+                     range.location,
+                     range.length);
    }
 }
 

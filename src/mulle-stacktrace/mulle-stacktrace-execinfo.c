@@ -59,7 +59,7 @@
 //
 // it gives 0   libMulleStandaloneObjC.dylib        0x000000010ab7e46d stacktrace + 61
 // move past the address
-static char   *trim_belly_fat( char *s)
+static char   *_trim_belly_fat( char *s)
 {
    char   *hex;
    char   *sym;
@@ -82,7 +82,7 @@ static char   *trim_belly_fat( char *s)
 }
 
 
-static int   trim_arse_fat( char *s)
+static int   _trim_arse_fat( char *s)
 {
    char   *offset;
 
@@ -98,7 +98,7 @@ static int   trim_arse_fat( char *s)
 //
 // it gives /lib64/ld-linux-x86-64.so.2(+0x10ca) [0x7ffff7fd40ca]
 // or  /home/src/../libMulleObjC-standalone.so(_mulle_objc_universe_crunch+0x176) [0x7ffff7f6fa5c]
-static char   *trim_belly_fat( char *s)
+static char   *_trim_belly_fat( char *s)
 {
    char   *hex;
    char   *memo;
@@ -117,7 +117,6 @@ static char   *trim_belly_fat( char *s)
       }
       return( memo);
    }
-   hex++;
 
    // remove boring filename path
    memo = s;
@@ -126,7 +125,7 @@ static char   *trim_belly_fat( char *s)
 }
 
 
-static int   trim_arse_fat( char *s)
+static int   _trim_arse_fat( char *s)
 {
    char   *offset;
 
@@ -139,19 +138,19 @@ static int   trim_arse_fat( char *s)
 
 #endif
 
-static char  *symbolize_nothing( void *adresse, size_t max, char *buf, size_t len, void **userinfo)
+static char  *_symbolize_nothing( void *adresse, size_t max, char *buf, size_t len, void **userinfo)
 {
    return( NULL);
 }
 
 
-static char   *keep_belly_fat( char *s)
+static char   *_keep_belly_fat( char *s)
 {
    return( s);
 }
 
 
-static int   keep_arse_fat( char *s)
+static int   _keep_arse_fat( char *s)
 {
    return( (int) strlen( s));
 }
@@ -159,7 +158,7 @@ static int   keep_arse_fat( char *s)
 
 #define stracktrace_has_prefix( s, prefix)   ! strncmp( s, prefix, sizeof( prefix) - 1)
 
-static int   trim_boring_functions( char *s, int size)
+static int   _trim_boring_functions( char *s, int size)
 {
    if( size == -1)
       size = strlen( s);
@@ -198,7 +197,7 @@ static int   keep_boring_functions( char *s, int size)
 
 #ifndef HAVE_DLSYM
 
-static int   dump_less_shabby( struct mulle_stacktrace *stacktrace,
+static int   _dump_less_shabby( struct mulle_stacktrace *stacktrace,
                                char *s,
                                FILE *fp,
                                enum mulle_stacktrace_format format,
@@ -224,7 +223,7 @@ static int   dump_less_shabby( struct mulle_stacktrace *stacktrace,
 
 
 
-static void  shabby_default_dump( struct mulle_stacktrace *stacktrace,
+static void  _shabby_default_dump( struct mulle_stacktrace *stacktrace,
                                   void **callstack,
                                   int frames,
                                   int offset,
@@ -246,7 +245,7 @@ static void  shabby_default_dump( struct mulle_stacktrace *stacktrace,
    while( p > sentinel)
    {
       s = *--p;
-      if( ! dump_less_shabby( stacktrace, s, fp, format, delim))
+      if( ! _dump_less_shabby( stacktrace, s, fp, format, delim))
          delim = delimchar;
    }
    free( strs);
@@ -256,10 +255,10 @@ static void  shabby_default_dump( struct mulle_stacktrace *stacktrace,
 
 static struct mulle_stacktrace   dummy =
 {
-   symbolize_nothing,
-   trim_belly_fat,
-   trim_arse_fat,
-   trim_boring_functions
+   _symbolize_nothing,
+   _trim_belly_fat,
+   _trim_arse_fat,
+   _trim_boring_functions
 };
 
 
@@ -355,7 +354,7 @@ static void   mulle_stacktrace_dump( struct mulle_stacktrace *stacktrace,
 
 #if 0  // bringt nix, kann auch nicht mehr
       strs = backtrace_symbols( p, 1);
-      dump_less_shabby( stacktrace, *strs, fp, format, delim);
+      _dump_less_shabby( stacktrace, *strs, fp, format, delim);
       free( strs);
 #endif
       fprintf( fp, "%s %p", delim, address);
@@ -393,7 +392,7 @@ void   _mulle_stacktrace( struct mulle_stacktrace *stacktrace,
 #ifdef HAVE_DLSYM
       mulle_stacktrace_dump( stacktrace, callstack, frames, offset, fp, delimchar, format);
 #else
-      shabby_default_dump( stacktrace, callstack, frames, offset, fp, delimchar, format);
+      _shabby_default_dump( stacktrace, callstack, frames, offset, fp, delimchar, format);
 #endif
    }
 
@@ -413,23 +412,23 @@ int   mulle_stacktrace_count_frames( void)
 
 void   _mulle_stacktrace_init_default( struct mulle_stacktrace *stacktrace)
 {
-   stacktrace->symbolize      = symbolize_nothing;
-   stacktrace->trim_belly_fat = trim_belly_fat;
-   stacktrace->trim_arse_fat  = trim_arse_fat;
-   stacktrace->is_boring      = trim_boring_functions;
+   stacktrace->symbolize      = _symbolize_nothing;
+   stacktrace->trim_belly_fat = _trim_belly_fat;
+   stacktrace->trim_arse_fat  = _trim_arse_fat;
+   stacktrace->is_boring      = _trim_boring_functions;
 }
 
 
 void   _mulle_stacktrace_init( struct mulle_stacktrace *stacktrace,
                                mulle_stacktrace_symbolizer_t *p_symbolize,
-                               char *(*p_trim_belly_fat)( char *),
-                               int (*p_trim_arse_fat)( char *),
+                               char *(*p__trim_belly_fat)( char *),
+                               int (*p__trim_arse_fat)( char *),
                                int (*p_is_boring)( char *, int size))
 {
-   stacktrace->symbolize      = p_symbolize      ? p_symbolize      : symbolize_nothing;
-   stacktrace->trim_belly_fat = p_trim_belly_fat ? p_trim_belly_fat : keep_belly_fat;
-   stacktrace->trim_arse_fat  = p_trim_arse_fat  ? p_trim_arse_fat  : keep_arse_fat;
-   stacktrace->is_boring      = p_is_boring      ? p_is_boring      : keep_boring_functions;
+   stacktrace->symbolize       = p_symbolize       ? p_symbolize       : _symbolize_nothing;
+   stacktrace->trim_belly_fat  = p__trim_belly_fat ? p__trim_belly_fat : _keep_belly_fat;
+   stacktrace->trim_arse_fat   = p__trim_arse_fat  ? p__trim_arse_fat  : _keep_arse_fat;
+   stacktrace->is_boring       = p_is_boring       ? p_is_boring       : keep_boring_functions;
 }
 
 #endif

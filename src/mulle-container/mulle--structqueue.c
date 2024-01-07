@@ -40,7 +40,7 @@ int   __mulle__structqueueenumerator_next( struct mulle__structqueueenumerator *
 
 
 struct mulle__structqueue   *
-   mulle__structqueue_create( unsigned int sizeof_struct,
+   mulle__structqueue_create( size_t sizeof_struct,
                               unsigned int alignof_struct,
                               unsigned short bucket_size,
                               unsigned short spare_allowance,
@@ -103,7 +103,7 @@ void
 
 
 void   _mulle__structqueue_grow( struct mulle__structqueue *queue,
-                                  struct mulle_allocator *allocator)
+                                 struct mulle_allocator *allocator)
 {
    struct mulle__structqueuebucket   *p;
    struct mulle__structqueuebucket   *q;
@@ -236,7 +236,7 @@ static inline int
    offset = queue->_read_index * queue->_sizeof_struct;
    if( dst)
    {
-      memcpy( dst, &queue->_read->_storage[ offset], queue->_sizeof_struct);
+      memcpy( dst, &queue->_read->_storage[ offset], queue->_copy_sizeof_struct);
    }
    queue->_read_index++;
 
@@ -289,7 +289,7 @@ void   _mulle__structqueue_reset( struct mulle__structqueue *queue,
 
 
 void   _mulle__structqueue_done( struct mulle__structqueue *queue,
-                          struct mulle_allocator *allocator)
+                                 struct mulle_allocator *allocator)
 {
    free_chained_buckets( queue->_read, allocator);
    free_chained_buckets( queue->_spares, allocator);

@@ -14,15 +14,18 @@
 #ifndef _mulle_stacktrace_include_private_h__
 #define _mulle_stacktrace_include_private_h__
 
-// You can tweak the following #include with these commands.
-// (Use 66937571-7F4E-4593-9167-3D82BB17CF84 instead of mulle-dlfcn if there are duplicate entries)
-//    remove #include:: `mulle-sde dependency mark mulle-dlfcn no-header`
-//    rename:              `mulle-sde dependency|library set mulle-dlfcn include whatever.h`
-//    reorder:             `mulle-sde dependency move mulle-dlfcn <up|down>`
-//    toggle #include:    `mulle-sde dependency mark mulle-dlfcn [no-]import`
-//    toggle public:       `mulle-sde dependency mark mulle-dlfcn [no-]public`
-//    toggle optional:     `mulle-sde dependency mark mulle-dlfcn [no-]require`
-//    remove for platform: `mulle-sde dependency mark mulle-dlfcn no-platform-<uname>`
+// To remove the following dependency (headers and library) completely:
+//   `mulle-sde dependency remove mulle-dlfcn`
+// (Use 66937571-7F4E-4593-9167-3D82BB17CF84 instead of mulle-dlfcn, if there are duplicate entries)
+//
+// You can tweak the following #include with these commands:
+//    remove #include: `mulle-sde dependency mark mulle-dlfcn no-header`
+//    rename              : `mulle-sde dependency|library set mulle-dlfcn include whatever.h`
+//    reorder             : `mulle-sde dependency move mulle-dlfcn <up|down>`
+//    toggle #include: `mulle-sde dependency mark mulle-dlfcn [no-]import`
+//    toggle public       : `mulle-sde dependency mark mulle-dlfcn [no-]public`
+//    toggle optional     : `mulle-sde dependency mark mulle-dlfcn [no-]require`
+//    remove for platform : `mulle-sde dependency mark mulle-dlfcn no-platform-<uname>`
 //        (use `mulle-sourcetree-to-c --unames` to list known values)
 #include <mulle-dlfcn/mulle-dlfcn.h>   // mulle-dlfcn
 

@@ -25,25 +25,27 @@ static struct map_entry
 
 
 
-void  mulle_buffer_slugify_utf8data( struct mulle_buffer *buffer,
-                                     struct mulle_utf8data data)
+void  mulle_buffer_add_slugified_utf8data( struct mulle_buffer *buffer,
+                                           struct mulle_utf8data data)
 {
    mulle_utf32_t      c;
    mulle_utf32_t      prev;
-   char       *walk;
-   char       *sentinel;
+   char               *walk;
+   char               *sentinel;
    struct map_entry   *p;
    int                first;
    int                last;
    int                middle;
    size_t             length;
+   size_t             prevlen;
 
-   if( ! data.characters)
+   if( ! data.length)
       return;
 
    prev     = 0;
    walk     = data.characters;
    sentinel = &data.characters[ data.length];
+   prevlen  = mulle_buffer_get_length( buffer);
 
    while( walk < sentinel)
    {
@@ -52,7 +54,7 @@ void  mulle_buffer_slugify_utf8data( struct mulle_buffer *buffer,
       {
          switch( c)
          {
-         case '\0' : continue;
+         case '\0' : goto stop;
          case ' '  :
          case '\f' :
          case '\n' :
@@ -120,8 +122,9 @@ void  mulle_buffer_slugify_utf8data( struct mulle_buffer *buffer,
       }
    }
 
+stop:
    length = mulle_buffer_get_length( buffer);
-   while( length > 1)
+   while( length > prevlen + 1)
    {
       c = mulle_buffer_get_last_byte( buffer);
       if( c != '-')
@@ -130,6 +133,13 @@ void  mulle_buffer_slugify_utf8data( struct mulle_buffer *buffer,
       mulle_buffer_remove_last_byte( buffer);
       --length;
    }
+}
+
+
+void  mulle_buffer_slugify_utf8data( struct mulle_buffer *buffer,
+                                     struct mulle_utf8data data)
+{
+   mulle_buffer_add_slugified_utf8data( buffer, data);
    mulle_buffer_make_string( buffer);
 }
 
@@ -164,8 +174,8 @@ char   *mulle_utf8_slugify( char *s)
 
    data = mulle_utf8data_make( (char *) s, -1);
    slug = mulle_utf8data_slugify( data, NULL);
-   if( ! slug.length)
-      return( mulle_strdup( ""));
+   assert( slug.characters);
+   assert( slug.length >= 1); // sic (the trailing 0)
    return( (char *) slug.characters);
 }
 

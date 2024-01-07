@@ -40,9 +40,8 @@
 
 struct mulle_pointermultififo
 {
-   mulle_atomic_pointer_t   n;        
-   mulle_atomic_pointer_t   write;    // only accessed by producers
    mulle_atomic_pointer_t   read;     // only accessed by consumers
+   mulle_atomic_pointer_t   write;    // only accessed by producers
    unsigned int             size;     // read only after init
    struct mulle_allocator   *allocator;
    mulle_atomic_pointer_t   *storage;
@@ -59,11 +58,6 @@ static inline void   _mulle_pointermultififo_done( struct mulle_pointermultififo
    mulle_allocator_free( p->allocator, p->storage);
 }
 
-
-static inline unsigned int   _mulle_pointermultififo_get_count( struct mulle_pointermultififo *p)
-{
-   return( (unsigned int) (uintptr_t) _mulle_atomic_pointer_read( &p->n));
-}
 
 
 MULLE_C_NONNULL_FIRST

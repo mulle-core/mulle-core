@@ -69,7 +69,7 @@ unsigned int   _mulle_range_hole_bsearch( struct mulle_range *buf,
    struct mulle_range   *p;
 
    first  = 0;
-   last   = n - 1;
+   last   = (int) n - 1;
    middle = (first + last) / 2;
 
    while( first <= last)
@@ -107,11 +107,11 @@ struct mulle_range   *mulle_range_contains_bsearch( struct mulle_range *buf,
    if( ! mulle_range_is_valid( search))
       return( 0);
 
-   if( ! buf || ! n || ! search.length)
+   if( ! buf)
       return( 0);
 
    first  = 0;
-   last   = n - 1;
+   last   = (int) n - 1;
    middle = (first + last) / 2;
 
    while( first <= last)
@@ -151,7 +151,7 @@ struct mulle_range   *mulle_range_intersects_bsearch( struct mulle_range *buf,
       return( 0);
 
    first  = 0;
-   last   = n - 1;
+   last   = (int) n - 1;
    middle = (first + last) / 2;
 
    while( first <= last)
@@ -174,9 +174,9 @@ struct mulle_range   *mulle_range_intersects_bsearch( struct mulle_range *buf,
 }
 
 
-unsigned int   mulle_range_subtract( struct mulle_range a,
-                                     struct mulle_range b,
-                                     struct mulle_range result[ 2])
+void   mulle_range_subtract( struct mulle_range a,
+                             struct mulle_range b,
+                             struct mulle_range result[ 2])
 {
    uintptr_t   a_end;
    uintptr_t   b_end;
@@ -190,23 +190,23 @@ unsigned int   mulle_range_subtract( struct mulle_range a,
    if( ! mulle_range_intersect( a, b).length)
    {
       result[ 0] = a;
-      return( 1);
+      result[ 1] = mulle_range_zero;
+      return;
    }
 
    a_end = mulle_range_get_max( a);
    b_end = mulle_range_get_max( b);
 
-   // 2.
+   // 2. completely clobbers
    //
    //              a.....a_end
    //          b..............b_end
    //
-   //     make a hole
-   //
    if( b.location <= a.location && b_end >= a_end)
    {
-      result[ 0] = mulle_range_make( 0, 0);
-      return( 1);
+      result[ 0] =
+      result[ 1] = mulle_range_zero;
+      return;
    }
 
 
@@ -220,7 +220,7 @@ unsigned int   mulle_range_subtract( struct mulle_range a,
    {
       result[ 0] = mulle_range_make( a.location, b.location - a.location);
       result[ 1] = mulle_range_make( b_end, a_end - b_end);
-      return( 2);
+      return;
    }
 
    // 4. range removes part of the front
@@ -230,8 +230,9 @@ unsigned int   mulle_range_subtract( struct mulle_range a,
    //
    if( a_end > b_end)
    {
-      result[ 0] = mulle_range_make( b_end, a_end - b_end);
-      return( 1);
+      result[ 0] = mulle_range_zero;
+      result[ 1] = mulle_range_make( b_end, a_end - b_end);
+      return;
    }
 
    // 5. range removes part of the back
@@ -240,7 +241,7 @@ unsigned int   mulle_range_subtract( struct mulle_range a,
    //        b.......b_end
    //
    result[ 0] = mulle_range_make( a.location, b.location - a.location);
-   return( 1);
+   result[ 1] = mulle_range_zero;
 }
 
 

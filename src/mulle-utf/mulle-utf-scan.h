@@ -63,12 +63,12 @@ int   _mulle_utf8_scan_longlong_decimal( char **p_s,
 
 MULLE__UTF_GLOBAL
 int   _mulle_utf16_scan_longlong_decimal( mulle_utf16_t **p_s,
-                                          size_t len,
+                                          unsigned int len,
                                           long long *p_value);
 
 MULLE__UTF_GLOBAL
 int   _mulle_utf32_scan_longlong_decimal( mulle_utf32_t **p_s,
-                                          size_t len,
+                                          unsigned int len,
                                           long long *p_value);
 
 #endif

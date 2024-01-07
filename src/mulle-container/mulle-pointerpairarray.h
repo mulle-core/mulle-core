@@ -44,6 +44,7 @@
 //
 // mulle_pointerpairarray, simple growing array of pointer pairs
 // (kind of like a associative array)
+// TODO: hide mulle_pointerpair from API and use key/value ?
 // You can also use it as stack
 //
 struct mulle_pointerpairarray
@@ -301,7 +302,7 @@ static inline void
 }
 
 
-#pragma mark - sort and search
+#pragma mark - sort and find
 
 
 MULLE_C_NONNULL_FIRST
@@ -316,6 +317,17 @@ static inline uintptr_t
 }
 
 
+static inline uintptr_t
+   mulle_pointerpairarray_find_in_range( struct mulle_pointerpairarray *array,
+                                         struct mulle_pointerpair search,
+                                         struct mulle_range range)
+{
+   if( ! array)
+      return( mulle_not_found_e);
+   return( _mulle_pointerpairarray_find_in_range( array, search, range));
+}
+
+
 MULLE_C_NONNULL_FIRST
 static inline uintptr_t
    _mulle_pointerpairarray_find( struct mulle_pointerpairarray *array,
@@ -326,54 +338,66 @@ static inline uintptr_t
 }
 
 
-MULLE_C_NONNULL_FIRST
-static inline struct mulle_pointerpair
-   _mulle_pointerpairarray_search_callback( struct mulle_pointerpairarray *array,
-                                            struct mulle_pointerpair search,
-                                            struct mulle_container_keyvaluecallback *callback)
+static inline uintptr_t
+   mulle_pointerpairarray_find( struct mulle_pointerpairarray *array,
+                                struct mulle_pointerpair search)
 {
-   return( _mulle__pointerpairarray_search_callback( (struct mulle__pointerpairarray *) array,
-                                                     search,
-                                                     callback));
+   if( ! array)
+      return( mulle_not_found_e);
+   return( _mulle_pointerpairarray_find( array, search));
 }
-
-
-static inline struct mulle_pointerpair
-   mulle_pointerpairarray_search_callback( struct mulle_pointerpairarray *array,
-                                           struct mulle_pointerpair search,
-                                           struct mulle_container_keyvaluecallback *callback)
-{
-   return( mulle__pointerpairarray_search_callback( (struct mulle__pointerpairarray *) array,
-                                                    search,
-                                                    callback));
-}
-
 
 
 MULLE_C_NONNULL_FIRST
-static inline struct mulle_pointerpair
-   _mulle_pointerpairarray_search_compare( struct mulle_pointerpairarray *array,
-                                           struct mulle_pointerpair search,
-                                           mulle_pointerpair_compare_t *compare,
-                                           void *userinfo)
-{
-   return( _mulle__pointerpairarray_search_compare( (struct mulle__pointerpairarray *) array,
-                                                    search,
-                                                    compare,
-                                                    userinfo));
-}
-
-
-static inline struct mulle_pointerpair
-   mulle_pointerpairarray_search_compare( struct mulle_pointerpairarray *array,
+static inline uintptr_t
+   _mulle_pointerpairarray_find_callback( struct mulle_pointerpairarray *array,
                                           struct mulle_pointerpair search,
-                                          mulle_pointerpair_compare_t *compare,
-                                          void *userinfo)
+                                          struct mulle_container_keyvaluecallback *callback)
 {
-   return( mulle__pointerpairarray_search_compare( (struct mulle__pointerpairarray *) array,
+   return( _mulle__pointerpairarray_find_callback( (struct mulle__pointerpairarray *) array,
                                                    search,
-                                                   compare,
-                                                   userinfo));
+                                                   callback));
+}
+
+
+static inline uintptr_t
+   mulle_pointerpairarray_find_callback( struct mulle_pointerpairarray *array,
+                                         struct mulle_pointerpair search,
+                                         struct mulle_container_keyvaluecallback *callback)
+{
+   if( ! array)
+      return( mulle_not_found_e);
+   return( _mulle_pointerpairarray_find_callback( array, search, callback));
+}
+
+
+
+MULLE_C_NONNULL_FIRST
+static inline uintptr_t
+   _mulle_pointerpairarray_find_compare( struct mulle_pointerpairarray *array,
+                                         struct mulle_pointerpair search,
+                                         mulle_pointerpair_compare_t *compare,
+                                         void *userinfo)
+{
+   return( _mulle__pointerpairarray_find_compare( (struct mulle__pointerpairarray *) array,
+                                                  search,
+                                                  compare,
+                                                  userinfo));
+}
+
+
+static inline uintptr_t
+   mulle_pointerpairarray_find_compare( struct mulle_pointerpairarray *array,
+                                        struct mulle_pointerpair search,
+                                        mulle_pointerpair_compare_t *compare,
+                                        void *userinfo)
+{
+   if( ! array)
+      return( mulle_not_found_e);
+   return( _mulle_pointerpairarray_find_compare( array,
+                                                 search,
+                                                 compare,
+                                                 userinfo));
 }
 
 
@@ -436,7 +460,7 @@ static inline struct mulle_pointerpairarrayenumerator
 MULLE_C_NONNULL_FIRST_SECOND
 static inline int
 	_mulle_pointerpairarrayenumerator_next( struct mulle_pointerpairarrayenumerator *rover,
-                                           struct mulle_pointerpair  *pair)
+                                           struct mulle_pointerpair *pair)
 {
    return( _mulle__pointerpairarrayenumerator_next( (struct mulle__pointerpairarrayenumerator *) rover,
                                                     pair));
@@ -445,7 +469,7 @@ static inline int
 
 static inline int
 	mulle_pointerpairarrayenumerator_next( struct mulle_pointerpairarrayenumerator *rover,
-                                          struct mulle_pointerpair  *pair)
+                                          struct mulle_pointerpair *pair)
 {
    return( mulle__pointerpairarrayenumerator_next( (struct mulle__pointerpairarrayenumerator *) rover,
                                                    pair));
@@ -467,9 +491,39 @@ static inline void
 }
 
 
-#define mulle_pointerpairarray_for( array, pair)                                                            \
-   for( struct mulle_pointerpairarrayenumerator rover__ ## pair = mulle_pointerpairarray_enumerate( array); \
-        _mulle_pointerpairarrayenumerator_next( &rover__ ## pair, (void **) &pair);)
+
+// created by make-container-do.sh -v -ls --type struct mulle_pointerpair    mulle-pointerpairarray.c
+
+#define mulle_pointerpairarray_do( name)                        \
+   for( struct mulle_pointerpairarray                           \
+           name ## __container = { 0 },                         \
+           *name = &name ## __container,                        \
+           *name ## __i = NULL;                                 \
+        ! name ## __i;                                          \
+        name ## __i =                                           \
+        (                                                       \
+           _mulle_pointerpairarray_done( &name ## __container), \
+           (void *) 0x1                                         \
+        )                                                       \
+      )                                                         \
+      for( int  name ## __j = 0;    /* break protection */      \
+           name ## __j < 1;                                     \
+           name ## __j++)
+
+
+//
+// TODO: Use standard key, value for this ?
+//
+#define mulle_pointerpairarray_for( name, pair)                                               \
+   for( struct mulle_pointerpairarrayenumerator                                               \
+           rover__ ## pair = mulle_pointerpairarray_enumerate( name),                         \
+           *rover___  ## pair ## __i = (void *) 0;                                            \
+        ! rover___  ## pair ## __i;                                                           \
+        rover___ ## pair ## __i = (_mulle_pointerpairarrayenumerator_done( &rover__ ## pair), \
+                                   (void *) 1))                                               \
+      while( _mulle_pointerpairarrayenumerator_next( &rover__ ## pair, &pair))
+
+
 
 
 #endif

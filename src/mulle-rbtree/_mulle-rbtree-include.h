@@ -14,15 +14,18 @@
 #ifndef _mulle_rbtree_include_h__
 #define _mulle_rbtree_include_h__
 
-// You can tweak the following #include with these commands.
-// (Use 40089838-70DB-4EC9-8865-509BECBB8C53 instead of mulle-storage if there are duplicate entries)
-//    remove #include:: `mulle-sde dependency mark mulle-storage no-header`
-//    rename:              `mulle-sde dependency|library set mulle-storage include whatever.h`
-//    reorder:             `mulle-sde dependency move mulle-storage <up|down>`
-//    toggle #include:    `mulle-sde dependency mark mulle-storage [no-]import`
-//    toggle public:       `mulle-sde dependency mark mulle-storage [no-]public`
-//    toggle optional:     `mulle-sde dependency mark mulle-storage [no-]require`
-//    remove for platform: `mulle-sde dependency mark mulle-storage no-platform-<uname>`
+// To remove the following dependency (headers and library) completely:
+//   `mulle-sde dependency remove mulle-storage`
+// (Use 40089838-70DB-4EC9-8865-509BECBB8C53 instead of mulle-storage, if there are duplicate entries)
+//
+// You can tweak the following #include with these commands:
+//    remove #include: `mulle-sde dependency mark mulle-storage no-header`
+//    rename              : `mulle-sde dependency|library set mulle-storage include whatever.h`
+//    reorder             : `mulle-sde dependency move mulle-storage <up|down>`
+//    toggle #include: `mulle-sde dependency mark mulle-storage [no-]import`
+//    toggle public       : `mulle-sde dependency mark mulle-storage [no-]public`
+//    toggle optional     : `mulle-sde dependency mark mulle-storage [no-]require`
+//    remove for platform : `mulle-sde dependency mark mulle-storage no-platform-<uname>`
 //        (use `mulle-sourcetree-to-c --unames` to list known values)
 #include <mulle-storage/mulle-storage.h>   // mulle-storage
 

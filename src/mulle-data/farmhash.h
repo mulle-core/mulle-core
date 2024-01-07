@@ -50,56 +50,47 @@
 // BASIC STRING HASHING
 
 // Hash function for a byte array.
-// May change from time to time, may differ on different platforms, may differ
-// depending on NDEBUG.
+// May change from time to time, may differ on different platforms.
 size_t farmhash(const char* s, size_t len);
 
 // Hash function for a byte array.  Most useful in 32-bit binaries.
-// May change from time to time, may differ on different platforms, may differ
-// depending on NDEBUG.
+// May change from time to time, may differ on different platforms.
 uint32_t farmhash32(const char* s, size_t len);
 
 // Hash function for a byte array.  For convenience, a 32-bit seed is also
 // hashed into the result.
-// May change from time to time, may differ on different platforms, may differ
-// depending on NDEBUG.
+// May change from time to time, may differ on different platforms.
 uint32_t farmhash32_with_seed(const char* s, size_t len, uint32_t seed);
 
 // Hash 128 input bits down to 64 bits of output.
 // Hash function for a byte array.
-// May change from time to time, may differ on different platforms, may differ
-// depending on NDEBUG.
+// May change from time to time, may differ on different platforms.
 uint64_t farmhash64(const char* s, size_t len);
 
 // Hash function for a byte array.  For convenience, a 64-bit seed is also
 // hashed into the result.
-// May change from time to time, may differ on different platforms, may differ
-// depending on NDEBUG.
+// May change from time to time, may differ on different platforms.
 uint64_t farmhash64_with_seed(const char* s, size_t len, uint64_t seed);
 
 // Hash function for a byte array.  For convenience, two seeds are also
 // hashed into the result.
-// May change from time to time, may differ on different platforms, may differ
-// depending on NDEBUG.
+// May change from time to time, may differ on different platforms.
 uint64_t farmhash64_with_seeds(const char* s, size_t len,
                        uint64_t seed0, uint64_t seed1);
 
 // Hash function for a byte array.
-// May change from time to time, may differ on different platforms, may differ
-// depending on NDEBUG.
+// May change from time to time, may differ on different platforms.
 fh_uint128_t farmhash128(const char* s, size_t len);
 
 // Hash function for a byte array.  For convenience, a 128-bit seed is also
 // hashed into the result.
-// May change from time to time, may differ on different platforms, may differ
-// depending on NDEBUG.
+// May change from time to time, may differ on different platforms.
 fh_uint128_t farmhash128_with_seed(const char* s, size_t len, fh_uint128_t seed);
 
 // BASIC NON-STRING HASHING
 
 // This is intended to be a reasonably good hash function.
-// May change from time to time, may differ on different platforms, may differ
-// depending on NDEBUG.
+// May change from time to time, may differ on different platforms.
 static inline uint64_t farmhash128_to_64(fh_uint128_t x) {
   // Murmur-inspired hashing.
   const uint64_t k_mul = 0x9ddfea08eb382d69ULL;

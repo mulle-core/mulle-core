@@ -14,15 +14,18 @@
 #ifndef _mulle_dlfcn_include_private_h__
 #define _mulle_dlfcn_include_private_h__
 
-// You can tweak the following #include with these commands.
-// (Use E0AA557E-995A-4BE2-947A-717E07DF1939 instead of psapi if there are duplicate entries)
-//    remove #include:: `mulle-sde dependency mark psapi no-header`
-//    rename:              `mulle-sde dependency|library set psapi include whatever.h`
-//    reorder:             `mulle-sde dependency move psapi <up|down>`
-//    toggle #include:    `mulle-sde dependency mark psapi [no-]import`
-//    toggle public:       `mulle-sde dependency mark psapi [no-]public`
-//    toggle optional:     `mulle-sde dependency mark psapi [no-]require`
-//    remove for platform: `mulle-sde dependency mark psapi no-platform-<uname>`
+// To remove the following dependency (headers and library) completely:
+//   `mulle-sde dependency remove psapi`
+// (Use E0AA557E-995A-4BE2-947A-717E07DF1939 instead of psapi, if there are duplicate entries)
+//
+// You can tweak the following #include with these commands:
+//    remove #include: `mulle-sde dependency mark psapi no-header`
+//    rename              : `mulle-sde dependency|library set psapi include whatever.h`
+//    reorder             : `mulle-sde dependency move psapi <up|down>`
+//    toggle #include: `mulle-sde dependency mark psapi [no-]import`
+//    toggle public       : `mulle-sde dependency mark psapi [no-]public`
+//    toggle optional     : `mulle-sde dependency mark psapi [no-]require`
+//    remove for platform : `mulle-sde dependency mark psapi no-platform-<uname>`
 //        (use `mulle-sourcetree-to-c --unames` to list known values)
 # if defined( _WIN32) || defined( _WIN32)
 # ifdef __has_include

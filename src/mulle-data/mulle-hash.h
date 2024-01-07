@@ -27,8 +27,8 @@
 //  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 //  POSSIBILITY OF SUCH DAMAGE.
 //
-#ifndef mulle_hash__h__
-#define mulle_hash__h__
+#ifndef mulle_hash_h__
+#define mulle_hash_h__
 
 #include "include.h"
 

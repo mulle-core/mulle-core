@@ -30,8 +30,8 @@
 //  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 //  POSSIBILITY OF SUCH DAMAGE.
 //
-#ifndef mulle__pointermap__h__
-#define mulle__pointermap__h__
+#ifndef mulle__pointermap_h__
+#define mulle__pointermap_h__
 
 #include "mulle--pointermap-struct.h"
 #include "mulle--pointermap-generic.h"
@@ -45,6 +45,7 @@ static inline void   _mulle__pointermap_set_pair( struct mulle__pointermap *map,
 {
    _mulle__pointermap_set_pair_generic( map, pair, &mulle__pointermap_keyvaluecallback, allocator);
 }
+
 
 static inline void   mulle__pointermap_set_pair( struct mulle__pointermap *map,
                                                  struct mulle_pointerpair *pair,
@@ -69,6 +70,7 @@ static inline void   _mulle__pointermap_set( struct mulle__pointermap *map,
    _mulle__pointermap_set_pair_generic( map, &pair, &mulle__pointermap_keyvaluecallback, allocator);
 }
 
+
 static inline void   mulle__pointermap_set( struct mulle__pointermap *map,
                                             void *key,
                                             void *value,
@@ -82,9 +84,9 @@ static inline void   mulle__pointermap_set( struct mulle__pointermap *map,
 
 MULLE_C_NONNULL_FIRST_SECOND
 static inline
-void    *_mulle__pointermap_insert_pair( struct mulle__pointermap *map,
-                                         struct mulle_pointerpair *pair,
-                                         struct mulle_allocator *allocator)
+void   *_mulle__pointermap_insert_pair( struct mulle__pointermap *map,
+                                        struct mulle_pointerpair *pair,
+                                        struct mulle_allocator *allocator)
 {
    return( _mulle__pointermap_insert_pair_generic( map,
                                                    pair,
@@ -104,5 +106,45 @@ int   _mulle__pointermap_remove( struct mulle__pointermap *map,
                                               &mulle__pointermap_keyvaluecallback,
                                               allocator));
 }
+
+MULLE_C_NONNULL_SECOND
+static inline
+int   mulle__pointermap_remove( struct mulle__pointermap *map,
+                                void *key,
+                                struct mulle_allocator *allocator)
+{
+   if( map)
+      return( _mulle__pointermap_remove( map, key, allocator));
+   return( 0);
+}
+
+
+// created by make-container-do.sh mulle--pointermap.c
+
+#define mulle__pointermap_do( name)                              \
+   for( struct mulle__pointermap                                 \
+           name ## __container = { 0 },                          \
+           *name = &name ## __container,                         \
+           *name ## __i = NULL;                                  \
+        ! name ## __i;                                           \
+        name ## __i =                                            \
+        (                                                        \
+           _mulle__pointermap_done( &name ## __container, NULL), \
+           (void *) 0x1                                          \
+        )                                                        \
+      )                                                          \
+      for( int  name ## __j = 0;    /* break protection */       \
+           name ## __j < 1;                                      \
+           name ## __j++)
+
+
+#define mulle__pointermap_for( map, key, value)                                                               \
+   assert( sizeof( key) == sizeof( void *));                                                                  \
+   assert( sizeof( value) == sizeof( void *));                                                                \
+   for( struct mulle__pointermapenumerator rover__ ## key ## __ ## value = mulle__pointermap_enumerate( map); \
+        _mulle__pointermapenumerator_next( &rover__ ## key ## __ ## value,                                    \
+                                           (void **) &(key),                                                  \
+                                           (void **) &(value));                                               \
+        _mulle__pointermapenumerator_done( &rover__ ## key ## __ ## value))
 
 #endif

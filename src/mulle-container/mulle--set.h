@@ -27,8 +27,8 @@
 //  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 //  POSSIBILITY OF SUCH DAMAGE.
 //
-#ifndef mulle__set__h__
-#define mulle__set__h__
+#ifndef mulle__set_h__
+#define mulle__set_h__
 
 #include "mulle--pointerset.h"
 #include "mulle-container-callback.h"
@@ -133,6 +133,9 @@ void   _mulle__set_set( struct mulle__set *set,
                                    allocator);
 }
 
+
+
+
 MULLE_C_NONNULL_FIRST_THIRD
 static inline
 void    *_mulle__set_insert( struct mulle__set *set,
@@ -213,20 +216,30 @@ static inline void  _mulle__set_shrink_if_needed( struct mulle__set *set,
 }
 
 
+MULLE_C_NONNULL_SECOND
+static inline void   mulle__set_shrink_if_needed( struct mulle__set *set,
+                                                  struct mulle_container_keycallback *callback,
+                                                  struct mulle_allocator *allocator)
+{
+   if( set)
+      _mulle__set_shrink_if_needed( set, callback, allocator);
+}
+
+
 
 #pragma mark - copying
 
 MULLE_C_NONNULL_FIRST_SECOND_THIRD
 static inline
-int   _mulle__set_copy_items( struct mulle__set *dst,
+void   _mulle__set_copy_items( struct mulle__set *dst,
                               struct mulle__set *src,
                               struct mulle_container_keycallback *callback,
                               struct mulle_allocator *allocator)
 {
-   return( _mulle__pointerset_copy_items_generic( (struct mulle__pointerset *) dst,
-                                                  (struct mulle__pointerset *) src,
-                                                  callback,
-                                                  allocator));
+   _mulle__pointerset_copy_items_generic( (struct mulle__pointerset *) dst,
+                                          (struct mulle__pointerset *) src,
+                                          callback,
+                                          allocator);
 }
 
 
@@ -273,7 +286,7 @@ static inline struct mulle__setenumerator
    mulle__set_enumerate( struct mulle__set *set,
                          struct mulle_container_keycallback *callback)
 {
-   if( set)
+   if( ! set)
       return( mulle__setenumerator_empty);
    return( _mulle__set_enumerate( set, callback));
 }
@@ -305,5 +318,37 @@ static inline void   _mulle__setenumerator_done( struct mulle__setenumerator *ro
 static inline void   mulle__setenumerator_done( struct mulle__setenumerator *rover)
 {
 }
+
+// created by make-container-do.sh mulle--set.c
+
+#define mulle__set_do( name, callback)                              \
+   for( struct mulle__set                                           \
+           name ## __container = { 0 },                             \
+           *name = &name ## __container,                            \
+           *name ## __i = NULL;                                     \
+        ! name ## __i;                                              \
+        name ## __i =                                               \
+        (                                                           \
+           _mulle__set_done( &name ## __container, callback, NULL), \
+           (void *) 0x1                                             \
+        )                                                           \
+      )                                                             \
+      for( int  name ## __j = 0;    /* break protection */          \
+           name ## __j < 1;                                         \
+           name ## __j++)
+
+
+// created by make-container-for.sh src/set/mulle--set.c
+
+#define mulle__set_for( name, callback, item)                                     \
+   assert( sizeof( item) == sizeof( void *));                                     \
+   for( struct mulle__setenumerator                                               \
+           rover__ ## item = mulle__set_enumerate( name, callback),               \
+           *rover___  ## item ## __i = (void *) 0;                                \
+        ! rover___  ## item ## __i;                                               \
+        rover___ ## item ## __i = (_mulle__setenumerator_done( &rover__ ## item), \
+                                   (void *) 1))                                   \
+      while( _mulle__setenumerator_next( &rover__ ## item, (void **) &item))
+
 
 #endif

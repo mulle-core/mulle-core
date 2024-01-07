@@ -9,10 +9,11 @@
  *
  *      mulle-sde environment set MULLE_MATCH_TO_C_RUN DISABLE
  */
-#ifndef mulle_multififo_provide_h__
-#define mulle_multififo_provide_h__
+#ifndef _mulle__multififo__provide_h__
+#define _mulle__multififo__provide_h__
 
 
+#include "mulle-lockingpointermultififo.h"
 #include "mulle-pointermultififo.h"
 
 

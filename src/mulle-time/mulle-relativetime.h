@@ -29,6 +29,12 @@ static inline mulle_relativetime_t
 }
 
 
+// this gives elapsed seconds since the load of the program
+MULLE__TIME_GLOBAL
+mulle_relativetime_t   mulle_relativetime_now( void);
+
+
+
 
 struct mulle_relativetimerange
 {

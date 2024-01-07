@@ -47,18 +47,41 @@
 struct mulle_utf32data
 {
    mulle_utf32_t   *characters;
-   size_t          length;
+   unsigned int    length;
 };
 
 
-static inline struct mulle_utf32data   mulle_utf32data_make( mulle_utf32_t *s, size_t length)
+static inline unsigned int   mulle_utf32_strlen( mulle_utf32_t *s)
 {
-   struct mulle_utf32data   data;
+   mulle_utf32_t   *p;
 
-   data.characters = s;
-   data.length     = length;
+   if( ! s)
+      return( 0);
+
+   /* this produced the nicest looking i386 code :P */
+   for( p = s - 1; *++p;);
+
+   return( p - s);
+}
+
+
+static inline struct mulle_utf32data   mulle_utf32data_make( mulle_utf32_t *s,
+                                                             unsigned int length)
+{
+   struct mulle_utf32data       data;
+   const static mulle_utf32_t   zero = { 0 };
+
+   data.length     = (length == (unsigned int) -1) ? mulle_utf32_strlen( s) : length;
+   data.characters = data.length ? s : (mulle_utf32_t *) &zero;
    return( data);
 }
+
+
+static inline struct mulle_utf32data   mulle_utf32data_make_null( void)
+{
+   return( (struct mulle_utf32data ) { NULL, 0 });
+}
+
 
 
 static inline int   mulle_utf32_is_asciicharacter( mulle_utf32_t c)
@@ -73,21 +96,31 @@ static inline int   mulle_utf32_is_char5character( mulle_utf32_t c)
 }
 
 
-MULLE__UTF_GLOBAL
-size_t   mulle_utf32_utf8length( mulle_utf32_t *src,
-                                 size_t len);
+static inline int   mulle_utf32_get_unicodeplane( mulle_utf32_t c)
+{
+   int   plane;
+
+   plane = (uint32_t) c >> 16;
+   return( plane);
+}
+
+
 
 MULLE__UTF_GLOBAL
-size_t   mulle_utf32_utf16length( mulle_utf32_t *src,
-                                  size_t len);
+size_t   mulle_utf32_utf8length( mulle_utf32_t *src,
+                                 unsigned int len);
+
+MULLE__UTF_GLOBAL
+unsigned int   mulle_utf32_utf16length( mulle_utf32_t *src,
+                                  unsigned int len);
 
 MULLE__UTF_GLOBAL
 int   mulle_utf32_information( mulle_utf32_t *src,
-                               size_t len,
+                               unsigned int len,
                                struct mulle_utf_information *info);
 
 MULLE__UTF_GLOBAL
-mulle_utf32_t  *mulle_utf32_validate( mulle_utf32_t *src, size_t len);
+mulle_utf32_t  *mulle_utf32_validate( mulle_utf32_t *src, unsigned int len);
 
 //
 // these two are just here for completeness
@@ -112,30 +145,30 @@ mulle_utf16_t  *_mulle_utf32_convert_to_utf16_as_surrogatepair( mulle_utf32_t x,
 
 MULLE__UTF_GLOBAL
 mulle_utf16_t   *_mulle_utf32_convert_to_utf16( mulle_utf32_t *src,
-                                                size_t len,
+                                                unsigned int len,
                                                 mulle_utf16_t *dst);
 MULLE__UTF_GLOBAL
-char  *_mulle_utf32_convert_to_utf8( mulle_utf32_t *src, size_t len, char *dst);
+char  *_mulle_utf32_convert_to_utf8( mulle_utf32_t *src, unsigned int len, char *dst);
 
 // these routines do not skip BOM characters
 MULLE__UTF_GLOBAL
 void   mulle_utf32_bufferconvert_to_utf8( mulle_utf32_t *src,
-                                          size_t len,
+                                          unsigned int len,
                                           void *buffer,
-                                          mulle_utf_add_bytes_function_t addbytes);
+                                          mulle_utf_add_bytes_function_t *addbytes);
 
 MULLE__UTF_GLOBAL
 void   mulle_utf32_bufferconvert_to_utf16( mulle_utf32_t *src,
-                                           size_t len,
+                                           unsigned int len,
                                            void *buffer,
-                                           mulle_utf_add_bytes_function_t addbytes);
+                                           mulle_utf_add_bytes_function_t *addbytes);
 
 // unused nowadays
 static inline void
    mulle_utf32_bufferconvert_to_utf16_as_surrogatepair(
             mulle_utf32_t x,
             void *buffer,
-            mulle_utf_add_bytes_function_t addbytes)
+            mulle_utf_add_bytes_function_t *addbytes)
 {
    mulle_utf16_t   hilo[ 2];
 
@@ -166,7 +199,7 @@ static inline char   *mulle_utf32_as_utf8( mulle_utf32_t x, char *dst)
 
 
 MULLE__UTF_GLOBAL
-enum mulle_utf_charinfo   _mulle_utf32_charinfo( mulle_utf32_t *src, size_t len);
+enum mulle_utf_charinfo   _mulle_utf32_charinfo( mulle_utf32_t *src, unsigned int len);
 
 #endif
 

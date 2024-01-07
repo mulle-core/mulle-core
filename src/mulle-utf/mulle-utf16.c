@@ -82,14 +82,14 @@ int  mulle_utf16_is_valid_surrogatepair( mulle_utf16_t hi, mulle_utf16_t lo)
  * copy converters
  */
 mulle_utf32_t  *_mulle_utf16_convert_to_utf32( mulle_utf16_t *src,
-                                               size_t len,
+                                               unsigned int len,
                                                mulle_utf32_t *dst)
 {
    mulle_utf16_t   *sentinel;
    mulle_utf32_t   x;
 
    // if dst_len == -1, then sentinel - 1 = dst_sentinel (OK!)
-   assert( len != (size_t) -1);
+   assert( len != (unsigned int) -1);
 
    sentinel = &src[ len];
 
@@ -112,14 +112,14 @@ mulle_utf32_t  *_mulle_utf16_convert_to_utf32( mulle_utf16_t *src,
 //
 // this also does not do any error checking,
 // must be proper UTF16 code!
-char  *_mulle_utf16_convert_to_utf8( mulle_utf16_t *src, size_t len, char *_dst)
+char  *_mulle_utf16_convert_to_utf8( mulle_utf16_t *src, unsigned int len, char *_dst)
 {
    unsigned char   *dst = (unsigned char *) _dst;
    mulle_utf16_t   *sentinel;
    mulle_utf32_t   x;
 
    // if dst_len == -1, then sentinel - 1 = dst_sentinel (OK!)
-   assert( len != (size_t) -1);
+   assert( len != (unsigned int) -1);
 
    sentinel = &src[ len];
 
@@ -181,9 +181,9 @@ recheck:
 // this also does not do any error checking,
 // must be proper UTF16 code!
 void  mulle_utf16_bufferconvert_to_utf8( mulle_utf16_t *src,
-                                         size_t len,
+                                         unsigned int len,
                                          void *buffer,
-                                         mulle_utf_add_bytes_function_t addbytes)
+                                         mulle_utf_add_bytes_function_t *addbytes)
 {
    mulle_utf16_t   *sentinel;
    mulle_utf32_t   x;
@@ -191,7 +191,7 @@ void  mulle_utf16_bufferconvert_to_utf8( mulle_utf16_t *src,
    unsigned char   *s_flush;
    unsigned char   tmp[ 128];
 
-   if( len == (size_t) -1)
+   if( len == (unsigned int) -1)
       len = mulle_utf16_strlen( src);
 
    // if dst_len == -1, then sentinel - 1 = dst_sentinel (OK!)
@@ -209,9 +209,9 @@ void  mulle_utf16_bufferconvert_to_utf8( mulle_utf16_t *src,
       }
 
       x = *src++;
-      assert( x >= 0 && x <= mulle_utf32_max);
 
 recheck:
+      assert( x >= 0 && x <= mulle_utf32_max);
       if( x < 0x80)
       {
          *s++ = (unsigned char) x;
@@ -261,9 +261,9 @@ recheck:
 
 
 void  mulle_utf16_bufferconvert_to_utf32( mulle_utf16_t *src,
-                                          size_t len,
+                                          unsigned int len,
                                           void *buffer,
-                                          mulle_utf_add_bytes_function_t addbytes)
+                                          mulle_utf_add_bytes_function_t *addbytes)
 {
    mulle_utf16_t   *sentinel;
    mulle_utf32_t   x;
@@ -271,7 +271,7 @@ void  mulle_utf16_bufferconvert_to_utf32( mulle_utf16_t *src,
    mulle_utf32_t   *s_flush;
    mulle_utf32_t   tmp[ 32];
 
-   if( len == (size_t) -1)
+   if( len == (unsigned int) -1)
       len = mulle_utf16_strlen( src);
 
    // if dst_len == -1, then sentinel - 1 = dst_sentinel (OK!)
@@ -313,7 +313,7 @@ static inline int  mulle_utf16_is_invalid_char( mulle_utf16_t c)
 //
 // just checks that the surrogate pairs are ok
 //
-mulle_utf16_t  *mulle_utf16_validate( mulle_utf16_t *src, size_t len)
+mulle_utf16_t  *mulle_utf16_validate( mulle_utf16_t *src, unsigned int len)
 {
    mulle_utf16_t   c;
    mulle_utf16_t   d;
@@ -322,7 +322,7 @@ mulle_utf16_t  *mulle_utf16_validate( mulle_utf16_t *src, size_t len)
    if( ! src)
       return( NULL);
 
-   if( len == (size_t) -1)
+   if( len == (unsigned int) -1)
       len = mulle_utf16_strlen( src);
 
    sentinel = &src[ len];
@@ -362,17 +362,19 @@ mulle_utf16_t  *mulle_utf16_validate( mulle_utf16_t *src, size_t len)
 //
 // this routine does not validate...
 //
-size_t  mulle_utf16_utf8length( mulle_utf16_t *src, size_t len)
+size_t  mulle_utf16_utf8length( mulle_utf16_t *src, unsigned int len)
 {
    mulle_utf16_t   c;
    mulle_utf16_t   *sentinel;
+   size_t          size;
 
-   if( len == (size_t) -1)
+   if( len == (unsigned int) -1)
       len = mulle_utf16_strlen( src);
    if( ! len)
       return( 0);
 
    sentinel = &src[ len];
+   size     = (size_t) len;
 
    for( ; src < sentinel;)
    {
@@ -383,32 +385,32 @@ size_t  mulle_utf16_utf8length( mulle_utf16_t *src, size_t len)
 
       if( c < 0x0800)
       {
-         len++;
+         size++;
          continue;
       }
 
       // not a surrogate pair ?
       if( ! mulle_utf32_is_surrogatecharacter( c))
       {
-         len += 2;
+         size += 2;
          continue;
       }
 
       if( ++src > sentinel)
          return( -1);
 
-      len += -1 + 3;
+      size += -1 + 3;
    }
-   return( len);
+   return( size);
 }
 
 
-size_t  mulle_utf16_utf32length( mulle_utf16_t *src, size_t len)
+unsigned int  mulle_utf16_utf32length( mulle_utf16_t *src, unsigned int len)
 {
    mulle_utf16_t   c;
    mulle_utf16_t   *sentinel;
 
-   if( len == (size_t) -1)
+   if( len == (unsigned int) -1)
       len = mulle_utf16_strlen( src);
    if( ! len)
       return( 0);
@@ -432,13 +434,13 @@ size_t  mulle_utf16_utf32length( mulle_utf16_t *src, size_t len)
 
 
 
-size_t  mulle_utf16_length( mulle_utf16_t *src, size_t len)
+unsigned int  mulle_utf16_length( mulle_utf16_t *src, unsigned int len)
 {
    mulle_utf16_t   c;
    mulle_utf16_t   *sentinel;
-   size_t          dst_len;
+   unsigned int          dst_len;
 
-   if( len == (size_t) -1)
+   if( len == (unsigned int) -1)
       len = mulle_utf16_strlen( src);
 
    sentinel = &src[ len];
@@ -511,7 +513,7 @@ mulle_utf32_t   _mulle_utf16_previous_utf32character( mulle_utf16_t **s_p)
 // a long or long long
 // (b) masking value with 0x80808080 to figure out if all are "ASCII"
 //
-int  mulle_utf16_information( mulle_utf16_t *src, size_t len, struct mulle_utf_information *info)
+int  mulle_utf16_information( mulle_utf16_t *src, unsigned int len, struct mulle_utf_information *info)
 {
    mulle_utf16_t                  _c;
    mulle_utf16_t                  *start;
@@ -537,7 +539,7 @@ int  mulle_utf16_information( mulle_utf16_t *src, size_t len, struct mulle_utf_i
    if( ! src)
       goto fail;
 
-   if( len == (size_t) -1)
+   if( len == (unsigned int) -1)
       len = mulle_utf16_strlen( src);
 
    //
@@ -615,14 +617,14 @@ fail:
 
 
 int   mulle_utf16_contains_character_larger_or_equal( mulle_utf16_t *s,
-                                                      size_t len,
+                                                      unsigned int len,
                                                       mulle_utf16_t d)
 {
    mulle_utf16_t   _c;
    mulle_utf16_t   *sentinel;
    mulle_utf16_t   *p;
 
-   if( len == (size_t) -1)
+   if( len == (unsigned int) -1)
       len = mulle_utf16_strlen( s);
 
    p        = s;
@@ -641,7 +643,7 @@ int   mulle_utf16_contains_character_larger_or_equal( mulle_utf16_t *s,
 //
 // src must be known to be UTF15, and contain no zeroes
 //
-enum mulle_utf_charinfo   _mulle_utf16_charinfo( mulle_utf16_t *src, size_t len)
+enum mulle_utf_charinfo   _mulle_utf16_charinfo( mulle_utf16_t *src, unsigned int len)
 {
    mulle_utf16_t   _c;
    mulle_utf16_t   *start;

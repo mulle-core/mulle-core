@@ -302,34 +302,6 @@ static inline uint32_t mur(uint32_t a, uint32_t h) {
   return h * 5 + 0xe6546b64;
 }
 
-static inline uint32_t debug_tweak32(uint32_t x) {
-#ifndef NDEBUG
-    x = ~bswap32(x * c1);
-#endif
-
-  return x;
-}
-
-static inline uint64_t debug_tweak64(uint64_t x) {
-#ifndef NDEBUG
-    x = ~bswap64(x * k1);
-#endif
-
-  return x;
-}
-
-fh_uint128_t debug_tweak128(fh_uint128_t x) {
-#ifndef NDEBUG
-  uint64_t y = debug_tweak64(fh_uint128_t_low64(x));
-  uint64_t z = debug_tweak64(fh_uint128_t_high64(x));
-  y += z;
-  z += y;
-  x = make_fh_uint128_t(y, z * k1);
-#endif
-
-  return x;
-}
-
 static inline uint64_t farmhash_len_16(uint64_t u, uint64_t v) {
   return farmhash128_to_64(make_fh_uint128_t(u, v));
 }
@@ -1570,10 +1542,9 @@ fh_uint128_t farmhash_cc_fingerprint128(const char* s, size_t len) {
 // BASIC STRING HASHING
 
 // farmhash function for a byte array.  See also Hash(), below.
-// May change from time to time, may differ on different platforms, may differ
-// depending on NDEBUG.
+// May change from time to time, may differ on different platforms.
 uint32_t farmhash32(const char* s, size_t len) {
-  return debug_tweak32(
+  return(
 
 #if x86_64 && CAN_USE_SSE41
       farmhash32_nt(s, len)
@@ -1590,10 +1561,9 @@ uint32_t farmhash32(const char* s, size_t len) {
 
 // Hash function for a byte array.  For convenience, a 32-bit seed is also
 // hashed into the result.
-// May change from time to time, may differ on different platforms, may differ
-// depending on NDEBUG.
+// May change from time to time, may differ on different platforms.
 uint32_t farmhash32_with_seed(const char* s, size_t len, uint32_t seed) {
-  return debug_tweak32(
+  return(
 
 #if x86_64 && CAN_USE_SSE41
       farmhash32_nt_with_seed(s, len, seed)
@@ -1610,10 +1580,9 @@ uint32_t farmhash32_with_seed(const char* s, size_t len, uint32_t seed) {
 
 // Hash function for a byte array.  For convenience, a 64-bit seed is also
 // hashed into the result.  See also farmhash(), below.
-// May change from time to time, may differ on different platforms, may differ
-// depending on NDEBUG.
+// May change from time to time, may differ on different platforms.
 uint64_t farmhash64(const char* s, size_t len) {
-  return debug_tweak64(
+  return(
 #if x86_64 && CAN_USE_SSSE3 && CAN_USE_SSE41
       farmhash64_te(s, len)
 #else
@@ -1623,41 +1592,36 @@ uint64_t farmhash64(const char* s, size_t len) {
 }
 
 // Hash function for a byte array.
-// May change from time to time, may differ on different platforms, may differ
-// depending on NDEBUG.
+// May change from time to time, may differ on different platforms.
 size_t farmhash(const char* s, size_t len) {
   return sizeof(size_t) == 8 ? farmhash64(s, len) : farmhash32(s, len);
 }
 
 // Hash function for a byte array.  For convenience, a 64-bit seed is also
 // hashed into the result.
-// May change from time to time, may differ on different platforms, may differ
-// depending on NDEBUG.
+// May change from time to time, may differ on different platforms.
 uint64_t farmhash64_with_seed(const char* s, size_t len, uint64_t seed) {
-  return debug_tweak64(farmhash64_na_with_seed(s, len, seed));
+  return(farmhash64_na_with_seed(s, len, seed));
 }
 
 // Hash function for a byte array.  For convenience, two seeds are also
 // hashed into the result.
-// May change from time to time, may differ on different platforms, may differ
-// depending on NDEBUG.
+// May change from time to time, may differ on different platforms.
 uint64_t farmhash64_with_seeds(const char* s, size_t len, uint64_t seed0, uint64_t seed1) {
-  return debug_tweak64(farmhash64_na_with_seeds(s, len, seed0, seed1));
+  return(farmhash64_na_with_seeds(s, len, seed0, seed1));
 }
 
 // Hash function for a byte array.
-// May change from time to time, may differ on different platforms, may differ
-// depending on NDEBUG.
+// May change from time to time, may differ on different platforms.
 fh_uint128_t farmhash128(const char* s, size_t len) {
-  return debug_tweak128(farmhash_cc_fingerprint128(s, len));
+  return(farmhash_cc_fingerprint128(s, len));
 }
 
 // Hash function for a byte array.  For convenience, a 128-bit seed is also
 // hashed into the result.
-// May change from time to time, may differ on different platforms, may differ
-// depending on NDEBUG.
+// May change from time to time, may differ on different platforms.
 fh_uint128_t farmhash128_with_seed(const char* s, size_t len, fh_uint128_t seed) {
-  return debug_tweak128(farmhash128_cc_city_with_seed(s, len, seed));
+  return(farmhash128_cc_city_with_seed(s, len, seed));
 }
 
 // BASIC NON-STRING HASHING

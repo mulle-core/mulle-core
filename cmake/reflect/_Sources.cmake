@@ -16,6 +16,7 @@ src/mulle-aba/mulle-aba-storage.c
 src/mulle-allocator/mulle-allocator.c
 src/mulle-buffer/mulle--buffer.c
 src/mulle-buffer/mulle-buffer.c
+src/mulle-buffer/mulle-flushablebuffer.c
 src/mulle-concurrent/mulle-concurrent-hashmap.c
 src/mulle-concurrent/mulle-concurrent-pointerarray.c
 src/mulle-container/mulle--array.c
@@ -34,6 +35,7 @@ src/mulle-container/mulle-pointerpairarray.c
 src/mulle-container/mulle-pointerpair.c
 src/mulle-container/mulle--pointerqueue.c
 src/mulle-container/mulle-pointerqueue.c
+src/mulle-container/mulle-pointerset.c
 src/mulle-container/mulle--pointerset-generic.c
 src/mulle-container/mulle--pointerset-struct.c
 src/mulle-container/mulle-qsort.c
@@ -44,8 +46,6 @@ src/mulle-container/mulle--structarray.c
 src/mulle-container/mulle-structarray.c
 src/mulle-container/mulle--structqueue.c
 src/mulle-container/mulle-structqueue.c
-src/mulle-container/mulle--uniquepointerarray.c
-src/mulle-container/mulle-uniquepointerarray.c
 src/mulle-core.c
 src/mulle-data/farmhash.c
 src/mulle-data/mulle-data.c
@@ -60,9 +60,12 @@ src/mulle-http/http_parser.c
 src/mulle-linkedlist/mulle-concurrent-linkedlist.c
 src/mulle-linkedlist/mulle-linkedlist.c
 src/mulle-mmap/mulle-mmap.c
+src/mulle-multififo/mulle-lockingpointermultififo.c
 src/mulle-multififo/mulle-pointermultififo.c
 src/mulle-rbtree/mulle--rbtree.c
 src/mulle-rbtree/mulle-rbtree.c
+src/mulle-regex/mulle-utf32regex.c
+src/mulle-regex/mulle-utf32regex-substitute.c
 src/mulle-slug/mulle-slug.c
 src/mulle-sprintf/mulle-sprintf.c
 src/mulle-sprintf/mulle-sprintf-character.c
@@ -80,12 +83,15 @@ src/mulle-storage/mulle-storage.c
 src/mulle-thread/mintomic-empty.c
 src/mulle-thread/mulle-thread-linkage.c
 src/mulle-thread/mulle-thread-windows.c
+src/mulle-time/mulle-relativetime.c
 src/mulle-time/mulle-timespec.c
 src/mulle-unicode/mulle-unicode-is-alphanumeric.c
 src/mulle-unicode/mulle-unicode-is-capitalized.c
 src/mulle-unicode/mulle-unicode-is-control.c
 src/mulle-unicode/mulle-unicode-is-decimaldigit.c
 src/mulle-unicode/mulle-unicode-is-decomposable.c
+src/mulle-unicode/mulle-unicode-is-identifiercontinuation.c
+src/mulle-unicode/mulle-unicode-is-identifierstart.c
 src/mulle-unicode/mulle-unicode-is-legalcharacter.c
 src/mulle-unicode/mulle-unicode-is-letter.c
 src/mulle-unicode/mulle-unicode-is-lowercase.c
@@ -116,6 +122,7 @@ src/mulle-utf/mulle-utf16-string.c
 src/mulle-utf/mulle-utf32.c
 src/mulle-utf/mulle-utf32-string.c
 src/mulle-utf/mulle-utf8.c
+src/mulle-utf/mulle-utf8-string.c
 src/mulle-utf/mulle-utf-convenience.c
 src/mulle-utf/mulle-utf-noncharacter.c
 src/mulle-utf/mulle-utf-privatecharacter.c
@@ -131,6 +138,7 @@ set( STANDALONE_SOURCES
 src/mulle-buffer/mulle-buffer-standalone.c
 src/mulle-concurrent/mulle-concurrent-standalone.c
 src/mulle-dlfcn/mulle-dlfcn-standalone.c
+src/mulle-regex/mulle-regex-standalone.c
 src/mulle-sprintf/mulle-sprintf-standalone.c
 src/mulle-stacktrace/mulle-stacktrace-standalone.c
 src/mulle-thread/mulle-thread-standalone.c

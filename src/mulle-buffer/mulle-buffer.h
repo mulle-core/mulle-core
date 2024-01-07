@@ -35,10 +35,10 @@
 //  POSSIBILITY OF SUCH DAMAGE.
 //
 
-#ifndef mulle_buffer__h__
-#define mulle_buffer__h__
+#ifndef mulle_buffer_h__
+#define mulle_buffer_h__
 
-#define MULLE__BUFFER_VERSION  ((3 << 20) | (5 << 8) | 0)
+#define MULLE__BUFFER_VERSION  ((3UL << 20) | (5 << 8) | 0)
 
 #include "include.h"
 #include "mulle--buffer.h"
@@ -315,9 +315,9 @@ static inline void   mulle_buffer_make_inflexible( struct mulle_buffer *buffer,
       return;
 
    _mulle__buffer_make_inflexible( (struct mulle__buffer *) buffer,
-                                  storage,
-                                  length,
-                                  mulle_buffer_get_allocator( buffer));
+                                   storage,
+                                   length,
+                                   mulle_buffer_get_allocator( buffer));
 }
 
 
@@ -328,8 +328,8 @@ static inline void   mulle_buffer_zero_to_length( struct mulle_buffer *buffer,
       return;
 
    _mulle__buffer_zero_to_length( (struct mulle__buffer *) buffer,
-                                 length,
-                                 mulle_buffer_get_allocator( buffer));
+                                  length,
+                                  mulle_buffer_get_allocator( buffer));
 }
 
 
@@ -400,13 +400,12 @@ static inline void   mulle_buffer_remove_all( struct mulle_buffer *buffer)
 
 
 static inline void   mulle_buffer_remove_in_range( struct mulle_buffer *buffer,
-                                                   size_t offset,
-                                                   size_t length)
+                                                   struct mulle_range range)
 {
    if( ! buffer)
       return;
 
-   _mulle__buffer_remove_in_range( (struct mulle__buffer *) buffer, offset, length);
+   _mulle__buffer_remove_in_range( (struct mulle__buffer *) buffer, range);
 }
 
 
@@ -485,7 +484,7 @@ static inline size_t
 
 
 static inline int
-    mulle_buffer_set_seek( struct mulle_buffer *buffer, int mode, size_t seek)
+    mulle_buffer_set_seek( struct mulle_buffer *buffer, int mode, long seek)
 {
    if( ! buffer)
       return( 0);
@@ -494,7 +493,7 @@ static inline int
 }
 
 
-static inline size_t   mulle_buffer_get_seek( struct mulle_buffer *buffer)
+static inline long   mulle_buffer_get_seek( struct mulle_buffer *buffer)
 {
    if( ! buffer)
       return( 0);
@@ -518,16 +517,14 @@ static inline void   *mulle_buffer_advance( struct mulle_buffer *buffer,
 #pragma mark - copy out
 
 static inline void   mulle_buffer_copy_range( struct mulle_buffer *buffer,
-                                              size_t offset,
-                                              size_t length,
+                                              struct mulle_range range,
                                               unsigned char *dst)
 {
    if( ! buffer || ! dst)
       return;
 
    _mulle__buffer_copy_range( (struct mulle__buffer *) buffer,
-                              offset,
-                              length,
+                              range,
                               dst);
 }
 
@@ -597,6 +594,14 @@ static inline int   mulle_buffer_has_overflown( struct mulle_buffer *buffer)
       return( 1);  // or 0 ?
 
    return( _mulle__buffer_has_overflown( (struct mulle__buffer *) buffer));
+}
+
+
+MULLE_C_NONNULL_FIRST
+static inline void  _mulle__buffer_set_overflown( struct mulle__buffer *buffer)
+{
+   if( buffer->_curr <= buffer->_sentinel)
+      buffer->_curr = buffer->_sentinel + 1;  // set "overflowed"
 }
 
 
@@ -688,7 +693,7 @@ static inline void   mulle_buffer_add_uint32( struct mulle_buffer *buffer,
 
 #pragma mark - add memory ranges
 
-// MEMO: need to stay compatible with: mulle_utf_add_bytes_function_t
+
 static inline void   mulle_buffer_add_bytes( struct mulle_buffer *buffer,
                                              void *bytes,
                                              size_t length)
@@ -697,10 +702,19 @@ static inline void   mulle_buffer_add_bytes( struct mulle_buffer *buffer,
       return;
 
    _mulle__buffer_add_bytes( (struct mulle__buffer *) buffer,
-                              bytes,
-                              length,
-                              mulle_buffer_get_allocator( buffer));
+                             bytes,
+                             length,
+                             mulle_buffer_get_allocator( buffer));
 }
+
+
+// MEMO: types are different to stay compatible with:
+//       mulle_utf_add_bytes_function_t
+//       that's why we use void here
+MULLE__BUFFER_GLOBAL
+void   mulle_buffer_add_bytes_callback( void *buffer,
+                                        void *bytes,
+                                        size_t length);
 
 
 static inline void   mulle_buffer_add_string( struct mulle_buffer *buffer,
@@ -713,6 +727,49 @@ static inline void   mulle_buffer_add_string( struct mulle_buffer *buffer,
                               bytes,
                               mulle_buffer_get_allocator( buffer));
 }
+
+
+static inline void   mulle_buffer_add_c_char( struct mulle_buffer *buffer,
+                                              char c)
+{
+   if( buffer)
+      _mulle__buffer_add_c_char( (struct mulle__buffer *) buffer,
+                                 c,
+                                 mulle_buffer_get_allocator( buffer));
+}
+
+
+static inline void   mulle_buffer_add_c_chars( struct mulle_buffer *buffer,
+                                               char *s,
+                                               size_t length)
+{
+   if( ! buffer)
+      return;
+
+   _mulle__buffer_add_c_chars( (struct mulle__buffer *) buffer,
+                               s,
+                               length,
+                               mulle_buffer_get_allocator( buffer));
+}
+
+
+MULLE__BUFFER_GLOBAL
+void   mulle_buffer_add_c_chars_callback( void *buffer,
+                                          void *bytes,
+                                          size_t length);
+
+//
+// produces C escape codes and wraps everything in ""
+//
+static inline void   mulle_buffer_add_c_string( struct mulle_buffer *buffer,
+                                                char *s)
+{
+   if( buffer)
+      _mulle__buffer_add_c_string( (struct mulle__buffer *) buffer,
+                                    s,
+                                    mulle_buffer_get_allocator( buffer));
+}
+
 
 
 // just a synonym
@@ -740,7 +797,6 @@ static inline void   mulle_buffer_add_string_if_not_empty( struct mulle_buffer *
 {
    if( ! buffer)
       return;
-
    _mulle__buffer_add_string_if_not_empty( (struct mulle__buffer *) buffer,
                                            bytes,
                                            mulle_buffer_get_allocator( buffer));
@@ -816,25 +872,23 @@ static inline void    mulle_buffer_add_buffer( struct mulle_buffer *buffer,
       return;
 
    _mulle__buffer_add_buffer( (struct mulle__buffer *) buffer,
-                             (struct mulle__buffer *) other,
-                             mulle_buffer_get_allocator( buffer));
+                              (struct mulle__buffer *) other,
+                              mulle_buffer_get_allocator( buffer));
 }
 
 
 static inline void
    mulle_buffer_add_buffer_range( struct mulle_buffer *buffer,
                                   struct mulle__buffer *other,  // sic
-                                  size_t offset,
-                                  size_t length)
+                                  struct mulle_range range)
 {
    if( ! buffer || ! other)
       return;
 
    _mulle__buffer_add_buffer_range( (struct mulle__buffer *) buffer,
-                                   other,
-                                   offset,
-                                   length,
-                                   mulle_buffer_get_allocator( buffer));
+                                    other,
+                                    range,
+                                    mulle_buffer_get_allocator( buffer));
 }
 
 
@@ -905,13 +959,13 @@ static inline int   mulle_buffer_next_character( struct mulle_buffer *buffer)
 }
 
 
-static inline int   mulle_buffer_find_byte( struct mulle_buffer *buffer,
-                                            unsigned char byte)
+static inline long   mulle_buffer_seek_byte( struct mulle_buffer *buffer,
+                                             unsigned char byte)
 {
    if( ! buffer)
       return( -1);
 
-   return( _mulle__buffer_find_byte( (struct mulle__buffer *) buffer, byte));
+   return( _mulle__buffer_seek_byte( (struct mulle__buffer *) buffer, byte));
 }
 
 
@@ -942,113 +996,6 @@ void  mulle_buffer_hexdump( struct mulle_buffer *buffer,
                             size_t length,
                             size_t counter,
                             unsigned int options);
-
-#pragma mark - mulle_flushablebuffer
-
-// its already got the allocator (but it isn't used by '__')
-#define MULLE_FLUSHABLEBUFFER_BASE  MULLE__FLUSHABLEBUFFER_BASE
-
-struct mulle_flushablebuffer
-{
-   MULLE_FLUSHABLEBUFFER_BASE;
-};
-
-typedef mulle__flushablebuffer_flusher   mulle_flushablebuffer_flusher;
-typedef mulle__flushablebuffer_flusher   *mulle_flushablebuffer_flusher_t;
-
-// the allocator will be used for buffer if destroy is called
-static inline void
-   mulle_flushablebuffer_init_with_static_bytes( struct mulle_flushablebuffer *buffer,
-                                                 void *storage,
-                                                 size_t length,
-                                                 mulle_flushablebuffer_flusher_t flusher,
-                                                 void *userinfo,
-                                                 struct mulle_allocator *allocator)
-{
-   if( ! buffer || ! storage || ! flusher)
-      return;
-
-   _mulle__flushablebuffer_init_with_static_bytes( (struct mulle__flushablebuffer *) buffer,
-                                                   storage,
-                                                   length,
-                                                   flusher,
-                                                   userinfo,
-                                                   allocator);
-}
-
-
-// backwards compatibility
-static inline void
-   mulle_flushablebuffer_init( struct mulle_flushablebuffer *buffer,
-                               void *storage,
-                               size_t length,
-                               mulle_flushablebuffer_flusher_t flusher,
-                               void *userinfo)
-{
-   mulle_flushablebuffer_init_with_static_bytes( buffer,
-                                                 storage,
-                                                 length,
-                                                 (mulle__flushablebuffer_flusher *) flusher,
-                                                 userinfo,
-                                                 NULL);
-}
-
-// the allocator will be used for 'buffer' if destroy is called
-// and for 'storage' if done or destroy is called
-static inline void
-   mulle_flushablebuffer_init_with_allocated_bytes( struct mulle_flushablebuffer *buffer,
-                                                    void *storage,
-                                                    size_t length,
-                                                    mulle_flushablebuffer_flusher_t flusher,
-                                                    void *userinfo,
-                                                    struct mulle_allocator *allocator)
-{
-   if( ! buffer || ! storage || ! flusher)
-      return;
-
-   _mulle__flushablebuffer_init_with_allocated_bytes( (struct mulle__flushablebuffer *) buffer,
-                                                       storage,
-                                                       length,
-                                                       (mulle__flushablebuffer_flusher *) flusher,
-                                                       userinfo,
-                                                       allocator);
-}
-
-
-static inline int
-   mulle_flushablebuffer_flush( struct mulle_flushablebuffer *buffer)
-{
-   if( ! buffer)
-      return( -1);
-   return( _mulle__flushablebuffer_flush( (struct mulle__flushablebuffer *) buffer));
-}
-
-
-static inline int
-   mulle_flushablebuffer_done( struct mulle_flushablebuffer *buffer)
-{
-   if( ! buffer)
-      return( 0);
-   return( _mulle__flushablebuffer_done( (struct mulle__flushablebuffer *) buffer));
-}
-
-
-MULLE__BUFFER_GLOBAL
-struct mulle_flushablebuffer   *
-   mulle_flushablebuffer_create( size_t length,
-                                 mulle_flushablebuffer_flusher_t flusher,
-                                 void *userinfo,
-                                 struct mulle_allocator *allocator);
-
-MULLE__BUFFER_GLOBAL
-int   mulle_flushablebuffer_destroy( struct mulle_flushablebuffer *buffer);
-
-
-static inline struct mulle_buffer   *
-   mulle_flushablebuffer_as_buffer( struct mulle_flushablebuffer *buffer)
-{
-   return( (struct mulle_buffer *) buffer);
-}
 
 
 #pragma mark - backwards compatibility
@@ -1106,21 +1053,22 @@ MULLE_C_DEPRECATED static inline void
    }                                                \
    while( 0)
 
-#define mulle_buffer_do_string( name, allocator, s)                            \
-   for( struct mulle_buffer name ## __storage = MULLE_BUFFER_INIT( allocator), \
-                            *name = &name ## __storage,                        \
-                            name ## __i = { 0 };                               \
-                                                                               \
-        s = (name ## __i._storage)                                             \
-               ? mulle_buffer_extract_string( &name ## __storage)              \
-               : NULL,                                                         \
-        ! name ## __i._storage;                                                \
-                                                                               \
-        name ## __i._storage = (void *) 0x1                                    \
-      )                                                                        \
-                                                                               \
-      for( int  name ## __j = 0;    /* break protection */                     \
-           name ## __j < 1;                                                    \
+#define mulle_buffer_do_string( name, allocator, s)               \
+   for( struct mulle_buffer                                       \
+            name ## __storage = MULLE_BUFFER_INIT( allocator),    \
+           *name = &name ## __storage,                            \
+           *name ## __i = NULL;                                   \
+                                                                  \
+        s = (name ## __i)                                         \
+               ? mulle_buffer_extract_string( &name ## __storage) \
+               : NULL,                                            \
+        ! name ## __i;                                            \
+                                                                  \
+        name ## __i = (void *) 0x1                                \
+      )                                                           \
+                                                                  \
+      for( int  name ## __j = 0;    /* break protection */        \
+           name ## __j < 1;                                       \
            name ## __j++)
 
 
@@ -1128,34 +1076,34 @@ MULLE_C_DEPRECATED static inline void
 // have a buffer inside the block, will self destruct when the block
 // is exited (properly)
 //
-#define mulle_buffer_do( name)                                            \
-   for( struct mulle_buffer name ## __storage = MULLE_BUFFER_INIT( NULL), \
-                            *name = &name ## __storage,                   \
-                            name ## __i = { 0 };                          \
-        ! name ## __i._storage;                                           \
-        name ## __i._storage = ( mulle_buffer_done( &name ## __storage),  \
-                                 (void *) 0x1)                            \
-      )                                                                   \
-                                                                          \
-      for( int  name ## __j = 0;    /* break protection */                \
-           name ## __j < 1;                                               \
+#define mulle_buffer_do( name)                                                \
+   for( struct mulle_buffer                                                   \
+          name ## __storage = MULLE_BUFFER_INIT( NULL),                       \
+          *name = &name ## __storage,                                         \
+          *name ## __i = NULL;                                                \
+        ! name ## __i;                                                        \
+        name ## __i = ( mulle_buffer_done( &name ## __storage), (void *) 0x1) \
+      )                                                                       \
+                                                                              \
+      for( int  name ## __j = 0;    /* break protection */                    \
+           name ## __j < 1;                                                   \
            name ## __j++)
 
 //
 // As above but the buffer storage allocator can be changed from the
 // default allocator
 //
-#define mulle_buffer_do_allocator( name, allocator)                            \
-   for( struct mulle_buffer name ## __storage = MULLE_BUFFER_INIT( allocator), \
-                            *name = &name ## __storage,                        \
-                            name ## __i = { 0 };                               \
-        ! name ## __i._storage;                                                \
-        name ## __i._storage = ( mulle_buffer_done( &name ## __storage),       \
-                                 (void *) 0x1)                                 \
-      )                                                                        \
-                                                                               \
-      for( int  name ## __j = 0;    /* break protection */                     \
-           name ## __j < 1;                                                    \
+#define mulle_buffer_do_allocator( name, allocator)                           \
+   for( struct mulle_buffer                                                   \
+          name ## __storage = MULLE_BUFFER_INIT( allocator),                  \
+          *name = &name ## __storage,                                         \
+          *name ## __i = NULL;                                                \
+        ! name ## __i;                                                        \
+        name ## __i = ( mulle_buffer_done( &name ## __storage), (void *) 0x1) \
+      )                                                                       \
+                                                                              \
+      for( int  name ## __j = 0;    /* break protection */                    \
+           name ## __j < 1;                                                   \
            name ## __j++)
 
 
@@ -1164,17 +1112,17 @@ MULLE_C_DEPRECATED static inline void
 // exhausted the buffer will start mallocing. Nice to avoid an initial malloc
 // for small workloads.
 //
-#define mulle_buffer_do_flexible( name, data, len)                                            \
-   for( struct mulle_buffer name ## __storage = MULLE_BUFFER_INIT_FLEXIBLE( data, len, NULL), \
-                            *name = &name ## __storage,                                       \
-                            name ## __i = { 0 };                                              \
-        ! name ## __i._storage;                                                               \
-        name ## __i._storage = ( mulle_buffer_done( &name ## __storage),                      \
-                                 (void *) 0x1)                                                \
-      )                                                                                       \
-                                                                                              \
-      for( int  name ## __j = 0;    /* break protection */                                    \
-           name ## __j < 1;                                                                   \
+#define mulle_buffer_do_flexible( name, data, len)                            \
+   for( struct mulle_buffer                                                   \
+          name ## __storage = MULLE_BUFFER_INIT_FLEXIBLE( data, len, NULL),   \
+          *name = &name ## __storage,                                         \
+          *name ## __i = NULL;                                                \
+        ! name ## __i;                                                        \
+        name ## __i = ( mulle_buffer_done( &name ## __storage), (void *) 0x1) \
+      )                                                                       \
+                                                                              \
+      for( int  name ## __j = 0;    /* break protection */                    \
+           name ## __j < 1;                                                   \
            name ## __j++)
 
 
@@ -1182,17 +1130,17 @@ MULLE_C_DEPRECATED static inline void
 // Create a buffer with some static/auto storage preset. This storage already
 // contains bytes for the buffer. Otherwise as above.
 //
-#define mulle_buffer_do_flexible_filled( name, data, len)                                     \
-   for( struct mulle_buffer name ## __storage = MULLE_BUFFER_INIT_FLEXIBLE_FILLED( data, len, NULL), \
-                            *name = &name ## __storage,                                       \
-                            name ## __i = { 0 };                                              \
-        ! name ## __i._storage;                                                               \
-        name ## __i._storage = ( mulle_buffer_done( &name ## __storage),                      \
-                                 (void *) 0x1)                                                \
-      )                                                                                       \
-                                                                                              \
-      for( int  name ## __j = 0;    /* break protection */                                    \
-           name ## __j < 1;                                                                   \
+#define mulle_buffer_do_flexible_filled( name, data, len)                          \
+   for( struct mulle_buffer                                                        \
+          name ## __storage = MULLE_BUFFER_INIT_FLEXIBLE_FILLED( data, len, NULL), \
+          *name = &name ## __storage,                                              \
+          *name ## __i = NULL;                                                     \
+        ! name ## __i;                                                             \
+        name ## __i = ( mulle_buffer_done( &name ## __storage), (void *) 0x1)      \
+      )                                                                            \
+                                                                                   \
+      for( int  name ## __j = 0;    /* break protection */                         \
+           name ## __j < 1;                                                        \
            name ## __j++)
 
 
@@ -1200,42 +1148,46 @@ MULLE_C_DEPRECATED static inline void
 // Like mulle_buffer_do_flexible but when the buffer is full, there won't be
 // a malloc.
 //
-#define mulle_buffer_do_inflexible( name, data, len)                                            \
-   for( struct mulle_buffer name ## __storage = MULLE_BUFFER_INIT_INFLEXIBLE( data, len, NULL), \
-                            *name = &name ## __storage,                                         \
-                            name ## __i = { 0 };                                                \
-        ! name ## __i._storage;                                                                 \
-        name ## __i._storage = ( mulle_buffer_done( &name ## __storage),                        \
-                                 (void *) 0x1)                                                  \
-      )                                                                                         \
-                                                                                                \
-      for( int  name ## __j = 0;    /* break protection */                                      \
-           name ## __j < 1;                                                                     \
+#define mulle_buffer_do_inflexible( name, data, len)                          \
+   for( struct mulle_buffer                                                   \
+          name ## __storage = MULLE_BUFFER_INIT_INFLEXIBLE( data, len, NULL), \
+          *name = &name ## __storage,                                         \
+          *name ## __i = NULL;                                                \
+        ! name ## __i;                                                        \
+        name ## __i = ( mulle_buffer_done( &name ## __storage), (void *) 0x1) \
+      )                                                                       \
+                                                                              \
+      for( int  name ## __j = 0;    /* break protection */                    \
+           name ## __j < 1;                                                   \
            name ## __j++)
 
 //
 // Like above, but the buffer is already preset with data. So nothing can
 // be added (but it can be read).
 //
-#define mulle_buffer_do_inflexible_filled( name, data, len)                                            \
-   for( struct mulle_buffer name ## __storage = MULLE_BUFFER_INIT_INFLEXIBLE_FILLED( data, len, NULL), \
-                            *name = &name ## __storage,                                                \
-                            name ## __i = { 0 };                                                       \
-        ! name ## __i._storage;                                                                        \
-        name ## __i._storage = ( mulle_buffer_done( &name ## __storage),                               \
-                                 (void *) 0x1)                                                         \
-      )                                                                                                \
-                                                                                                       \
-      for( int  name ## __j = 0;    /* break protection */                                             \
-           name ## __j < 1;                                                                            \
+#define mulle_buffer_do_inflexible_filled( name, data, len)                          \
+   for( struct mulle_buffer                                                          \
+          name ## __storage = MULLE_BUFFER_INIT_INFLEXIBLE_FILLED( data, len, NULL), \
+          *name = &name ## __storage,                                                \
+          *name ## __i = NULL;                                                       \
+        ! name ## __i;                                                               \
+        name ## __i = ( mulle_buffer_done( &name ## __storage), (void *) 0x1)        \
+      )                                                                              \
+                                                                                     \
+      for( int  name ## __j = 0;    /* break protection */                           \
+           name ## __j < 1;                                                          \
            name ## __j++)
 
+
+
+//
 
 // TODO:
 //#define mulle_buffer_do_FILE( name, FP)
 
 
 #include "mulle-flexbuffer.h"
+#include "mulle-flushablebuffer.h"
 
 
 #ifdef __has_include

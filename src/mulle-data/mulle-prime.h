@@ -27,8 +27,8 @@
 //  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 //  POSSIBILITY OF SUCH DAMAGE.
 //
-#ifndef mulle_prime__h__
-#define mulle_prime__h__
+#ifndef mulle_prime_h__
+#define mulle_prime_h__
 
 #include "include.h"
 

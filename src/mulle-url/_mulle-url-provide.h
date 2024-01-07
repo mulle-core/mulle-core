@@ -9,8 +9,8 @@
  *
  *      mulle-sde environment set MULLE_MATCH_TO_C_RUN DISABLE
  */
-#ifndef mulle_url_provide_h__
-#define mulle_url_provide_h__
+#ifndef _mulle__url__provide_h__
+#define _mulle__url__provide_h__
 
 
 #include "mulle-unicode-is-nonpercentescape.h"

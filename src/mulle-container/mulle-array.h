@@ -34,8 +34,8 @@
 //  POSSIBILITY OF SUCH DAMAGE.
 //
 
-#ifndef mulle_array__h__
-#define mulle_array__h__
+#ifndef mulle_array_h__
+#define mulle_array_h__
 
 #include "mulle--array.h"
 #include "mulle-container-operation.h"
@@ -65,6 +65,18 @@ struct mulle_array
 };
 
 
+#define MULLE_ARRAY_INIT( storage, count, xcallback, xallocator) \
+   ((struct mulle_pointerarray)                                  \
+   {                                                             \
+      ._storage         = (storage),                             \
+      ._curr            = (storage),                             \
+      ._sentinel        = &(storage)[ count],                    \
+      ._initial_storage = (storage),                             \
+      .callback         = (xcallback),                           \
+      .allocator        = (xallocator)                           \
+   })
+
+
 
 MULLE_C_NONNULL_THIRD
 static inline void    mulle_array_init( struct mulle_array *array,
@@ -79,6 +91,14 @@ static inline void    mulle_array_init( struct mulle_array *array,
 
    array->callback  = callback;
    array->allocator = allocator;
+}
+
+
+static inline void   _mulle_array_done( struct mulle_array *array)
+{
+   _mulle__array_done( (struct mulle__array *) array,
+                       array->callback,
+                       array->allocator);
 }
 
 
@@ -111,6 +131,15 @@ static inline void   mulle_array_destroy( struct mulle_array *array)
 
 
 # pragma mark - petty accessors
+
+MULLE_C_NONNULL_FIRST
+static inline void **
+   _mulle_array_get_storage( struct mulle_array *array)
+{
+   return( _mulle__array_get_storage( (struct mulle__array *) array));
+}
+
+
 
 MULLE_C_NONNULL_FIRST
 static inline unsigned int
@@ -323,6 +352,28 @@ static inline void    mulle_array_add( struct mulle_array *array,
 }
 
 
+MULLE_C_NONNULL_FIRST_THIRD
+static inline void    _mulle_array_set( struct mulle_array *array,
+                                        unsigned int i,
+                                        void  *p)
+{
+   _mulle__array_set( (struct mulle__array *) array,
+                      i,
+                      p,
+                      array->callback,
+                      array->allocator);
+}
+
+
+MULLE_C_NONNULL_THIRD
+static inline void    mulle_array_set( struct mulle_array *array,
+                                       unsigned int i,
+                                       void  *p)
+{
+   if( array)
+      _mulle_array_set( array, i, p);
+}
+
 /*
  *  Loop over all items. This works as long as you don't remove
  *  anything from the array. It will not retrieve newly added elements.
@@ -399,17 +450,27 @@ static inline void   mulle_array_remove_last( struct mulle_array *array)
                                  array->allocator);
 }
 
+
+MULLE_C_NONNULL_FIRST
+static inline void
+   _mulle_array_add_array( struct mulle_array *array,
+                           struct mulle_array *other,
+                           struct mulle_range range)
+{
+   _mulle__array_add_array( (struct mulle__array *) array,
+                            (struct mulle__array *) other,
+                            range,
+                            array->callback,
+                            array->allocator);
+}
+
 static inline void
    mulle_array_add_array( struct mulle_array *array,
                           struct mulle_array *other,
                           struct mulle_range range)
 {
-   assert( ! array || ! other || array->callback == other->callback);
-   mulle__array_add_array( (struct mulle__array *) array,
-                           (struct mulle__array *) other,
-                           range,
-                           array->callback,
-                           array->allocator);
+   if( array)
+      _mulle_array_add_array( array, other, range);
 }
 
 
@@ -458,6 +519,14 @@ static inline uintptr_t
                                         range,
                                         array->callback));
 }
+
+
+static inline uintptr_t
+   mulle_array_find( struct mulle_array *array, void *obj)
+{
+   return( mulle_array_find_in_range( array, obj, mulle_range_make_all()));
+}
+
 
 
 MULLE_C_NONNULL_FIRST
@@ -690,16 +759,70 @@ static inline void
 }
 
 
-//
-// sizeof( item) must be sizeof( void *)
-//
-#define mulle_array_for( array, item)                                                 \
-   for( struct mulle_arrayenumerator rover__ ## item = mulle_array_enumerate( array); \
-        _mulle_arrayenumerator_next( &rover__ ## item, (void **) &item);)
 
-#define mulle_array_for_reverse( array, item)                                                       \
-   for( struct mulle_arrayreverseenumerator rover__ ## item = mulle_array_reverseenumerate( array); \
-        _mulle_arrayreverseenumerator_next( &rover__ ## item, (void **) &item);)
+
+// created by make-container-do.sh --flexible mulle-array.c
+// handtweaked initializer
+
+#define mulle_array_do( name, xcallback)                                     \
+   for( struct mulle_array                                                   \
+           name ## __container = { .callback = xcallback },                  \
+           *name = &name ## __container,                                     \
+           *name ## __i = NULL;                                              \
+        ! name ## __i;                                                       \
+        name ## __i =                                                        \
+        (                                                                    \
+           _mulle_array_done( &name ## __container),                         \
+           (void *) 0x1                                                      \
+        )                                                                    \
+      )                                                                      \
+      for( int  name ## __j = 0;    /* break protection */                   \
+           name ## __j < 1;                                                  \
+           name ## __j++)
+
+#define mulle_array_do_flexible( name, stackcount, callback)                    \
+   void   *name ## __storage[ stackcount];                                      \
+   for( struct mulle_array                                                      \
+           name ## __container =                                                \
+              MULLE_ARRAY_INIT( name ## __storage, stackcount, callback, NULL), \
+           *name = &name ## __container,                                        \
+           *name ## __i = NULL;                                                 \
+        ! name ## __i;                                                          \
+        name ## __i =                                                           \
+        (                                                                       \
+           _mulle_array_done( &name ## __container),                            \
+           (void *) 0x1                                                         \
+        )                                                                       \
+      )                                                                         \
+      for( int  name ## __j = 0;    /* break protection */                      \
+           name ## __j < 1;                                                     \
+           name ## __j++)
+
+
+// created by make-container-for.sh src/array/mulle-array.c
+
+#define mulle_array_for( name, item)                                               \
+   assert( sizeof( item) == sizeof( void *));                                      \
+   for( struct mulle_arrayenumerator                                               \
+           rover__ ## item = mulle_array_enumerate( name),                         \
+           *rover___  ## item ## __i = (void *) 0;                                 \
+        ! rover___  ## item ## __i;                                                \
+        rover___ ## item ## __i = (_mulle_arrayenumerator_done( &rover__ ## item), \
+                                   (void *) 1))                                    \
+      while( _mulle_arrayenumerator_next( &rover__ ## item, (void **) &item))
+
+
+// created by make-container-for.sh --reverse src/array/mulle-array.c
+
+#define mulle_array_for_reverse( name, item)                                              \
+   assert( sizeof( item) == sizeof( void *));                                             \
+   for( struct mulle_arrayreverseenumerator                                               \
+           rover__ ## item = mulle_array_reverseenumerate( name),                         \
+           *rover___  ## item ## __i = (void *) 0;                                        \
+        ! rover___  ## item ## __i;                                                       \
+        rover___ ## item ## __i = (_mulle_arrayreverseenumerator_done( &rover__ ## item), \
+                                   (void *) 1))                                           \
+      while( _mulle_arrayreverseenumerator_next( &rover__ ## item, (void **) &item))
 
 
 #endif /* mulle_array_h */

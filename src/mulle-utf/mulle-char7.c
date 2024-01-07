@@ -10,10 +10,20 @@
 
 #include "mulle-char7.h"
 
+#include "mulle-utf8.h"
+#include "mulle-utf16.h"
+#include "mulle-utf32.h"
+
 
 int   mulle_char7_is_char7string32( char *src, size_t len)
 {
    char   *sentinel;
+
+   if( ! src)
+      return( 0);
+
+   if( len == (size_t ) -1)
+      len = mulle_utf8_strlen( src);
 
    if( len > mulle_char7_maxlength32)
       return( 0);
@@ -35,6 +45,12 @@ int   mulle_char7_is_char7string32( char *src, size_t len)
 int   mulle_char7_is_char7string64( char *src, size_t len)
 {
    char   *sentinel;
+
+   if( ! src)
+      return( 0);
+
+   if( len == (size_t ) -1)
+      len = mulle_utf8_strlen( src);
 
    if( len > mulle_char7_maxlength64)
       return( 0);
@@ -60,6 +76,9 @@ uint32_t  mulle_char7_encode32( char *src, size_t len)
    int        char7;
    uint32_t   value;
 
+   if( len == (size_t ) -1)
+      len = mulle_utf8_strlen( src);
+
    assert( len <= mulle_char7_maxlength32);
 
    value    = 0;
@@ -68,8 +87,7 @@ uint32_t  mulle_char7_encode32( char *src, size_t len)
    while( s > sentinel)
    {
       char7 = *--s;
-      if( ! char7)
-         continue;
+      assert( char7);
 
       assert( ! (char7 & 0x80));
       value <<= 7;
@@ -86,6 +104,9 @@ uint64_t  mulle_char7_encode64( char *src, size_t len)
    int        char7;
    uint64_t   value;
 
+   if( len == (size_t ) -1)
+      len = mulle_utf8_strlen( src);
+
    assert( len <= mulle_char7_maxlength64);
 
    value    = 0;
@@ -94,8 +115,7 @@ uint64_t  mulle_char7_encode64( char *src, size_t len)
    while( s > sentinel)
    {
       char7 = *--s;
-      if( ! char7)
-         continue;
+      assert( char7);
 
       assert( ! (char7 & 0x80));
       value <<= 7;
@@ -112,6 +132,9 @@ uint32_t  mulle_char7_encode32_utf16( mulle_utf16_t *src, size_t len)
    int             char7;
    uint32_t        value;
 
+   if( len == (size_t ) -1)
+      len = mulle_utf16_strlen( src);
+
    assert( len <= mulle_char7_maxlength32);
 
    value    = 0;
@@ -120,8 +143,7 @@ uint32_t  mulle_char7_encode32_utf16( mulle_utf16_t *src, size_t len)
    while( s > sentinel)
    {
       char7 = *--s;
-      if( ! char7)
-         continue;
+      assert( char7);
 
       assert( ! (char7 & 0x80));
       value <<= 7;
@@ -138,6 +160,9 @@ uint64_t  mulle_char7_encode64_utf16( mulle_utf16_t *src, size_t len)
    int             char7;
    uint64_t        value;
 
+   if( len == (size_t ) -1)
+      len = mulle_utf16_strlen( src);
+
    assert( len <= mulle_char7_maxlength64);
 
    value    = 0;
@@ -146,8 +171,7 @@ uint64_t  mulle_char7_encode64_utf16( mulle_utf16_t *src, size_t len)
    while( s > sentinel)
    {
       char7 = *--s;
-      if( ! char7)
-         continue;
+      assert( char7);
 
       assert( ! (char7 & 0x80));
       value <<= 7;
@@ -164,6 +188,9 @@ uint32_t  mulle_char7_encode32_utf32( mulle_utf32_t *src, size_t len)
    int             char7;
    uint32_t        value;
 
+   if( len == (size_t ) -1)
+      len = mulle_utf32_strlen( src);
+
    assert( len <= mulle_char7_maxlength32);
 
    value    = 0;
@@ -172,8 +199,7 @@ uint32_t  mulle_char7_encode32_utf32( mulle_utf32_t *src, size_t len)
    while( s > sentinel)
    {
       char7 = *--s;
-      if( ! char7)
-         continue;
+      assert( char7);
 
       assert( ! (char7 & 0x80));
       value <<= 7;
@@ -190,6 +216,9 @@ uint64_t  mulle_char7_encode64_utf32( mulle_utf32_t *src, size_t len)
    int             char7;
    uint64_t        value;
 
+   if( len == (size_t ) -1)
+      len = mulle_utf32_strlen( src);
+
    assert( len <= mulle_char7_maxlength64);
 
    value    = 0;
@@ -198,8 +227,7 @@ uint64_t  mulle_char7_encode64_utf32( mulle_utf32_t *src, size_t len)
    while( s > sentinel)
    {
       char7 = *--s;
-      if( ! char7)
-         continue;
+      assert( char7);
 
       assert( ! (char7 & 0x80));
       value <<= 7;
@@ -251,12 +279,10 @@ int  mulle_char7_get64( uint64_t value, unsigned int index)
 {
    int   char7;
 
+   assert( index < 8);
    do
    {
       char7 = value & 0x7F;
-      if( ! value)
-         break;
-
       value >>= 7;
    }
    while( index--);
@@ -269,12 +295,10 @@ int  mulle_char7_get32( uint32_t value, unsigned int index)
 {
    int   char7;
 
+   assert( index < 4);
    do
    {
-      char7 = value & 0x7F;
-      if( ! value)
-         break;
-
+      char7   = value & 0x7F;
       value >>= 7;
    }
    while( index--);

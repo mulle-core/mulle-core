@@ -14,7 +14,7 @@
  *
  *  version:  major, minor, patch
  */
-#define MULLE__FPRINTF_VERSION  ((0 << 20) | (1 << 8) | 3)
+#define MULLE__FPRINTF_VERSION  ((0UL << 20) | (1 << 8) | 3)
 
 
 static inline unsigned int   mulle_fprintf_get_version_major( void)

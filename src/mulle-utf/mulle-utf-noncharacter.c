@@ -43,7 +43,7 @@ int   mulle_utf32_is_noncharacter( mulle_utf32_t c)
    if( c < 0x10000)
    {
       if( c < 0x0FFF)
-        return( 0);
+         return( 0);
       if( mulle_utf16_is_noncharacter( (mulle_utf16_t) c))
          return( 1);
    }

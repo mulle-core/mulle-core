@@ -142,7 +142,7 @@ int   _mulle_utf8_scan_longlong_decimal( char **p_s,
 
 
 int   _mulle_utf16_scan_longlong_decimal( mulle_utf16_t **p_s,
-                                          size_t len,
+                                          unsigned int len,
                                           long long *p_value)
 {
    struct mulle_utf_rover   rover;
@@ -157,7 +157,7 @@ int   _mulle_utf16_scan_longlong_decimal( mulle_utf16_t **p_s,
 
 
 int   _mulle_utf32_scan_longlong_decimal( mulle_utf32_t **p_s,
-                                          size_t len,
+                                          unsigned int len,
                                           long long *p_value)
 {
    struct mulle_utf_rover   rover;
@@ -184,7 +184,7 @@ int   _mulle_utf32_scan_longlong_decimal( mulle_utf32_t **p_s,
 // returns -3 : contains trailing garbage
 //
 int   _mulle_utf32_scan_longlong_decimal( mulle_utf32_t **p_s,
-                                          size_t len,
+                                          unsigned int len,
                                           long long *p_value)
 {
    enum scan_state      state;

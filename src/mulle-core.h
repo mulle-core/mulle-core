@@ -10,7 +10,7 @@
  *
  *  version:  major, minor, patch
  */
-#define MULLE__CORE_VERSION  ((0 << 20) | (2 << 8) | 0)
+#define MULLE__CORE_VERSION  ((0UL << 20) | (2 << 8) | 0)
 
 
 static inline unsigned int   mulle_core_get_version_major( void)
@@ -40,10 +40,12 @@ uint32_t   mulle_core_get_version( void);
 #include <mulle-buffer/mulle-buffer.h>
 #include <mulle-container/mulle-container.h>
 #include <mulle-http/mulle-http.h>
+#include <mulle-regex/mulle-regex.h>
 #include <mulle-slug/mulle-slug.h>
 #include <mulle-unicode/mulle-unicode.h>
 #include <mulle-url/mulle-url.h>
 #include <mulle-utf/mulle-utf.h>
+//#include <mulle-utf32buffer/mulle-utf32buffer.h>
 #include <mulle-vararg/mulle-vararg.h>
 
 #include <mulle-thread/mulle-thread.h>
@@ -58,6 +60,8 @@ uint32_t   mulle_core_get_version( void);
 #include <mulle-fprintf/mulle-fprintf.h>
 #include <mulle-sprintf/mulle-sprintf.h>
 #include <mulle-time/mulle-time.h>
+
+//#include <mulle-container-debug/mulle-container-debug.h>
 
 
 /*

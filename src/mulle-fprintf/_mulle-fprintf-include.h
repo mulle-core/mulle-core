@@ -14,15 +14,18 @@
 #ifndef _mulle_fprintf_include_h__
 #define _mulle_fprintf_include_h__
 
-// You can tweak the following #include with these commands.
-// (Use 9B1EEDAF-5103-4E5C-B280-25EB86FCA40E instead of mulle-sprintf if there are duplicate entries)
-//    remove #include:: `mulle-sde dependency mark mulle-sprintf no-header`
-//    rename:              `mulle-sde dependency|library set mulle-sprintf include whatever.h`
-//    reorder:             `mulle-sde dependency move mulle-sprintf <up|down>`
-//    toggle #include:    `mulle-sde dependency mark mulle-sprintf [no-]import`
-//    toggle public:       `mulle-sde dependency mark mulle-sprintf [no-]public`
-//    toggle optional:     `mulle-sde dependency mark mulle-sprintf [no-]require`
-//    remove for platform: `mulle-sde dependency mark mulle-sprintf no-platform-<uname>`
+// To remove the following dependency (headers and library) completely:
+//   `mulle-sde dependency remove mulle-sprintf`
+// (Use 9B1EEDAF-5103-4E5C-B280-25EB86FCA40E instead of mulle-sprintf, if there are duplicate entries)
+//
+// You can tweak the following #include with these commands:
+//    remove #include: `mulle-sde dependency mark mulle-sprintf no-header`
+//    rename              : `mulle-sde dependency|library set mulle-sprintf include whatever.h`
+//    reorder             : `mulle-sde dependency move mulle-sprintf <up|down>`
+//    toggle #include: `mulle-sde dependency mark mulle-sprintf [no-]import`
+//    toggle public       : `mulle-sde dependency mark mulle-sprintf [no-]public`
+//    toggle optional     : `mulle-sde dependency mark mulle-sprintf [no-]require`
+//    remove for platform : `mulle-sde dependency mark mulle-sprintf no-platform-<uname>`
 //        (use `mulle-sourcetree-to-c --unames` to list known values)
 #include <mulle-sprintf/mulle-sprintf.h>   // mulle-sprintf
 

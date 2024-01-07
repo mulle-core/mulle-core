@@ -108,10 +108,10 @@ int   _mulle__pointerset_remove_generic( struct mulle__pointerset *set,
                                          struct mulle_container_keycallback *callback,
                                          struct mulle_allocator *allocator);
 
-int   _mulle__pointerset_copy_items_generic( struct mulle__pointerset *dst,
-                                             struct mulle__pointerset *src,
-                                             struct mulle_container_keycallback *callback,
-                                             struct mulle_allocator *allocator);
+void   _mulle__pointerset_copy_items_generic( struct mulle__pointerset *dst,
+                                              struct mulle__pointerset *src,
+                                              struct mulle_container_keycallback *callback,
+                                              struct mulle_allocator *allocator);
 
 
 #pragma mark - enumeration
@@ -131,18 +131,17 @@ struct mulle__genericpointersetenumerator
    ((struct mulle__genericpointersetenumerator) { 0 })
 
 
-MULLE_C_NONNULL_FIRST
+MULLE_C_NONNULL_FIRST_SECOND
 static inline struct mulle__genericpointersetenumerator
    _mulle__pointerset_enumerate_generic( struct mulle__pointerset *set,
                                          struct mulle_container_keycallback *callback)
 {
-   struct mulle__genericpointersetenumerator   rover;
-
-   rover._left    = set->_count;
-   rover._curr    = set->_storage;
-   rover._notakey = callback->notakey;
-
-   return( rover);
+   return( (struct mulle__genericpointersetenumerator)
+           {
+              ._curr    = set->_storage,
+              ._left    = set->_count,
+              ._notakey = callback->notakey
+           });
 }
 
 

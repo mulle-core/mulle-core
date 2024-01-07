@@ -78,12 +78,12 @@ MULLE__UTF_GLOBAL
 void   mulle_ascii_bufferconvert_to_utf16( char *src,
                                            size_t len,
                                            void *buffer,
-                                           mulle_utf_add_bytes_function_t addbytes);
+                                           mulle_utf_add_bytes_function_t *addbytes);
 
 MULLE__UTF_GLOBAL
 void   mulle_ascii_bufferconvert_to_utf32( char *src,
                                            size_t len,
                                            void *buffer,
-                                           mulle_utf_add_bytes_function_t addbytes);
+                                           mulle_utf_add_bytes_function_t *addbytes);
 
 #endif

@@ -36,6 +36,7 @@
 //
 #include "mulle-utf8.h"
 
+#include "mulle-utf8-string.h"
 #include "mulle-char5.h"
 #include "mulle-utf16.h"
 #include "mulle-utf32.h"
@@ -71,49 +72,49 @@ static mulle_utf32_t   mulle_utf8_extracharactersvalue( char *_src,
    switch( extra_len)
    {
    case 1 : // 11 bits
-      x   = (_c & 0x1F) << 6;
+      x   = (mulle_utf32_t) (_c & 0x1F) << 6;
 
       _c = *src;
       if( ! mulle_utf8_is_validcontinuationcharacter( _c))
          return( -2);
-      x  |= (_c & 0x3F);
+      x  |= (mulle_utf32_t) (_c & 0x3F);
 
       assert( x >= 128);
       break;
 
    case 2 :  // 16 bits
-      x   = (_c & 0x0F) << 12;
+      x   = (mulle_utf32_t) (_c & 0x0F) << 12;
 
       _c = *src++;
       if( ! mulle_utf8_is_validcontinuationcharacter( _c))
          return( -2);
-      x  |= (_c & 0x3F) << 6;
+      x  |= (mulle_utf32_t) (_c & 0x3F) << 6;
 
       _c = *src;
       if( ! mulle_utf8_is_validcontinuationcharacter( _c))
          return( -2);
-      x  |= (_c & 0x3F);
+      x  |= (mulle_utf32_t) (_c & 0x3F);
 
       assert( x >= 0x800 && (x < 0xD800 || x >= 0xE000));
       break;
 
    case 3 :   // 21 bits -> UTF32
-      x   = (_c & 0x7) << 18;
+      x   = (mulle_utf32_t) (_c & 0x7) << 18;
 
       _c = *src++;
       if( ! mulle_utf8_is_validcontinuationcharacter( _c))
          return( -2);
-      x  |= (_c & 0x3F) << 12;
+      x  |= (mulle_utf32_t) (_c & 0x3F) << 12;
 
       _c = *src++;
       if( ! mulle_utf8_is_validcontinuationcharacter( _c))
          return( -2);
-      x  |= (_c & 0x3F) << 6;
+      x  |= (mulle_utf32_t) (_c & 0x3F) << 6;
 
       _c = *src;
       if( ! mulle_utf8_is_validcontinuationcharacter( _c))
          return( -2);
-      x  |= (_c & 0x3F);
+      x  |= (mulle_utf32_t) (_c & 0x3F);
 
       assert( x >= 0x10000 && x <= 0x10FFFF);
    }
@@ -186,18 +187,11 @@ mulle_utf32_t   _mulle_utf8data_next_utf32character( struct mulle_utf8data *rove
 struct mulle_utf8data   mulle_utf8data_copy( struct mulle_utf8data data, 
                                              struct mulle_allocator *allocator)
 {
-   char  *p;
-   
-   assert( ! data.length || data.characters);
-   if( ! data.length)
-      return( data);
+   struct mulle_utf8data   copied;
 
-   p = mulle_allocator_malloc( allocator, data.length + 1);
-   memcpy( p, data.characters, data.length);
-   p[ data.length] = 0;
-   return( mulle_utf8data_make( p, data.length));
+   mulle_utf8data_init( &copied, data.characters, data.length, allocator);
+   return( copied);   
 }
-
 
 
 // sorta undoes _mulle_utf8_next_utf32_value
@@ -227,11 +221,12 @@ mulle_utf32_t   _mulle_utf8_previous_utf32character( char **s_p)
 }
 
 
-
 //
 // the slower non-crashing code ...
 //
-int   mulle_utf8_are_valid_extracharacters( char *src, unsigned int len, mulle_utf32_t *p_x)
+int   mulle_utf8_are_valid_extracharacters( char *src,
+                                            size_t len,
+                                            mulle_utf32_t *p_x)
 {
    unsigned char    _c;
    mulle_utf32_t    x;
@@ -244,51 +239,52 @@ int   mulle_utf8_are_valid_extracharacters( char *src, unsigned int len, mulle_u
    switch( len)
    {
    case 1 : // 11 bits
-      x  = (_c & 0x1F) << 6;
+      x = (mulle_utf32_t) (_c & 0x1F) << 6;
 
       _c = (unsigned char) *src;
       if( ! mulle_utf8_is_validcontinuationcharacter( _c))
          return( 0);
 
-      x  |= (_c & 0x3F);
+      x  |= (mulle_utf32_t) (_c & 0x3F);
       if( x < 0x80)   // can't be ASCII
          return( 0);
       break;
 
    case 2 :  // 16 bits
-      x  = (_c & 0x0F) << 12;
+      x  = (mulle_utf32_t) (_c & 0x0F) << 12;
 
       _c = (unsigned char) *src++;
       if( ! mulle_utf8_is_validcontinuationcharacter( _c))
          return( 0);
-      x  |= (_c & 0x3F) << 6;
+      x  |= (mulle_utf32_t) (_c & 0x3F) << 6;
 
       _c = (unsigned char) *src;
       if( ! mulle_utf8_is_validcontinuationcharacter( _c))
          return( 0);
-      x  |= (_c & 0x3F);
+      x  |= (mulle_utf32_t) (_c & 0x3F);
 
       if( x < 0x800)  // can't be in case 1 range
          return( 0);
       break;
 
-   case 3 :   // 21 bits -> UTF32
-      x   = (_c & 0x7) << 18;
+   default :   // 21 bits -> UTF32
+      assert( len == 3);
+      x   = (mulle_utf32_t) (_c & 0x7) << 18;
 
       _c = (unsigned char) *src++;
       if( ! mulle_utf8_is_validcontinuationcharacter( _c))
          return( 0);
-      x  |= (_c & 0x3F) << 12;
+      x  |= (mulle_utf32_t) (_c & 0x3F) << 12;
 
       _c = (unsigned char) *src++;
       if( ! mulle_utf8_is_validcontinuationcharacter( _c))
          return( 0);
-      x  |= (_c & 0x3F) << 6;
+      x  |= (mulle_utf32_t) (_c & 0x3F) << 6;
 
       _c = (unsigned char) *src;
       if( ! mulle_utf8_is_validcontinuationcharacter( _c))
          return( 0);
-      x  |= (_c & 0x3F);
+      x  |= (mulle_utf32_t) (_c & 0x3F);
 
       if( x < 0x10000 || x > 0x0010FFFF)  // // can't be in case 2 range or totally too large
          return( 0);
@@ -469,7 +465,7 @@ mulle_utf32_t   *_mulle_utf8_convert_to_utf32( char *_src,
 void   mulle_utf8_bufferconvert_to_utf16( char *_src,
                                           size_t len,
                                           void *buffer,
-                                          mulle_utf_add_bytes_function_t addbytes)
+                                          mulle_utf_add_bytes_function_t *addbytes)
 {
    unsigned char   *src = (unsigned char *) _src;
    unsigned char   *next;
@@ -533,7 +529,7 @@ void   mulle_utf8_bufferconvert_to_utf16( char *_src,
 void  mulle_utf8_bufferconvert_to_utf32( char *_src,
                                          size_t len,
                                          void *buffer,
-                                         mulle_utf_add_bytes_function_t addbytes)
+                                         mulle_utf_add_bytes_function_t *addbytes)
 {
    unsigned char   *src = (unsigned char *) _src;
    unsigned char   *next;
@@ -837,13 +833,13 @@ int   mulle_utf8_is_ascii( char *src, size_t len)
 //
 // this routine does not validate...
 //
-size_t  mulle_utf8_utf16length( char *src, size_t len)
+unsigned int   mulle_utf8_utf16length( char *src, size_t len)
 {
-   char      *end;
-   char      *sentinel;
-   char      _c;
-   size_t    extra_len;
-   size_t    dst_len;
+   char            *end;
+   char            *sentinel;
+   char            _c;
+   unsigned int    extra_len;
+   unsigned int    dst_len;
 
    if( ! src)
       return( 0);
@@ -866,7 +862,7 @@ size_t  mulle_utf8_utf16length( char *src, size_t len)
       dst_len  -= extra_len == 3 ? 2 : extra_len; // ==3 : 32 bit
       end       = &src[ extra_len];
       if( end >= sentinel)
-         return( -1);
+         return( 0);
 #ifndef NDEBUG
       do
       {
@@ -885,13 +881,13 @@ size_t  mulle_utf8_utf16length( char *src, size_t len)
 //
 // this routine does not validate...
 //
-size_t  mulle_utf8_utf32length( char *src, size_t len)
+unsigned int  mulle_utf8_utf32length( char *src, size_t len)
 {
-   char      *end;
-   char      *sentinel;
-   char      _c;
-   size_t    extra_len;
-   size_t    dst_len;
+   char           *end;
+   char           *sentinel;
+   char           _c;
+   unsigned int   extra_len;
+   unsigned int   dst_len;
 
    if( ! src)
       return( 0);
@@ -900,7 +896,7 @@ size_t  mulle_utf8_utf32length( char *src, size_t len)
       len = mulle_utf8_strlen( src);
 
    sentinel = &src[ len];
-   dst_len  = len;
+   dst_len  = (unsigned int) len;
 
    for( ; src < sentinel; src++)
    {
@@ -932,132 +928,6 @@ size_t  mulle_utf8_utf32length( char *src, size_t len)
 
 
 
-//
-// different API to strnstr, and on linux strnstr is only available
-// with BSD...
-// You can't search for '\0' with this function.
-//
-char   *mulle_utf8_strnstr( char *s, size_t len, char *search)
-{
-   char   *p;
-   char   *sentinel;
-   size_t  offset;
-
-   if( ! s || ! search)
-      return( NULL);
-
-   if( len == (size_t) -1)
-      len = mulle_utf8_strlen( s);
-
-   offset   = mulle_utf8_strlen( search);
-   if( ! offset)
-      return( NULL);
-
-   sentinel = &s[ len];
-   p        = search;
-
-   // fprintf( stderr, "# s=\"%s\" search=\"%s\" len=%ld, offset=%ld, sentinel=\"%s\"\n",
-   //            s, search, (long) len, (long) offset, sentinel);
-
-   for(;;)
-   {
-      if( s >= sentinel)
-         return( NULL);
-
-      if( *s++ != *p)
-      {
-         p = search;
-         continue;
-      }
-
-      if( *++p)
-         continue;
-
-      return( (char *) &s[ -(long) offset]);
-   }
-}
-
-
-// 0 is no terminator in this case
-char  *mulle_utf8_strnchr( char *s, size_t len, char c)
-{
-   char   *sentinel;
-
-   if( ! s)
-      return( NULL);
-
-   if( len == (size_t) -1)
-      len = mulle_utf8_strlen( s);
-
-   sentinel = &s[ len];
-
-   while( s < sentinel)
-   {
-      if( *s == (unsigned char) c)
-         return( s);
-      ++s;
-   }
-   return( NULL);
-}
-
-
-size_t   mulle_utf8_strnspn( char *s, size_t len, char *search)
-{
-   char     *start;
-   char     *sentinel;
-   size_t   search_len;
-
-   if( ! s)
-      return( 0);
-
-   if( ! search)
-      return( 0);
-   search_len = mulle_utf8_strlen( search);
-
-   if( len == (size_t) -1)
-      len = mulle_utf8_strlen( s);
-
-   start    = s;
-   sentinel = &s[ len];
-
-   while( s < sentinel)
-   {
-      if( ! mulle_utf8_strnchr( search, search_len, *s))
-         break;
-      ++s;
-   }
-   return( s - start);
-}
-
-
-size_t   mulle_utf8_strncspn( char *s, size_t len, char *search)
-{
-   char     *sentinel;
-   char     *start;
-   size_t   search_len;
-
-   if( ! s)
-      return( 0);
-
-   if( len == (size_t) -1)
-      len = mulle_utf8_strlen( s);
-
-   if( ! search)
-      return( len);
-
-   search_len = mulle_utf8_strlen( search);
-
-   start    = s;
-   sentinel = &s[ len];
-
-   while( s < sentinel)
-   {
-      if( mulle_utf8_strnchr( search, search_len,*s))
-         return( s - start);
-      ++s;
-   }
-   return( len);
-}
 
 
 struct mulle_utf8data  mulle_utf8data_range_of_utf32_range( struct mulle_utf8data data,
@@ -1121,7 +991,7 @@ static char   *_mulle_table_convert_to_utf8( char *macroman,
    unsigned char   *src;
    unsigned char   *sentinel;
    unsigned char   _c;
-   mulle_utf32_t   utf32;
+   mulle_utf16_t   utf16;
 
    assert( len != (size_t) -1);
 
@@ -1137,16 +1007,15 @@ static char   *_mulle_table_convert_to_utf8( char *macroman,
          continue;
       }
 
-      utf32 = table[ _c - 0x80];
-      dst   = _mulle_utf32_as_utf8_not_ascii( utf32, dst);
+      utf16 = table[ _c - 0x80];
+      assert( utf16 >= 0x80);
+      dst   = _mulle_utf32_as_utf8_not_ascii( (mulle_utf32_t) utf16, dst);
    }
    return( dst);
 }
 
 
-char   *_mulle_macroman_convert_to_utf8( char *macroman,
-                                                 size_t len,
-                                                 char *dst)
+char   *_mulle_macroman_convert_to_utf8( char *macroman, size_t len, char *dst)
 {
    static uint16_t   macroman_0x80_0xFF[] =
    {
@@ -1173,37 +1042,29 @@ char   *_mulle_macroman_convert_to_utf8( char *macroman,
 }
 
 
-char   *_mulle_nextstep_convert_to_utf8( char *nextstep,
-                                                 size_t len,
-                                                 char *dst)
+char   *_mulle_nextstep_convert_to_utf8( char *nextstep, size_t len, char *dst)
 {
-   // http://www.kostis.net/charsets/nextstep.htm
+   // http://www.kostis.net/charsets/nextstep.htm (misses one character!)
    // https://en.wikipedia.org/wiki/NeXT_character_set
-   static uint16_t   nextstep_0x80_0xFF[] =
+   static uint16_t   nextstep_0x80_0xFD[] =
    {
-      160, 192, 193, 194,     195, 196, 197, 199,
-      200, 201, 202, 203,     204, 205, 206, 207,
+      160,  192,  193,  194,    195,   196,   197,   199,
+      200,  201,  202,  203,    204,   205,   206,   207,
+      208,  209,  210,  211,    212,   213,   214,   217,
+      218,  219,  220,  221,    222,   181,   215,   247,
+      169,  161,  162,  163,   8260,   165,   402,   167,
+      164, 8217, 8220,  171,   8249,  8250, 64257, 64258,
+      174, 8211, 8224, 8225,    183,   166,   182,  8729,
+     8218, 8222, 8221,  187,   8943,  8240,   172,   191,
 
-      208, 209, 210, 211,     212, 213, 214, 217,
-      218, 219, 220, 221,     222, 181, 215, 247,
-
-      169, 161, 162, 163,     8260, 165, 402, 167,
-      164, 0x27, 8220, 171,    8249,  8250, 64257, 64258,
-
-      174, 8211, 8224, 8225,  183, 166, 182, 8729,
-      8218, 8222, 8221, 187,  8943,  8240, 172, 191,
-
-      185, 768, 180, 770,     771, 175, 728, 729,
-      168, 178, 176, 184,     179, 733, 731, 711,
-
-      821, 177, 188, 189,     190, 224, 225, 226,
-      227, 228, 229, 231,     232, 233, 234, 235,
-
-      236, 198, 237, 170,     238, 239, 240, 241,
-      321, 216, 338, 186,     242, 243, 244, 245,
-
-      246, 230, 249, 250,     251, 305, 252, 253,
-      322, 248, 339, 223,     254, 255, 0, 0
+      185, 768, 180, 770,   771, 175, 728, 729,
+      168, 178, 176, 184,   179, 733, 731, 711,
+      821, 177, 188, 189,   190, 224, 225, 226,
+      227, 228, 229, 231,   232, 233, 234, 235,
+      236, 198, 237, 170,   238, 239, 240, 241,
+      321, 216, 338, 186,   242, 243, 244, 245,
+      246, 230, 249, 250,   251, 305, 252, 253,
+      322, 248, 339, 223,   254, 255, 0xFFFD, 0xFFFD // two extra for filler
    };
-   return( _mulle_table_convert_to_utf8( nextstep, len, nextstep_0x80_0xFF, dst));
+   return( _mulle_table_convert_to_utf8( nextstep, len, nextstep_0x80_0xFD, dst));
 }

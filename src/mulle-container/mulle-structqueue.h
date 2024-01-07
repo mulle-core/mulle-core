@@ -31,8 +31,8 @@
 //  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 //  POSSIBILITY OF SUCH DAMAGE.
 //
-#ifndef mulle_structqueue__h__
-#define mulle_structqueue__h__
+#ifndef mulle_structqueue_h__
+#define mulle_structqueue_h__
 
 #include "mulle--structqueue.h"
 
@@ -52,6 +52,17 @@ struct mulle_structqueue
    struct mulle_allocator   *allocator;   // public...
 };
 
+
+#define MULLE_STRUCTQUEUE_INIT( type, xallocator)                     \
+   ((struct mulle_structqueue)                                        \
+   {                                                                  \
+      ._read_index         = 64,                                      \
+      ._write_index        = 64,                                      \
+      ._sizeof_struct      = MULLE__STRUCTQUEUE_ALIGNED_SIZE( type),  \
+      ._copy_sizeof_struct = sizeof( type),                           \
+      ._bucket_size        = 64,                                      \
+      .allocator           = (xallocator)                             \
+   })
 
 // does not set the allocator, init does
 static inline struct mulle_structqueue *
@@ -108,6 +119,7 @@ static inline void  mulle_structqueue_init( struct mulle_structqueue *queue,
                                allocator);
 }
 
+
 static inline void
    mulle_structqueue_init_default( struct mulle_structqueue *queue,
                                    size_t sizeof_struct,
@@ -127,11 +139,24 @@ static inline void
 
 MULLE__CONTAINER_GLOBAL
 struct mulle_structqueue *
-   mulle_structqueue_create( unsigned int sizeof_struct,
+   mulle_structqueue_create( size_t sizeof_struct,
                              unsigned int alignof_struct,
                              unsigned short bucket_size,
                              unsigned short spare_allowance,
                              struct mulle_allocator *allocator);
+
+
+static inline struct mulle_structqueue *
+   mulle_structqueue_create_default( size_t sizeof_struct,
+                                     unsigned int alignof_struct,
+                                     struct mulle_allocator *allocator)
+{
+   return( mulle_structqueue_create( sizeof_struct,
+                                     alignof_struct,
+                                     256,
+                                     16,
+                                     allocator));
+}
 
 MULLE_C_NONNULL_FIRST
 static inline
@@ -424,9 +449,33 @@ static inline void
 }
 
 
-#define mulle_structqueue_for( queue, item)                                                       \
-   for( struct mulle_structqueueenumerator rover__ ## item = mulle_structqueue_enumerate( queue); \
-        _mulle_structqueueenumerator_next( &rover__ ## item, (void **) &item);)
+#define mulle_structqueue_do( name, type)                              \
+   for( struct mulle_structqueue                                       \
+           name ## __container = MULLE_STRUCTQUEUE_INIT( type, NULL),  \
+           *name = &name ## __container,                               \
+           *name ## __i = NULL;                                        \
+        ! name ## __i;                                                 \
+        name ## __i =                                                  \
+        (                                                              \
+           _mulle_structqueue_done( &name ## __container),             \
+           (void *) 0x1                                                \
+        )                                                              \
+      )                                                                \
+      for( int  name ## __j = 0;    /* break protection */             \
+           name ## __j < 1;                                            \
+           name ## __j++)
 
+
+// created by make-container-for.sh src/queue/struct/mulle-structqueue.c
+
+#define mulle_structqueue_for( name, item)                                               \
+   assert( sizeof( item) == sizeof( void *));                                            \
+   for( struct mulle_structqueueenumerator                                               \
+           rover__ ## item = mulle_structqueue_enumerate( name),                         \
+           *rover___  ## item ## __i = (void *) 0;                                       \
+        ! rover___  ## item ## __i;                                                      \
+        rover___ ## item ## __i = (_mulle_structqueueenumerator_done( &rover__ ## item), \
+                                   (void *) 1))                                          \
+      while( _mulle_structqueueenumerator_next( &rover__ ## item, (void **) &item))
 
 #endif

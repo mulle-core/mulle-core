@@ -40,7 +40,9 @@
 
 
 MULLE_C_NO_RETURN
-void   mulle_allocation_fail( struct mulle_allocator *p, void *block, size_t size)
+void   mulle_allocation_fail( struct mulle_allocator *p,
+                              void *block,
+                              size_t size)
 {
    perror( "memory allocation:");
    abort();
@@ -55,19 +57,19 @@ char   *_mulle_allocator_strdup( struct mulle_allocator *p, char *s)
 
    size = strlen( s) + 1;
    dup  = (*p->realloc)( NULL, size, p);
-   if( ! dup)
+   if( dup)
+      memcpy( dup, s, size);
+   else
+   // keep like this for benefit of tests
       (*p->fail)( p, NULL, size);
-
-   memcpy( dup, s, size);
    return( dup);
 }
 
 
 
-void *
-   _mulle_allocator_realloc_strict( struct mulle_allocator *p,
-                                    void *block,
-                                    size_t size)
+void   *_mulle_allocator_realloc_strict( struct mulle_allocator *p,
+                                         void *block,
+                                         size_t size)
 {
    void   *q;
 
@@ -90,7 +92,10 @@ void *
 // "no-return". It's a classical type tragedy.
 //
 // MULLE_C_NO_RETURN
-int   mulle_aba_abort( void *aba, void (*free)( void *, void *), void *block, void *owner)
+int   mulle_aba_abort( void *aba,
+                       void (*free)( void *, void *),
+                       void *block,
+                       void *owner)
 {
    abort();
 }
@@ -150,18 +155,24 @@ struct mulle_allocator   mulle_stdlib_nofree_allocator =
 
 int   mulle_allocator_is_stdlib_allocator( struct mulle_allocator *p)
 {
+   if( ! p)
+      p = &mulle_default_allocator;
    return( p->calloc == calloc);
 }
 
 #else
 
-static void   *v_calloc( size_t n, size_t size, struct mulle_allocator *allocator)
+static void   *v_calloc( size_t n,
+                         size_t size,
+                         struct mulle_allocator *allocator)
 {
    return( calloc( n, size));
 }
 
 
-static void   *v_realloc( void *block, size_t size, struct mulle_allocator *allocator)
+static void   *v_realloc( void *block,
+                          size_t size,
+                          struct mulle_allocator *allocator)
 {
    return( realloc( block, size));
 }
@@ -214,6 +225,8 @@ struct mulle_allocator   mulle_stdlib_nofree_allocator =
 
 int   mulle_allocator_is_stdlib_allocator( struct mulle_allocator *p)
 {
+   if( ! p)
+      p = &mulle_default_allocator;
    return( p->calloc == v_calloc);
 }
 

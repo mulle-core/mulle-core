@@ -48,7 +48,7 @@ void    _mulle__pointerset_set( struct mulle__pointerset *set,
                                 void *p,
                                 struct mulle_allocator *allocator)
 {
-   return( _mulle__pointerset_set_generic( set, p, &mulle_container_keycallback_nonowned_pointer_or_null, allocator));
+   _mulle__pointerset_set_generic( set, p, &mulle_container_keycallback_nonowned_pointer_or_null, allocator);
 }
 
 MULLE_C_NONNULL_FIRST
@@ -92,20 +92,51 @@ int  _mulle__pointerset_remove( struct mulle__pointerset *set,
 }
 
 MULLE_C_NONNULL_FIRST
-static inline int
+static inline void
    _mulle__pointerset_copy_items( struct mulle__pointerset *dst,
                                   struct mulle__pointerset *src,
                                   struct mulle_allocator *allocator)
 {
-   return( _mulle__pointerset_copy_items_generic( dst,
-                                                  src,
-                                                  &mulle_container_keycallback_nonowned_pointer_or_null,
-                                                  allocator));
+   _mulle__pointerset_copy_items_generic( dst,
+                                          src,
+                                          &mulle_container_keycallback_nonowned_pointer_or_null,
+                                          allocator);
 }
 
 
 struct mulle__pointerset  *
    _mulle__pointerset_copy( struct mulle__pointerset *set,
                             struct mulle_allocator *allocator);
+
+// created by make-container-do.sh mulle--pointerset.c
+
+#define mulle__pointerset_do( name)                              \
+   for( struct mulle__pointerset                                 \
+           name ## __container = { 0 },                          \
+           *name = &name ## __container,                         \
+           *name ## __i = NULL;                                  \
+        ! name ## __i;                                           \
+        name ## __i =                                            \
+        (                                                        \
+           _mulle__pointerset_done( &name ## __container, NULL), \
+           (void *) 0x1                                          \
+        )                                                        \
+      )                                                          \
+      for( int  name ## __j = 0;    /* break protection */       \
+           name ## __j < 1;                                      \
+           name ## __j++)
+
+// created by make-container-for.sh src/set/pointer/mulle--pointerset.c
+
+#define mulle__pointerset_for( name, item)                                               \
+   assert( sizeof( item) == sizeof( void *));                                            \
+   for( struct mulle__pointersetenumerator                                               \
+           rover__ ## item = mulle__pointerset_enumerate( name),                         \
+           *rover___  ## item ## __i = (void *) 0;                                       \
+        ! rover___  ## item ## __i;                                                      \
+        rover___ ## item ## __i = (_mulle__pointersetenumerator_done( &rover__ ## item), \
+                                   (void *) 1))                                          \
+      while( _mulle__pointersetenumerator_next( &rover__ ## item, (void **) &item))
+
 
 #endif

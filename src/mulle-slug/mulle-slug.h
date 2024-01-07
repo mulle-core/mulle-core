@@ -10,22 +10,22 @@
  *
  *  version:  major, minor, patch
  */
-#define MULLE__SLUG_VERSION  ((0 << 20) | (0 << 8) | 2)
+#define MULLE__SLUG_VERSION  (uint32_t) ((0L << 20) | (0 << 8) | 2)
 
 
-static inline unsigned int   mulle_slug_get_version_major( void)
+static inline uint32_t   mulle_slug_get_version_major( void)
 {
    return( MULLE__SLUG_VERSION >> 20);
 }
 
 
-static inline unsigned int   mulle_slug_get_version_minor( void)
+static inline uint32_t   mulle_slug_get_version_minor( void)
 {
    return( (MULLE__SLUG_VERSION >> 8) & 0xFFF);
 }
 
 
-static inline unsigned int   mulle_slug_get_version_patch( void)
+static inline uint32_t   mulle_slug_get_version_patch( void)
 {
    return( MULLE__SLUG_VERSION & 0xFF);
 }
@@ -46,6 +46,9 @@ extern struct mulle_utf8data   mulle_utf8data_slugify( struct mulle_utf8data  da
                                                        struct mulle_allocator *allocator);
 
 
+// adds slugified string to buffer, useful for building up an html page
+void  mulle_buffer_add_slugified_utf8data( struct mulle_buffer *buffer,
+                                           struct mulle_utf8data data);
 //
 // You can slugify into an existing buffer. You can use an alloca buffer
 // here and then get a) a max sized string and b) no mallocs

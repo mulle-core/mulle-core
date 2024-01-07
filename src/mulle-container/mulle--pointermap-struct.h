@@ -107,6 +107,15 @@ MULLE_C_NONNULL_FIRST
 void   _mulle__pointermap_destroy( struct mulle__pointermap *map,
                                    struct mulle_allocator *allocator);
 
+static inline void   
+   mulle__pointermap_destroy( struct mulle__pointermap *map,
+                              struct mulle_allocator *allocator)
+{
+   if( map)
+      _mulle__pointermap_destroy( map, allocator);      
+}
+
+
 MULLE__CONTAINER_GLOBAL
 MULLE_C_NONNULL_FIRST
 void   _mulle__pointermap_init( struct mulle__pointermap *map,
@@ -122,6 +131,15 @@ MULLE__CONTAINER_GLOBAL
 MULLE_C_NONNULL_FIRST
 void   _mulle__pointermap_reset( struct mulle__pointermap *map,
                                  struct mulle_allocator *allocator);
+
+
+static inline void   
+   mulle__pointermap_reset( struct mulle__pointermap *map,
+                            struct mulle_allocator *allocator)
+{
+   if( map)
+      _mulle__pointermap_reset( map, allocator);      
+}
 
 
 #pragma mark - petty accessors
@@ -143,13 +161,18 @@ static inline int   mulle__pointermap_is_full( struct mulle__pointermap *map)
 
 
 MULLE_C_NONNULL_FIRST
+static inline int  _mulle__pointermap_is_sparse_size( struct mulle__pointermap *map, unsigned int size)
+{
+   size = size / 2;
+   size = (size - (size >> MULLE__POINTERMAP_FILL_SHIFT));
+   return( map->_count < size);
+}
+
+
+MULLE_C_NONNULL_FIRST
 static inline int   _mulle__pointermap_is_sparse( struct mulle__pointermap *map)
 {
-   unsigned int    _size;
-
-   _size = map->_size / 2;
-   _size = (_size - (_size >> MULLE__POINTERMAP_FILL_SHIFT));  // sparse if 50% of it wouldn't be full
-   return( map->_count < _size);
+   return( _mulle__pointermap_is_sparse_size( map, map->_size));
 }
 
 
@@ -228,35 +251,19 @@ MULLE_C_NONNULL_FIRST_SECOND
 struct mulle_pointerpair   *_mulle__pointermap_get_any_pair( struct mulle__pointermap *map,
                                                              struct mulle_pointerpair *space);
 
-MULLE__CONTAINER_GLOBAL
-MULLE_C_NONNULL_FIRST
-void   _mulle__pointermap_insert_values_for_keysv( struct mulle__pointermap *map,
-                                                   void *firstvalue,
-                                                   void *firstkey,
-                                                   va_list args,
-                                                   struct mulle_allocator *allocator);
-
 
 # pragma mark - copy
 
 MULLE__CONTAINER_GLOBAL
 MULLE_C_NONNULL_FIRST_SECOND
-int   _mulle__pointermap_copy_items( struct mulle__pointermap *dst,
-                                     struct mulle__pointermap *src,
-                                     struct mulle_allocator *allocator);
+void   _mulle__pointermap_copy_items( struct mulle__pointermap *dst,
+                                      struct mulle__pointermap *src,
+                                      struct mulle_allocator *allocator);
 
 MULLE__CONTAINER_GLOBAL
 MULLE_C_NONNULL_FIRST
 struct mulle__pointermap   *_mulle__pointermap_copy( struct mulle__pointermap *set,
                                                      struct mulle_allocator *allocator);
-
-
-# pragma mark - debugging
-
-MULLE__CONTAINER_GLOBAL
-MULLE_C_NONNULL_FIRST
-char   *_mulle__pointermap_describe( struct mulle__pointermap *set,
-                                     struct mulle_allocator *allocator);
 
 
 # pragma mark - enumeration
@@ -290,13 +297,10 @@ static inline struct mulle__pointermapenumerator
 static inline struct mulle__pointermapenumerator
    mulle__pointermap_enumerate( struct mulle__pointermap *map)
 {
-   struct mulle__pointermapenumerator   rover;
-
    if( map)
       return( _mulle__pointermap_enumerate( map));
 
-   rover._left = 0;
-   return( rover);
+   return( (struct mulle__pointermapenumerator) { 0 }); // less sanitizer warnings
 }
 
 
@@ -367,6 +371,10 @@ static inline int
    }
 }
 
+static inline void
+   _mulle__pointermapenumerator_done( struct mulle__pointermapenumerator *rover)
+{
+}
 
 
 static inline void

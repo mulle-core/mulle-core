@@ -122,8 +122,8 @@ static inline size_t  mulle_char7_strlen32( uint32_t value)
 //
 static inline size_t   mulle_char7_fstrlen64( uint64_t value)
 {
-   int64_t   mask;
-   size_t    len;
+   uint64_t   mask;
+   size_t     len;
 
    mask = ~0xFFFFFFFLL;
    len  = 0;
@@ -151,8 +151,8 @@ static inline size_t   mulle_char7_fstrlen64( uint64_t value)
 //
 static inline size_t   mulle_char7_fstrlen32( uint32_t value)
 {
-   int32_t   mask;
-   size_t    len;
+   uint32_t   mask;
+   size_t     len;
 
    mask = ~0x3FFF;
    len  = 0;

@@ -58,8 +58,8 @@ void   *_mulle_pointermultififo_read_barrier( struct mulle_pointermultififo *p)
 {
    void           *pointer;
    void           *actual;
-   void           *a_i;
-   void           *a_n;
+   void           *previous;
+   uintptr_t      a_i;
    unsigned int   i;
    unsigned int   loops;
 
@@ -67,48 +67,65 @@ void   *_mulle_pointermultififo_read_barrier( struct mulle_pointermultififo *p)
    {
       for( loops = 32;--loops;)
       {
-         a_n = _mulle_atomic_pointer_read( &p->n);
-         if( a_n == NULL)
-            return( NULL);
+         MULLE_THREAD_UNPLEASANT_RACE_YIELD();
 
-         a_i = _mulle_atomic_pointer_read( &p->read);
-         i   = ((unsigned int) (uintptr_t) a_i) % p->size;
+         a_i = (uintptr_t) _mulle_atomic_pointer_read( &p->read);
+         i   = (unsigned int) a_i % p->size;
+
+         MULLE_THREAD_UNPLEASANT_RACE_YIELD();
 
          // we read the pointer to be able to do a CAS later, if it's NULL
          // then another thread already did the CAS, so it's taken.
          // Just reloop.
          pointer = _mulle_atomic_pointer_read( &p->storage[ i]);
-         if( pointer == NULL || pointer == NOTYET)  // contention with other thread, who's just below
+         if( pointer == NULL)
+            return( NULL);
+         if( pointer == NOTYET)  // contention with other thread, who's just below
             continue;
 
-         // If actual is not pointer, it must be NULL (otherwise the
-         // algorithm is broken and a writer overwrote stugg). If it is NULL,
-         // then another thread was faster. Just reloop.
+         MULLE_THREAD_UNPLEASANT_RACE_YIELD();
+
+         // If actual is not pointer, just reloop
          actual = __mulle_atomic_pointer_cas( &p->storage[ i], NOTYET, pointer);
-         if( actual == NULL || actual == NOTYET)
+         if( actual != pointer)
             continue;
 
-         assert( actual == pointer);
+         previous = actual;
+         MULLE_THREAD_UNPLEASANT_RACE_YIELD();
 
-         //
-         // As soon as we increment p->read it's possible for another thread
-         // to read another entry. Before that, we know its indexing NULL
-         // and that's a no-go. So decrement p->n first. As soon as we
-         // decrement p->n another writer may now appear and overwrite our
-         // old NULL value though, that's not good either. The solution to
-         // this is, that we write NOTYET into the storage and only change
-         // it to NULL once we are done with decrement increment
-         //
-         _mulle_atomic_pointer_decrement( &p->n);
-         _mulle_atomic_pointer_increment( &p->read);
+         // if the read pointer changed unexpectedly then we undo what we
+         // did and try to use a changed stable pointer
+         actual = __mulle_atomic_pointer_cas( &p->read, (void *) (a_i + 1), (void *) a_i);
+         if( actual != (void *) a_i)
+         {
+            MULLE_THREAD_UNPLEASANT_RACE_YIELD();
+            // rewrite NULL into storage and retry
+            for(;;)
+            {
+               actual = __mulle_atomic_pointer_cas( &p->storage[ i], pointer, NOTYET);
+               assert( actual == NOTYET);
+               if( actual == NOTYET)
+                  break;
+            }
+            continue;
+         }
+
+         // only check this here
+         assert( previous == pointer);
+         MULLE_C_UNUSED( previous);
+
+         MULLE_THREAD_UNPLEASANT_RACE_YIELD();
 
          // this can't fail... brave words...
          for(;;)
          {
             actual = __mulle_atomic_pointer_cas( &p->storage[ i], NULL, NOTYET);
+            assert( actual == NOTYET);
             if( actual == NOTYET)
                break;
          }
+
+         MULLE_THREAD_UNPLEASANT_RACE_YIELD();
 
          // For API user, ensure that the contents of memory pointed to by
          // pointer is consistent
@@ -126,14 +143,11 @@ int   _mulle_pointermultififo_write( struct mulle_pointermultififo *p,
                                      void *pointer)
 {
    void           *actual;
-   void           *a_i;
-   void           *a_n;
+   uintptr_t      a_i;
    unsigned int   i;
    unsigned int   loops;
 
-   if( pointer == NULL)
-      return( 0);
-   if( pointer == NOTYET)
+   if( pointer == NULL || pointer == NOTYET)
    {
       errno = EINVAL;
       return( -1);
@@ -143,28 +157,51 @@ int   _mulle_pointermultififo_write( struct mulle_pointermultififo *p,
    {
       for( loops = 32;--loops;)
       {
-         a_n = _mulle_atomic_pointer_read( &p->n);
-         if( a_n == (void *) (uintptr_t) p->size)
-         {
-            errno = EAGAIN; // EWOULDBLOCK
-            return( -1);
-         }
+         MULLE_THREAD_UNPLEASANT_RACE_YIELD();
 
-         a_i = _mulle_atomic_pointer_read( &p->write);
-         i   = ((unsigned int) (uintptr_t) a_i) % p->size;
+         a_i = (uintptr_t) _mulle_atomic_pointer_read( &p->write);
+         i   = (unsigned int) a_i % p->size;
+
+         MULLE_THREAD_UNPLEASANT_RACE_YIELD();
 
          // If actual was not NULL, then just reloop.
          actual = __mulle_atomic_pointer_cas( &p->storage[ i], NOTYET, NULL);
          if( actual != NULL)
-            continue;
+         {
+            if( actual == NOTYET)
+               continue;
 
-         _mulle_atomic_pointer_increment( &p->n);
-         _mulle_atomic_pointer_increment( &p->write);
+            errno = ENOSPC;
+            return( -1);
+         }
+
+         MULLE_THREAD_UNPLEASANT_RACE_YIELD();
+
+         // we increment this now, so the next value can be written, ours
+         // is protected from read/write by NOTYET, so if this has changed
+         // though, we retry (gotta get rid of our NOTYET though)
+         actual = __mulle_atomic_pointer_cas( &p->write, (void *) (a_i + 1), (void *) a_i);
+         if( actual != (void *) a_i)
+         {
+            MULLE_THREAD_UNPLEASANT_RACE_YIELD();
+            // rewrite NULL into storage and retry
+            for(;;)
+            {
+               actual = __mulle_atomic_pointer_cas( &p->storage[ i], NULL, NOTYET);
+               assert( actual == NOTYET);
+               if( actual == NOTYET)
+                  break;
+            }
+            continue;
+         }
+
+         MULLE_THREAD_UNPLEASANT_RACE_YIELD();
 
          // this can't fail... brave words...
          for(;;)
          {
             actual = __mulle_atomic_pointer_cas( &p->storage[ i], pointer, NOTYET);
+            assert( actual == NOTYET);
             if( actual == NOTYET)
                break;
          }

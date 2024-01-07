@@ -35,8 +35,8 @@
 //  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 //  POSSIBILITY OF SUCH DAMAGE.
 //
-#ifndef mulle_set__h__
-#define mulle_set__h__
+#ifndef mulle_set_h__
+#define mulle_set_h__
 
 #include "mulle--set.h"
 
@@ -61,6 +61,14 @@ struct mulle_set
    MULLE_SET_BASE;
 };
 
+#define MULLE_SET_INIT( xcallback, xallocator) \
+   ((struct mulle_set)                         \
+   {                                           \
+      .callback  = (xcallback),                \
+      .allocator = (xallocator)                \
+   })
+
+
 MULLE__CONTAINER_GLOBAL
 struct mulle_set   *mulle_set_create( unsigned int capacity,
                                       struct mulle_container_keycallback *callback,
@@ -71,6 +79,12 @@ void   mulle_set_init( struct mulle_set *set,
                        unsigned int capacity,
                        struct mulle_container_keycallback *callback,
                        struct mulle_allocator *allocator);
+
+
+static inline void   _mulle_set_done( struct mulle_set *set)
+{
+   _mulle__set_done( (struct mulle__set *) set, set->callback, set->allocator);
+}
 
 
 static inline void   mulle_set_done( struct mulle_set *set)
@@ -152,14 +166,21 @@ static inline void   mulle_set_remove( struct mulle_set *set, void *p)
 
 
 
+MULLE_C_NONNULL_FIRST
+static inline void   *_mulle_set_insert( struct mulle_set *set, void *p)
+{
+   return( _mulle__set_insert( (struct mulle__set *) set, p, set->callback, set->allocator));
+}
+
 static inline void   *mulle_set_insert( struct mulle_set *set, void *p)
 {
    if( ! set)
       return( NULL);
-   return( _mulle__set_insert( (struct mulle__set *) set, p, set->callback, set->allocator));
+   return( _mulle_set_insert( set, p));
 }
 
 
+MULLE_C_NONNULL_FIRST
 static inline void   _mulle_set_set( struct mulle_set *set, void *p)
 {
    _mulle__set_set( (struct mulle__set *) set, p, set->callback, set->allocator);
@@ -173,17 +194,17 @@ static inline void   mulle_set_set( struct mulle_set *set, void *p)
 }
 
 
+
 #pragma mark - copy
 
 
-static inline int   mulle_set_copy_items( struct mulle_set *dst, struct mulle_set *src)
+static inline void   mulle_set_copy_items( struct mulle_set *dst, struct mulle_set *src)
 {
    if( dst)
-      return( _mulle__set_copy_items( (struct mulle__set *) dst,
-                                     (struct mulle__set *) src,
-                                      dst->callback,
-                                      dst->allocator));
-   return( -1);
+      _mulle__set_copy_items( (struct mulle__set *) dst,
+                              (struct mulle__set *) src,
+                              dst->callback,
+                              dst->allocator);
 }
 
 
@@ -207,13 +228,27 @@ static inline struct mulle_set   *mulle_set_copy( struct mulle_set *set)
 void   mulle_set_add_set( struct mulle_set *set, struct mulle_set *other);
 
 
+#pragma mark - management
+
+static inline void   _mulle_set_shrink_if_needed( struct mulle_set *set)
+{
+   _mulle__set_shrink_if_needed( (struct mulle__set *) set,
+                                 set->callback,
+                                 set->allocator);
+}
+
+
+static inline void   mulle_set_shrink_if_needed( struct mulle_set *set)
+{
+   if( set)
+      _mulle_set_shrink_if_needed( set);
+}
+
 
 #pragma mark - debugging
 
 // in C, expect a strdup()ed string, in ObjC an autorelease NSString *
-static inline void   *mulle_set_describe( struct mulle_set *set,
-                                          struct mulle_container_keycallback *callback,
-                                          struct mulle_allocator *allocator)
+static inline void   *mulle_set_describe( struct mulle_set *set)
 {
    if( ! set)
       return( NULL);
@@ -295,9 +330,36 @@ static inline void   mulle_setenumerator_done( struct mulle_setenumerator *rover
 }
 
 
-#define mulle_set_for( set, item)                                               \
-   for( struct mulle_setenumerator rover__ ## item = mulle_set_enumerate( set); \
-        _mulle_setenumerator_next( &rover__ ## item, (void **) &item);)
+
+// created by make-container-do.sh mulle-set.c
+
+#define mulle_set_do( name, callback)                             \
+   for( struct mulle_set                                          \
+           name ## __container = MULLE_SET_INIT( callback, NULL), \
+           *name = &name ## __container,                          \
+           *name ## __i = NULL;                                   \
+        ! name ## __i;                                            \
+        name ## __i =                                             \
+        (                                                         \
+           _mulle_set_done( &name ## __container),                \
+           (void *) 0x1                                           \
+        )                                                         \
+      )                                                           \
+      for( int  name ## __j = 0;    /* break protection */        \
+           name ## __j < 1;                                       \
+           name ## __j++)
+
+// created by make-container-for.sh src/set/mulle-set.c
+
+#define mulle_set_for( name, item)                                               \
+   assert( sizeof( item) == sizeof( void *));                                    \
+   for( struct mulle_setenumerator                                               \
+           rover__ ## item = mulle_set_enumerate( name),                         \
+           *rover___  ## item ## __i = (void *) 0;                               \
+        ! rover___  ## item ## __i;                                              \
+        rover___ ## item ## __i = (_mulle_setenumerator_done( &rover__ ## item), \
+                                   (void *) 1))                                  \
+      while( _mulle_setenumerator_next( &rover__ ## item, (void **) &item))
 
 #endif
 

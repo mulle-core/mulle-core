@@ -49,6 +49,22 @@ struct mulle_pointers
 };
 
 
+static inline struct mulle_pointers   mulle_pointers_make( void **pointers,
+                                                           unsigned int count)
+{
+   return( (struct mulle_pointers) { .pointers = pointers, .count = count });
+}
+
+
+// just frees the struct, does not free individual pointers
+// is done the right verb ?
+static inline void   mulle_pointers_done( struct mulle_pointers p,
+                                          struct mulle_allocator *allocator)
+{
+   mulle_allocator_free( allocator, p.pointers);
+}
+
+
 //
 // mulle__pointerarray is a growing array of pointers, it just reallocs.
 // You can remove the last item via "pop", but there is no random access
@@ -70,12 +86,12 @@ struct mulle__pointerarray
 
 
 #define MULLE__POINTERARRAY_INIT( storage, count) \
-   ((struct mulle_structarray)                    \
+   ((struct mulle__pointerarray)                  \
    {                                              \
-      storage,                                    \
-      storage,                                    \
-      &storage[ count],                           \
-      storage                                     \
+      ._storage         = (storage),              \
+      ._curr            = (storage),              \
+      ._sentinel        = &(storage)[ count],     \
+      ._initial_storage = (storage)               \
    })
 
 
@@ -172,19 +188,19 @@ static inline void  mulle__pointerarray_destroy( struct mulle__pointerarray *arr
 // of array.
 // TODO: rename to eviscarate ?
 //
-void   _mulle__pointerarray_absorb( struct mulle__pointerarray *array,
+void   _mulle__pointerarray_absorb_array( struct mulle__pointerarray *array,
                                     struct mulle_allocator *allocator,
                                     struct mulle__pointerarray *victim,
                                     struct mulle_allocator *victim_allocator);
 
 
-static inline void   mulle__pointerarray_absorb( struct mulle__pointerarray *array,
+static inline void   mulle__pointerarray_absorb_array( struct mulle__pointerarray *array,
                                                  struct mulle_allocator *allocator,
                                                  struct mulle__pointerarray *victim,
                                                  struct mulle_allocator *victim_allocator)
 {
    if( array && victim)
-      _mulle__pointerarray_absorb( array, allocator, victim, victim_allocator);
+      _mulle__pointerarray_absorb_array( array, allocator, victim, victim_allocator);
 }
 
 
@@ -193,8 +209,16 @@ static inline void   mulle__pointerarray_absorb( struct mulle__pointerarray *arr
 
 // there can be no useful "lenient" variant (used by MulleJS)
 MULLE_C_NONNULL_FIRST
-static inline void **
+static inline void **  // deprecated name
    _mulle__pointerarray_get_pointers( struct mulle__pointerarray *array)
+{
+   return( array->_storage);
+}
+
+
+MULLE_C_NONNULL_FIRST
+static inline void **
+   _mulle__pointerarray_get_storage( struct mulle__pointerarray *array)
 {
    return( array->_storage);
 }
@@ -363,6 +387,13 @@ static inline void
 }
 
 
+MULLE__CONTAINER_GLOBAL
+MULLE_C_NONNULL_FIRST
+void   _mulle__pointerarray_add_array( struct mulle__pointerarray *array,
+                                       struct mulle__pointerarray *other,
+                                       struct mulle_range range,
+                                       struct mulle_allocator *allocator);
+
 MULLE_C_NONNULL_FIRST
 static inline void   *
    _mulle__pointerarray_pop( struct mulle__pointerarray *array)
@@ -396,6 +427,13 @@ static inline void
    if( array)
       _mulle__pointerarray_reset( array);
 }
+
+
+// other may be NULL
+MULLE__CONTAINER_GLOBAL
+MULLE_C_NONNULL_FIRST
+int    _mulle__pointerarray_is_equal( struct mulle__pointerarray *array,
+                                      struct mulle__pointerarray *other);
 
 
 MULLE__CONTAINER_GLOBAL
@@ -554,6 +592,30 @@ static inline void
 {
    if( array)
       _mulle__pointerarray_qsort_r_inline( array, compare, userinfo);
+}
+
+
+MULLE_C_NONNULL_FIRST
+static inline void
+   _mulle__pointerarray_qsort_r( struct mulle__pointerarray *array,
+                                 mulle_pointerarray_cmp_t *compare,
+                                 void *userinfo)
+{
+   mulle_qsort_r( array->_storage,
+                  _mulle__pointerarray_get_count( array),
+                  sizeof( void *),
+                  (mulle_qsort_cmp_t *) compare,
+                  userinfo);
+}
+
+
+static inline void
+   mulle__pointerarray_qsort_r( struct mulle__pointerarray *array,
+                                       mulle_pointerarray_cmp_t *compare,
+                                       void *userinfo)
+{
+   if( array)
+      _mulle__pointerarray_qsort_r( array, compare, userinfo);
 }
 
 
@@ -919,5 +981,69 @@ static inline int   mulle__pointerarray_member( struct mulle__pointerarray *arra
 
    return( q == p);
 }
+
+
+// created by make-container-do.sh --flexible mulle--pointerarray.c
+
+#define mulle__pointerarray_do( name)                              \
+   for( struct mulle__pointerarray                                 \
+           name ## __container = { 0 },                            \
+           *name = &name ## __container,                           \
+           *name ## __i = NULL;                                    \
+        ! name ## __i;                                             \
+        name ## __i =                                              \
+        (                                                          \
+           _mulle__pointerarray_done( &name ## __container, NULL), \
+           (void *) 0x1                                            \
+        )                                                          \
+      )                                                            \
+      for( int  name ## __j = 0;    /* break protection */         \
+           name ## __j < 1;                                        \
+           name ## __j++)
+
+#define mulle__pointerarray_do_flexible( name, stackcount)              \
+   void   *name ## __storage[ stackcount];                              \
+   for( struct mulle__pointerarray                                      \
+           name ## __container =                                        \
+              MULLE__POINTERARRAY_INIT( name ## __storage, stackcount), \
+           *name = &name ## __container,                                \
+           *name ## __i = NULL;                                         \
+        ! name ## __i;                                                  \
+        name ## __i =                                                   \
+        (                                                               \
+           _mulle__pointerarray_done( &name ## __container, NULL),      \
+           (void *) 0x1                                                 \
+        )                                                               \
+      )                                                                 \
+      for( int  name ## __j = 0;    /* break protection */              \
+           name ## __j < 1;                                             \
+           name ## __j++)
+
+
+// created by make-container-for.sh src/array/pointer/mulle--pointerarray.c
+
+#define mulle__pointerarray_for( name, item)                                               \
+   assert( sizeof( item) == sizeof( void *));                                              \
+   for( struct mulle__pointerarrayenumerator                                               \
+           rover__ ## item = mulle__pointerarray_enumerate( name),                         \
+           *rover___  ## item ## __i = (void *) 0;                                         \
+        ! rover___  ## item ## __i;                                                        \
+        rover___ ## item ## __i = (_mulle__pointerarrayenumerator_done( &rover__ ## item), \
+                                   (void *) 1))                                            \
+      while( _mulle__pointerarrayenumerator_next( &rover__ ## item, (void **) &item))
+
+
+// created by make-container-for.sh --reverse src/array/pointer/mulle--pointerarray.c
+
+#define mulle__pointerarray_for_reverse( name, item)                                              \
+   assert( sizeof( item) == sizeof( void *));                                                     \
+   for( struct mulle__pointerarrayreverseenumerator                                               \
+           rover__ ## item = mulle__pointerarray_reverseenumerate( name),                         \
+           *rover___  ## item ## __i = (void *) 0;                                                \
+        ! rover___  ## item ## __i;                                                               \
+        rover___ ## item ## __i = (_mulle__pointerarrayreverseenumerator_done( &rover__ ## item), \
+                                   (void *) 1))                                                   \
+      while( _mulle__pointerarrayreverseenumerator_next( &rover__ ## item, (void **) &item))
+
 
 #endif

@@ -199,7 +199,7 @@ mulle_utf32_t  *mulle_utf8_convert_to_utf32_string( char *src,
 # pragma mark - utf16
 
 char  *mulle_utf16_convert_to_utf8_string( mulle_utf16_t *src,
-                                           size_t len,
+                                           unsigned int len,
                                            struct mulle_allocator *allocator)
 {
    struct mulle_utf_information           info;
@@ -229,7 +229,7 @@ char  *mulle_utf16_convert_to_utf8_string( mulle_utf16_t *src,
 
 
 mulle_utf32_t  *mulle_utf16_convert_to_utf32_string( mulle_utf16_t *src,
-                                                     size_t len,
+                                                     unsigned int len,
                                                      struct mulle_allocator *allocator)
 {
    struct mulle_utf_information            info;
@@ -263,7 +263,7 @@ mulle_utf32_t  *mulle_utf16_convert_to_utf32_string( mulle_utf16_t *src,
 # pragma mark utf32
 
 char  *mulle_utf32_convert_to_utf8_string( mulle_utf32_t *src,
-                                           size_t len,
+                                           unsigned int len,
                                            struct mulle_allocator *allocator)
 {
    struct mulle_utf_information           info;
@@ -293,7 +293,7 @@ char  *mulle_utf32_convert_to_utf8_string( mulle_utf32_t *src,
 
 
 mulle_utf16_t  *mulle_utf32_convert_to_utf16_string( mulle_utf32_t *src,
-                                                     size_t len,
+                                                     unsigned int len,
                                                      struct mulle_allocator *allocator)
 {
    struct mulle_utf_information            info;
@@ -336,7 +336,7 @@ int   _mulle_utf8_character_mogrify( struct mulle_utf8data *dst,
    char            *q_sentinel;
    mulle_utf32_t   c;
    mulle_utf32_t   d;
-   size_t          conversions;
+   unsigned int          conversions;
 
    assert( info);
    assert( dst);
@@ -381,7 +381,7 @@ int   _mulle_utf16_character_mogrify_unsafe( struct mulle_utf16data *dst,
    mulle_utf16_t   *q;
    mulle_utf32_t   c;
    mulle_utf32_t   d;
-   size_t          conversions;
+   unsigned int          conversions;
 
    assert( info);
    assert( dst);
@@ -423,7 +423,7 @@ int   _mulle_utf16_character_mogrify( struct mulle_utf32data *dst,
    mulle_utf32_t   *q;
    mulle_utf32_t   c;
    mulle_utf32_t   d;
-   size_t          conversions;
+   unsigned int          conversions;
 
    assert( info);
    assert( dst);
@@ -467,7 +467,7 @@ int   _mulle_utf32_character_mogrify( struct mulle_utf32data *dst,
    mulle_utf32_t   *p_sentinel;
    mulle_utf32_t   c;
    mulle_utf32_t   d;
-   size_t          conversions;
+   unsigned int          conversions;
 
    assert( info);
    assert( dst);
@@ -510,7 +510,7 @@ int   _mulle_utf8_word_mogrify( struct mulle_utf8data *dst,
    char            *q;
    char            *p_sentinel;
    char            *q_sentinel;
-   size_t          conversions;
+   unsigned int          conversions;
 
    assert( info);
    assert( dst);
@@ -567,7 +567,7 @@ int   _mulle_utf16_word_mogrify( struct mulle_utf32data *dst,
    mulle_utf16_t   *p;
    mulle_utf16_t   *p_sentinel;
    mulle_utf32_t   *q;
-   size_t          conversions;
+   unsigned int          conversions;
 
    assert( info);
    assert( dst);
@@ -631,7 +631,7 @@ int   _mulle_utf32_word_mogrify( struct mulle_utf32data *dst,
    mulle_utf32_t   *p;
    mulle_utf32_t   *q;
    mulle_utf32_t   *p_sentinel;
-   size_t          conversions;
+   unsigned int          conversions;
 
    assert( info);
    assert( dst);

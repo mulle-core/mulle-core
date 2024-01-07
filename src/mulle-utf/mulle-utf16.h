@@ -49,16 +49,31 @@
 struct mulle_utf16data
 {
    mulle_utf16_t   *characters;
-   size_t          length;
+   unsigned int    length;
 };
 
 
-static inline struct mulle_utf16data   mulle_utf16data_make( mulle_utf16_t *s, size_t length)
+static inline unsigned int   mulle_utf16_strlen( mulle_utf16_t *s)
 {
-   struct mulle_utf16data   data;
+   mulle_utf16_t   *p;
 
-   data.characters = s;
-   data.length     = length;
+   if( ! s)
+      return( 0);
+
+   for( p = s - 1; *++p;);
+
+   return( p - s);
+}
+
+
+static inline struct mulle_utf16data   mulle_utf16data_make( mulle_utf16_t *s,
+                                                             unsigned int length)
+{
+   struct mulle_utf16data      data;
+   const static mulle_utf16_t  zero = { 0 };
+
+   data.length     = (length == (unsigned int) -1) ? mulle_utf16_strlen( s) : length;
+   data.characters = data.length ? s : (mulle_utf16_t *) &zero;
    return( data);
 }
 
@@ -76,41 +91,41 @@ static inline int   mulle_utf16_is_char5character( mulle_utf16_t c)
 
 
 MULLE__UTF_GLOBAL
-int     mulle_utf16_information( mulle_utf16_t *src, size_t len, struct mulle_utf_information *info);
+int     mulle_utf16_information( mulle_utf16_t *src, unsigned int len, struct mulle_utf_information *info);
 
 MULLE__UTF_GLOBAL
-size_t  mulle_utf16_utf8length( mulle_utf16_t *src, size_t len);
+size_t  mulle_utf16_utf8length( mulle_utf16_t *src, unsigned int len);
 
 MULLE__UTF_GLOBAL
-size_t  mulle_utf16_utf32length( mulle_utf16_t *src, size_t len);
+unsigned int  mulle_utf16_utf32length( mulle_utf16_t *src, unsigned int len);
 
 MULLE__UTF_GLOBAL
-size_t  mulle_utf16_length( mulle_utf16_t *src, size_t len);
+unsigned int  mulle_utf16_length( mulle_utf16_t *src, unsigned int len);
 
 MULLE__UTF_GLOBAL
 int   mulle_utf16_contains_character_larger_or_equal( mulle_utf16_t *src,
-                                                      size_t len,
+                                                      unsigned int len,
                                                       mulle_utf16_t d);
 
-static inline int   mulle_utf16_is_ascii( mulle_utf16_t *src, size_t len)
+static inline int   mulle_utf16_is_ascii( mulle_utf16_t *src, unsigned int len)
 {
    return( ! mulle_utf16_contains_character_larger_or_equal( src, len, 0x80));
 }
 
 
-static inline int   mulle_utf16_is_utf15( mulle_utf16_t *src, size_t len)
+static inline int   mulle_utf16_is_utf15( mulle_utf16_t *src, unsigned int len)
 {
    return( ! mulle_utf16_contains_character_larger_or_equal( src, len, 0x8000));
 }
 
 
-static inline size_t  mulle_utf16_utf8maxlength( size_t len)
+static inline size_t  mulle_utf16_utf8maxlength( unsigned int len)
 {
    return( len * 4);
 }
 
 MULLE__UTF_GLOBAL
-mulle_utf16_t  *mulle_utf16_validate( mulle_utf16_t *src, size_t len);
+mulle_utf16_t  *mulle_utf16_validate( mulle_utf16_t *src, unsigned int len);
 
 // hi and lo MUST be surrogates
 MULLE__UTF_GLOBAL
@@ -128,12 +143,12 @@ mulle_utf32_t   _mulle_utf16_previous_utf32character( mulle_utf16_t **s_p);
 // returns end of dst
 MULLE__UTF_GLOBAL
 mulle_utf32_t  *_mulle_utf16_convert_to_utf32( mulle_utf16_t *src,
-                                               size_t len,
+                                               unsigned int len,
                                                mulle_utf32_t *dst);
 MULLE__UTF_GLOBAL
 char  *_mulle_utf16_convert_to_utf8( mulle_utf16_t *src,
-                                             size_t len,
-                                             char *dst);
+                                     unsigned int len,
+                                     char *dst);
 //
 // This will not stop on a zero. It will not by itself append a zero.
 // return value = 0  means OK!
@@ -141,17 +156,23 @@ char  *_mulle_utf16_convert_to_utf8( mulle_utf16_t *src,
 //
 MULLE__UTF_GLOBAL
 void   mulle_utf16_bufferconvert_to_utf8( mulle_utf16_t *src,
-                                          size_t len,
+                                          unsigned int len,
                                           void *buffer,
-                                          mulle_utf_add_bytes_function_t addbytes);
+                                          mulle_utf_add_bytes_function_t *addbytes);
 
 MULLE__UTF_GLOBAL
 void   mulle_utf16_bufferconvert_to_utf32( mulle_utf16_t *src,
-                                           size_t len,
+                                           unsigned int len,
                                            void *buffer,
-                                           mulle_utf_add_bytes_function_t addbytes);
+                                           mulle_utf_add_bytes_function_t *addbytes);
 
 MULLE__UTF_GLOBAL
-enum mulle_utf_charinfo   _mulle_utf16_charinfo( mulle_utf16_t *src, size_t len);
+enum mulle_utf_charinfo   _mulle_utf16_charinfo( mulle_utf16_t *src, unsigned int len);
+
+
+// would not work, because we need two mulle_utf16_taa
+// MULLE__UTF_GLOBAL
+// char   *_mulle_utf16_as_utf8_not_ascii( mulle_utf16_t x, char *dst);
+
 
 #endif

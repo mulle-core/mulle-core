@@ -160,10 +160,10 @@ void   _mulle__pointermap_shrink_generic( struct mulle__pointermap *map,
 
 MULLE__CONTAINER_GLOBAL
 MULLE_C_NONNULL_FIRST_SECOND_THIRD
-int   _mulle__pointermap_copy_items_generic( struct mulle__pointermap *dst,
-                                             struct mulle__pointermap *src,
-                                             struct mulle_container_keyvaluecallback *callback,
-                                             struct mulle_allocator *allocator);
+void   _mulle__pointermap_copy_items_generic( struct mulle__pointermap *dst,
+                                              struct mulle__pointermap *src,
+                                              struct mulle_container_keyvaluecallback *callback,
+                                              struct mulle_allocator *allocator);
 
 MULLE__CONTAINER_GLOBAL
 MULLE_C_NONNULL_FIRST_SECOND
@@ -195,7 +195,7 @@ static inline struct mulle__genericpointermapenumerator
    mulle__pointermap_enumerate_generic( struct mulle__pointermap *map,
                                         struct mulle_container_keyvaluecallback *callback)
 {
-   struct mulle__genericpointermapenumerator   rover;
+   struct mulle__genericpointermapenumerator   rover = { 0 }; // awkward, but sanitizes better
 
    if( map)
    {
@@ -204,8 +204,6 @@ static inline struct mulle__genericpointermapenumerator
       rover._offset  = _mulle__pointermap_get_size( map);
       rover._notakey = callback ? callback->keycallback.notakey : 0;
    }
-   else
-      rover._left    = 0;
 
    return( rover);
 }

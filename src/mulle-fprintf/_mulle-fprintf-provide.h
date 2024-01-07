@@ -9,8 +9,8 @@
  *
  *      mulle-sde environment set MULLE_MATCH_TO_C_RUN DISABLE
  */
-#ifndef mulle_fprintf_provide_h__
-#define mulle_fprintf_provide_h__
+#ifndef _mulle__fprintf__provide_h__
+#define _mulle__fprintf__provide_h__
 
 
 // no headers
