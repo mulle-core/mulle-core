@@ -88,7 +88,7 @@ Then edit `mulle-core.h` and add the envelope header to the others.
 | [src/mulle-unicode](https://github.com/mulle-c/mulle-unicode@*)             | 🈚 Unicode ctype like library
 | [src/mulle-url](https://github.com/mulle-c/mulle-url@*)             | 🈷️ Support for URL parsing
 | [src/mulle-utf](https://github.com/mulle-c/mulle-utf@*)             | 🔤 UTF8-16-32 analysis and manipulation library
-| [src/mulle-vararg](https://github.com/mulle-c/mulle-vararg@*)             |  ⏪ Access variable arguments in struct layout fashion in C
+| [src/mulle-vararg](https://github.com/mulle-c/mulle-vararg@*)             | ⏪ Access variable arguments in struct layout fashion in C
 | [src/mulle-thread](https://github.com/mulle-concurrent/mulle-thread@*)             | 🔠 Cross-platform thread/mutex/tss/atomic operations in C
 | [src/mulle-linkedlist](https://github.com/mulle-concurrent/mulle-linkedlist@*)             | 🔂 mulle-linkedlist a wait and lock-free linked list
 | [src/mulle-aba](https://github.com/mulle-concurrent/mulle-aba@*)             | 🚮 A lock-free, cross-platform solution to the ABA problem
@@ -102,6 +102,7 @@ Then edit `mulle-core.h` and add the envelope header to the others.
 | [src/mulle-sprintf](https://github.com/mulle-core/mulle-sprintf@*)             | 🔢 An extensible sprintf function supporting stdarg and mulle-vararg
 | [src/mulle-fprintf](https://github.com/mulle-core/mulle-fprintf@*)             | 🔢 mulle-fprintf marries mulle-sprintf to stdio.h
 | [mintomic](https://github.com/mulle-concurrent/mintomic)             | For more information, see [the documentation](http://mintomic.github.io/) or the accompanying blog post, [Introducing Mintomic](http://preshing.com/20130505/introducing-mintomic-a-small-portable-lock-free-api).
+| [src/mulle-regex](https://github.com/mulle-c/mulle-regex@)             | 📣 Unicode regex library
 
 
 

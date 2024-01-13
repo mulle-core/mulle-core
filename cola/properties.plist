@@ -7,7 +7,7 @@
       user="mulle-core";
       repo="mulle-core";
       homepage="https://github.com/mulle-core/mulle-core";
-      license="BSD-3-Clause"
+      license="BSD-3-Clause";
    };
    amalgamated =
    (
@@ -108,7 +108,7 @@
          user="mulle-c";
       },
       {
-         description=" ⏪ Access variable arguments in struct layout fashion in C";
+         description="⏪ Access variable arguments in struct layout fashion in C";
          domain="clib";
          name="src/mulle-vararg";
          repo="mulle-vararg@*";
@@ -218,6 +218,14 @@
          repo="mintomic";
          url="https://github.com/mulle-concurrent/mintomic";
          user="mulle-concurrent";
+      },
+      {
+         description="📣 Unicode regex library";
+         domain="clib";
+         name="src/mulle-regex";
+         repo="mulle-regex@";
+         url="https://github.com/mulle-c/mulle-regex@";
+         user="mulle-c";
       }
-   )
+   );
 }
