@@ -1,7 +1,7 @@
 {
    project =
    {
-      description="🌋 Almagamated library of mulle-core and mulle-c";
+      description="🌋 Almagamated library of mulle-core + mulle-concurrent + mulle-c";
       domain="github";
       name="mulle-core";
       user="mulle-core";

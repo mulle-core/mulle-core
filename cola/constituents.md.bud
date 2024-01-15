@@ -29,8 +29,10 @@ Then edit `mulle-core.h` and add the envelope header to the others.
 {% if [amalgamated count] %}
 | Constituent                                  | Description
 |----------------------------------------------|-----------------------
-{% for item in amalgamated %}
-| [{{ item.name}}]({{ item.url }})             | {{ item.description }}
+{%
+   sorter = [NSSortDescriptor sortDescriptorWithKey:@"url" ascending:YES]
+   for item in [amalgamated sortedArrayUsingDescriptors:[NSArray arrayWithObject:sorter]] %}
+| [{{ [S $:"item.name#src/"] }}]({{ [S $:"item.url%@\*"] }}) | {{ item.description }}
 {% endfor %}
 {% endif %}
 
