@@ -244,7 +244,7 @@ mulle_utf32_t   *mulle_utf32_substitute( mulle_utf32_t *pattern,
    len  = mulle_utf32regex_substitution_buffer_size( p, replacement);
    if( len)
    {
-      buf = malloc( len);
+      buf = mulle_malloc( len);
       if( buf)
          rval = mulle_utf32regex_substitute( p, replacement, buf, len, 1);
    }
@@ -252,7 +252,7 @@ mulle_utf32_t   *mulle_utf32_substitute( mulle_utf32_t *pattern,
 
    if( rval)
    {
-      free( buf);
+      mulle_free( buf);
       buf = NULL;
    }
 
@@ -266,7 +266,7 @@ struct mulle_range   mulle_utf32regex_range_for_index( struct mulle_utf32regex *
    regexp               *p;
 
    p = rp;
-   if( i >= NSUBEXP || ! p->startp[ i])
+   if( i >= MULLE_UTF32REGEX_NSUBEXP || ! p->startp[ i])
    {
       range.location = LONG_MAX;
       range.length   = 0;
@@ -314,7 +314,7 @@ struct mulle_utf32regex   *mulle_utf32regex_compile( mulle_utf32_t *exp)
    if( (errno = setjmp( co.bail)))
       return( NULL);
 
-   regex_c( &co, MAGIC);
+   regex_c( &co, MULLE_UTF32REGEX_MAGIC);
    regex_generic( &co, 0, &flags);
 
    /* Small enough for pointer-storage convention? */
@@ -322,7 +322,7 @@ struct mulle_utf32regex   *mulle_utf32regex_compile( mulle_utf32_t *exp)
       FAIL_COMPILE( &co, EFBIG, "too complex");
 
    /* Allocate space. */
-   r = (regexp *) malloc( sizeof( regexp) + (size_t) co.regsize);
+   r = (regexp *) mulle_malloc( sizeof( regexp) + (size_t) co.regsize);
    if( ! r)
       FAIL_COMPILE( &co, ENOMEM, "out of memory on your nintendo ds");
 #ifndef NDEBUG
@@ -333,7 +333,7 @@ struct mulle_utf32regex   *mulle_utf32regex_compile( mulle_utf32_t *exp)
    co.regnpar  = 1;
    co.regcode  = (node *) r->program;
 
-   regex_c( &co, MAGIC);
+   regex_c( &co, MULLE_UTF32REGEX_MAGIC);
    regex_generic( &co, 0, &flags);
 
    /* Dig out information for optimizations. */
@@ -341,7 +341,7 @@ struct mulle_utf32regex   *mulle_utf32regex_compile( mulle_utf32_t *exp)
    r->reganch  = 0;
    r->regmust  = NULL;
    r->regmlen  = 0;
-   /* skip MAGIC */
+   /* skip MULLE_UTF32REGEX_MAGIC */
    scan = (node *) (r->program + sizeof( mulle_utf32_t));     /* First BRANCH. */
 
    if( OPCODE(regex_next_node(scan)) == END)    /* Only one top-level choice. */
@@ -411,11 +411,11 @@ static node   *regex_generic( struct comp *co, int paren, int *flagp)     /* Par
    if( paren)
    {
       /* Make an OPEN node. */
-      if( co->regnpar >= NSUBEXP)
+      if( co->regnpar >= MULLE_UTF32REGEX_NSUBEXP)
          FAIL_COMPILE( co, EMLINK, "too many ()");
 
       parno = co->regnpar;
-      assert( parno >= 1 && parno < NSUBEXP);
+      assert( parno >= 1 && parno < MULLE_UTF32REGEX_NSUBEXP);
       co->regnpar++;
       ret = regex_node(co, OPEN + parno);
    }
@@ -928,7 +928,7 @@ int    mulle_utf32regex_execute(  struct mulle_utf32regex *p, mulle_utf32_t *str
    assert( string);
 
    /* Check validity of program. */
-   if( *(mulle_utf32_t *) prog->program != MAGIC)
+   if( *(mulle_utf32_t *) prog->program != MULLE_UTF32REGEX_MAGIC)
    {
       errno = EINVAL;
       return( -EINVAL);
@@ -976,7 +976,7 @@ int    mulle_utf32regex_execute(  struct mulle_utf32regex *p, mulle_utf32_t *str
 static int   regex_try_match( struct exec *ep, regexp *prog, mulle_utf32_t *s)
 {
    /* clean */
-   memset( prog->startp, 0, (char *) &prog->endp[ NSUBEXP] - (char *) prog->startp);
+   memset( prog->startp, 0, (char *) &prog->endp[ MULLE_UTF32REGEX_NSUBEXP] - (char *) prog->startp);
 
    ep->reginput = s;
 
@@ -1096,7 +1096,7 @@ static int  regex_match( struct exec *ep, node *prog)
          int       no     = OPCODE(scan) - OPEN;
          mulle_utf32_t   *input = ep->reginput;
 
-         assert( no >= 1 && no < NSUBEXP);
+         assert( no >= 1 && no < MULLE_UTF32REGEX_NSUBEXP);
          if( regex_match(ep, next))
          {
             /*
@@ -1192,9 +1192,9 @@ static int  regex_match( struct exec *ep, node *prog)
          return(1);  /* Success! */
 
       default:
-         if( OPCODE(scan) > OPEN + 9 && OPCODE( scan) < OPEN + NSUBEXP)
+         if( OPCODE(scan) > OPEN + 9 && OPCODE( scan) < OPEN + MULLE_UTF32REGEX_NSUBEXP)
             goto additional_open;
-         if( OPCODE( scan) < CLOSE - 9 && OPCODE( scan) >= CLOSE - NSUBEXP)
+         if( OPCODE( scan) < CLOSE - 9 && OPCODE( scan) >= CLOSE - MULLE_UTF32REGEX_NSUBEXP)
             goto additional_close;
 
          errno = EFAULT;
@@ -1379,13 +1379,13 @@ static char    *regex_string_from_opcode( node *op, char buf[64])
    case PLUS    : s = "PLUS"; break;
 
    default:
-      if( opcode > OPEN && opcode <= OPEN + NSUBEXP)
+      if( opcode > OPEN && opcode <= OPEN + MULLE_UTF32REGEX_NSUBEXP)
       {
          sprintf(buf + strlen(buf), "OPEN%d", OPCODE(op) - OPEN);
          return( buf);
       }
 
-      if( opcode < CLOSE && opcode >= CLOSE - NSUBEXP)
+      if( opcode < CLOSE && opcode >= CLOSE - MULLE_UTF32REGEX_NSUBEXP)
       {
          sprintf( buf + strlen(buf), "CLOSE%d", CLOSE - OPCODE(op));
          return( buf);

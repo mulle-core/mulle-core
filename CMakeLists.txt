@@ -101,7 +101,7 @@ elseif( "${MULLE_PROJECT_TYPE}" STREQUAL "Library")
       # manually maintained!
       install( FILES ${MINTOMIC_PUBLIC_HEADERS}  DESTINATION "include/mintomic")
       # NOTE: it's really private subdir!
-      install( FILES ${MINTOMIC_PRIVATE_HEADERS} DESTINATION "include/mintomic")
+      install( FILES ${MINTOMIC_PRIVATE_HEADERS} DESTINATION "include/mintomic/private")
 
 
       # short cut out

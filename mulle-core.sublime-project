@@ -1,6 +1,9 @@
 {
-   "sublimegdb_workingdir": "${folder:kitchen/Debug/mulle-core}",
-   "sublimegdb_commandline": "mulle-gdb --interpreter=mi kitchen/Debug/mulle-core",
+   "settings":
+   {
+      "sublimegdb_workingdir": "${folder:kitchen/Debug/mulle-core}",
+      "sublimegdb_commandline": "mulle-gdb --interpreter=mi kitchen/Debug/mulle-core",
+   },
    "folders":
    [
       {
@@ -71,6 +74,20 @@
          "file_regex": "^(..[^:]*)(?::|\\()([0-9]+)(?::|\\))(?:([0-9]+):)?\\s*(.*)",
          "env": { "NO_COLOR": "YES" }
       },
+      {
+         "name": "Test",
+         "cmd": [ "mulle-sde", "test" ],
+         "working_dir": "${project_path}",
+         "file_regex": "^(..[^:]*)(?::|\\()([0-9]+)(?::|\\))(?:([0-9]+):)?\\s*(.*)",
+         "env": { "NO_COLOR": "YES" }
+      },      
+      {
+         "name": "Test rerun",
+         "cmd": [ "mulle-sde", "test", "rerun" ],
+         "working_dir": "${project_path}",
+         "file_regex": "^(..[^:]*)(?::|\\()([0-9]+)(?::|\\))(?:([0-9]+):)?\\s*(.*)",
+         "env": { "NO_COLOR": "YES" }
+      },      
       {
          "name": "Clean",
          "cmd": [ "mulle-sde", "clean" ],

@@ -34,7 +34,7 @@ static int  octal( mulle_utf32_t **src_p)
    buf[ 4] = 0;
 
    no = mulle_utf32_atoi( buf);
-   if( no < 1 || no >= NSUBEXP)
+   if( no < 1 || no >= MULLE_UTF32REGEX_NSUBEXP)
       return( 0);
 
    *src_p = src;
@@ -62,7 +62,7 @@ int   mulle_utf32regex_substitute( struct mulle_utf32regex *rp,
    assert( src);
    assert( dst);
 
-   if( *((mulle_utf32_t *) prog->program) != MAGIC)
+   if( *((mulle_utf32_t *) prog->program) != MULLE_UTF32REGEX_MAGIC)
    {
       errno = EFAULT;
       return( -EFAULT);
@@ -162,7 +162,7 @@ unsigned int   mulle_utf32regex_substitution_length( struct mulle_utf32regex *rp
 
    assert( prog);
    assert( src);
-   assert( *((mulle_utf32_t *) prog->program) == MAGIC);
+   assert( *((mulle_utf32_t *) prog->program) == MULLE_UTF32REGEX_MAGIC);
 
    dst_len = 0;
    for(;;)

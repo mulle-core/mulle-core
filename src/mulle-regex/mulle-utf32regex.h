@@ -23,7 +23,7 @@ struct mulle_utf32regex   *mulle_utf32regex_compile( mulle_utf32_t *pattern);
 
 static inline void   mulle_utf32regex_free( struct mulle_utf32regex *regex)
 {
-   free( regex);
+   mulle_free( regex);
 }
 
 
