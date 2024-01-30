@@ -74,7 +74,7 @@ static inline void
    struct mulle_allocator   *allocator;
    void                     *index_1;
 
-   index_1 = (void *) (uintptr_t) index + 1;
+   index_1 = (void *) (uintptr_t) (index + 1);
    assert( index < mulle_structarray_get_count( &alloc->_structs));
    assert( mulle__pointerarray_find( &alloc->_freed, index_1) == mulle_not_found_e);
 
@@ -94,7 +94,7 @@ static inline void *
    _mulle_indexedstorage_get( struct mulle_indexedstorage *alloc, unsigned int index)
 {
    assert( index < mulle_structarray_get_count( &alloc->_structs));
-   assert( mulle__pointerarray_find( &alloc->_freed, (void *) (uintptr_t) index + 1) == mulle_not_found_e);
+   assert( mulle__pointerarray_find( &alloc->_freed, (void *) (uintptr_t) (index + 1)) == mulle_not_found_e);
 
    return( _mulle_structarray_get( &alloc->_structs, (unsigned int) index));
 }

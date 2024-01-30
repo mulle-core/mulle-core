@@ -1,0 +1,75 @@
+name: Artifacts
+
+on:
+ push:
+    branches:
+      - release
+    tags:
+      - '*'
+ workflow_dispatch:
+
+env:
+  BUILD_TYPE: release
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ ubuntu-latest ]
+
+    steps:
+    - name: Set MULLE_HOSTNAME
+      run: |
+        name="${GITHUB_REF##*/}"
+        MULLE_HOSTNAME="${MULLE_HOSTNAME:-ci-${name##*-}}"
+        echo "MULLE_HOSTNAME=${MULLE_HOSTNAME}" >> $GITHUB_ENV
+
+    - name: Add to path
+      run:  echo "$HOME/bin" >> $GITHUB_PATH
+
+    - name: Dump Environment
+      run:  env | sort
+
+    - uses: actions/checkout@v3
+
+    - uses: mulle-sde/github-ci@v1
+
+    - name: Install mulle-project
+      run:  |
+            curl -L 'https://github.com/mulle-nat/mulle-project/archive/latest.tar.gz' \
+            | tar xfz - ´
+            && cd 'mulle-project-latest' \
+            && sudo ./bin/installer /usr
+
+    - name: Dump Project Environment
+      run:  |
+            [ ! -d .mulle/etc/env ] || ls -l .mulle/etc/env/environment*.sh
+            mulle-sde environment
+
+    - name: Build Debian Package
+      run:  |
+            mkdir -p package
+            cd package
+            cmake -DCMAKE_BUILD_STYLE="Release" ..
+            cpack -G DEB
+            echo "DEB_PACKAGE=package/"*.deb >> $GITHUB_ENV
+
+    - name: Archive executable
+      uses: actions/upload-artifact@v2
+      with:
+        name: debian
+        path: ${{ env.DEB_PACKAGE }}
+
+    - name: Build Redhat Package
+      run:  |
+            mkdir -p package
+            cd package
+            cpack -G RPM
+            echo "RPM_PACKAGE=package/"*.rpm >> $GITHUB_ENV
+
+    - name: Archive executable
+      uses: actions/upload-artifact@v2
+      with:
+        name: redhat
+        path: ${{ env.RPM_PACKAGE }}

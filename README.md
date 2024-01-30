@@ -21,37 +21,6 @@ The advantages of using **mulle-core** are:
 
 
 
-## Linking with mulle-atinit/mulle-atexit
-
-This library does not include [mulle-atinit](//github.com/mulle-core/mulle-atinit)
-and [mulle-atexit](//github.com/mulle-core/mulle-atexit) and
-[mulle-testallocator](//github.com/mulle-core/mulle-testallocator). *mulle-atinit*
-and *mulle-atexit* need special linker flags and  *mulle-testallocator* depends
-on *mulle-atinit* directly. As a "customer" of *mulle-atinit* or *mulle-atexit*,
-that need not concern you, as the newer versions of both projects are recognizant of the fact, that mulle-core exists and that it may contain their dependencies.
-
-### Under the hood
-
-*mulle-atinit* needs to be linked with *mulle-thread* and *mulle-dlfcn*.
-But both are part of *mulle-core*. *mulle-atinit* is and can not be part of
-*mulle-core*. It needs to specify *mulle-core* as an alias preference over
-*mulle-thread* and *mulle-dlfcn*. An existing *mulle-core* is now used for
-linking in favor of *mulle-thread*, but *mulle-thread* is kept as a fallback.
-If that wasn't done, you'd get duplicate symbol warnings from the linker.
-
-The `mulle-sde dependency list` output of *mulle-atinit* should look like this:
-
-```
-address       supermarks     aliases                  include
--------       ----------     -------                  -------
-mulle-thread  C,TreePrivate  mulle-core,mulle-thread
-mulle-dlfcn   C,TreePrivate  mulle-core,mulle-dlfcn
-```
-
-*mulle-core* is now searched for in preference over *mulle-thread* and
-*mulle-dlfcn*.
-Because of `TreePrivate` any "benefactor" of *mulle-atinit*, will not fetch or
-build *mulle-thread* or *mulle-dlfcn*.
 
 ### You are here
 
@@ -79,6 +48,7 @@ Then edit `mulle-core.h` and add the envelope header to the others.
 | [mulle-allocator](https://github.com/mulle-c/mulle-allocator) | 🔄 Flexible C memory allocation scheme
 | [mulle-buffer](https://github.com/mulle-c/mulle-buffer) | ↗️ A growable C char array and also a stream
 | [mulle-c11](https://github.com/mulle-c/mulle-c11) | 🔀 Cross-platform C compiler glue (and some cpp conveniences)
+| [mulle-container-debug](https://github.com/mulle-c/mulle-container-debug) | 🛄 Debugging support for mulle-container
 | [mulle-container](https://github.com/mulle-c/mulle-container) | 🛄 Arrays, hashtables and a queue
 | [mulle-data](https://github.com/mulle-c/mulle-data) | #️⃣ A collection of hash functions
 | [mulle-http](https://github.com/mulle-c/mulle-http) | 🈚 http URL parser
@@ -97,6 +67,7 @@ Then edit `mulle-core.h` and add the envelope header to the others.
 | [mulle-linkedlist](https://github.com/mulle-concurrent/mulle-linkedlist) | 🔂 mulle-linkedlist a wait and lock-free linked list
 | [mulle-multififo](https://github.com/mulle-concurrent/mulle-multififo) | 🐛 mulle-multififo multi-producer/multi-consumer FIFO holding `void *`
 | [mulle-thread](https://github.com/mulle-concurrent/mulle-thread) | 🔠 Cross-platform thread/mutex/tss/atomic operations in C
+| [dlfcn-win32](https://github.com/mulle-core/dlfcn-win32) | ===========
 | [mulle-dlfcn](https://github.com/mulle-core/mulle-dlfcn) | ♿️ Shared library helper
 | [mulle-fprintf](https://github.com/mulle-core/mulle-fprintf) | 🔢 mulle-fprintf marries mulle-sprintf to stdio.h
 | [mulle-mmap](https://github.com/mulle-core/mulle-mmap) | 🇧🇿 Memory mapped file access
@@ -113,6 +84,11 @@ Use [mulle-sde](//github.com/mulle-sde) to add mulle-core to your project:
 ``` sh
 mulle-sde add github:mulle-core/mulle-core
 ```
+
+This library does not include [mulle-atinit](//github.com/mulle-core/mulle-atinit)
+and [mulle-atexit](//github.com/mulle-core/mulle-atexit) and
+[mulle-testallocator](//github.com/mulle-core/mulle-testallocator). If you
+add these libraries, it is important that mulle-core is added before them.
 
 ## Install
 

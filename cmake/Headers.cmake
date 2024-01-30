@@ -91,6 +91,43 @@ mintomic/mintomic_stdint.h
 )
 
 include_directories(
-AFTER SYSTEM mintomic
+AFTER SYSTEM "${CMAKE_CURRENT_SOURCE_DIR}"
 )
+
+set( MINTOMIC_PRIVATE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/mintomic/private")
+unset( MINTOMIC_PRIVATE_HEADERS_COPIES)
+
+# Create the destination directory if it doesn't exist
+if( NOT EXISTS ${MINTOMIC_PRIVATE_DIR})
+    file( MAKE_DIRECTORY ${MINTOMIC_PRIVATE_DIR})
+
+   # Create a custom target for each file
+   foreach( TMP_FILE ${MINTOMIC_PRIVATE_HEADERS})
+       get_filename_component( TMP_FILENAME ${TMP_FILE} NAME)
+       set( TMP_DESTINATION_PATH "${MINTOMIC_PRIVATE_DIR}/${TMP_FILENAME}")
+       add_custom_command(
+           OUTPUT ${TMP_DESTINATION_PATH}
+           COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/${TMP_FILE} ${TMP_DESTINATION_PATH}
+           COMMENT "Copying ${TMP_FILE} to private headers..."
+       )
+       # Add a custom target for this file
+       list( APPEND MINTOMIC_PRIVATE_HEADERS_COPIES ${TMP_DESTINATION_PATH})
+    endforeach()
+
+    add_custom_target( RearrangeMintomicPrivateHeaders ALL DEPENDS ${MINTOMIC_PRIVATE_HEADERS_COPIES})
+endif()
+
+
+#
+# add dlfcn-win32, if needed
+#
+if( WIN32)
+   set( DLFCN_WIN32_PUBLIC_HEADERS
+      dlfcn-win32/dlfcn.h
+   )
+
+   include_directories(
+      AFTER SYSTEM "${CMAKE_CURRENT_SOURCE_DIR}/dlfcn-win32"
+   )
+endif()
 

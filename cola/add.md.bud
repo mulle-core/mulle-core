@@ -5,3 +5,8 @@ Use [mulle-sde](//github.com/mulle-sde) to add {{ project.name }} to your projec
 ``` sh
 mulle-sde add {{ project.domain }}:{{ project.user }}/{{ project.repo }}
 ```
+
+This library does not include [mulle-atinit](//github.com/mulle-core/mulle-atinit)
+and [mulle-atexit](//github.com/mulle-core/mulle-atexit) and
+[mulle-testallocator](//github.com/mulle-core/mulle-testallocator). If you
+add these libraries, it is important that mulle-core is added before them.

@@ -103,6 +103,8 @@ elseif( "${MULLE_PROJECT_TYPE}" STREQUAL "Library")
       # NOTE: it's really private subdir!
       install( FILES ${MINTOMIC_PRIVATE_HEADERS} DESTINATION "include/mintomic/private")
 
+      # manually maintained!
+      install( FILES ${DLFCN_WIN32_PUBLIC_HEADERS}  DESTINATION "include")
 
       # short cut out
       if( NOT COMPILE_PHASE AND NOT LINK_PHASE)
@@ -115,6 +117,12 @@ elseif( "${MULLE_PROJECT_TYPE}" STREQUAL "Library")
    endif()
 
    include( Library)
+
+   # because clib flattens the headers, put we need "private" in the local
+   # build, we gotta reorganize
+   if( MINTOMIC_PRIVATE_HEADERS_COPIES)
+      add_dependencies( ${LIBRARY_COMPILE_TARGET} RearrangeMintomicPrivateHeaders)
+   endif()
 
    # use LIBRARY_COMPILE_TARGET for compiler options
    target_compile_definitions( "${LIBRARY_COMPILE_TARGET}" PUBLIC)
@@ -137,3 +145,10 @@ else()
 endif()
 
 include( FinalOutput OPTIONAL)
+
+
+######
+#
+# must be after CPACK_PACKAGE_VERSION
+include( CMakePackage.cmake) # need extension
+include( CPack)

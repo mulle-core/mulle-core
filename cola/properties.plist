@@ -68,6 +68,14 @@
          user="mulle-c";
       },
       {
+         description="📣 Unicode regex library";
+         domain="clib";
+         name="src/mulle-regex";
+         repo="mulle-regex@";
+         url="https://github.com/mulle-c/mulle-regex@";
+         user="mulle-c";
+      },
+      {
          description="🐌 Creates URL slugs";
          domain="clib";
          name="src/mulle-slug";
@@ -114,6 +122,14 @@
          repo="mulle-vararg@*";
          url="https://github.com/mulle-c/mulle-vararg@*";
          user="mulle-c";
+      },
+      {
+         description="For more information, see [the documentation](http://mintomic.github.io/) or the accompanying blog post, [Introducing Mintomic](http://preshing.com/20130505/introducing-mintomic-a-small-portable-lock-free-api).";
+         domain="clib";
+         name="mintomic";
+         repo="mintomic";
+         url="https://github.com/mulle-concurrent/mintomic";
+         user="mulle-concurrent";
       },
       {
          description="🔠 Cross-platform thread/mutex/tss/atomic operations in C";
@@ -212,20 +228,20 @@
          user="mulle-core";
       },
       {
-         description="For more information, see [the documentation](http://mintomic.github.io/) or the accompanying blog post, [Introducing Mintomic](http://preshing.com/20130505/introducing-mintomic-a-small-portable-lock-free-api).";
+         description="🛄 Debugging support for mulle-container";
          domain="clib";
-         name="mintomic";
-         repo="mintomic";
-         url="https://github.com/mulle-concurrent/mintomic";
-         user="mulle-concurrent";
+         name="src/mulle-container-debug";
+         repo="mulle-container-debug";
+         url="https://github.com/mulle-c/mulle-container-debug";
+         user="mulle-c";
       },
       {
-         description="📣 Unicode regex library";
+         description="===========";
          domain="clib";
-         name="src/mulle-regex";
-         repo="mulle-regex@";
-         url="https://github.com/mulle-c/mulle-regex@";
-         user="mulle-c";
+         name="dlfcn-win32";
+         repo="dlfcn-win32";
+         url="https://github.com/mulle-core/dlfcn-win32";
+         user="mulle-core";
       }
    );
 }

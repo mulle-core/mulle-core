@@ -10,7 +10,7 @@
  *
  *  version:  major, minor, patch
  */
-#define MULLE__CORE_VERSION  ((0UL << 20) | (2 << 8) | 0)
+#define MULLE__CORE_VERSION  ((0UL << 20) | (3 << 8) | 0)
 
 
 static inline unsigned int   mulle_core_get_version_major( void)
@@ -61,7 +61,7 @@ uint32_t   mulle_core_get_version( void);
 #include <mulle-sprintf/mulle-sprintf.h>
 #include <mulle-time/mulle-time.h>
 
-//#include <mulle-container-debug/mulle-container-debug.h>
+#include <mulle-container-debug/mulle-container-debug.h>
 
 
 /*
