@@ -10,7 +10,7 @@ execute_process( COMMAND mulle-project-version -s
                  OUTPUT_STRIP_TRAILING_WHITESPACE)
 message( STATUS "PROJECT_VERSION=${PROJECT_VERSION}")
 
-set( CPACK_PACKAGE_VERSION CACHE STRING "${PROJECT_VERSION}")
+set( CPACK_PACKAGE_VERSION "${PROJECT_VERSION}")
 set( CPACK_PACKAGE_CONTACT "nat@mulle-kybernetik.de")
 set( CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_SOURCE_DIR}/README.md")
 set( CPACK_PACKAGE_DESCRIPTION_SUMMARY "🌋 Almagamated library of mulle-core + mulle-concurrent + mulle-c")

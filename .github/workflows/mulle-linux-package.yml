@@ -1,15 +1,12 @@
 name: Artifacts
 
 on:
+ release:
+    types: [published]
  push:
-    branches:
-      - release
     tags:
-      - '*'
+    - '*'
  workflow_dispatch:
-
-env:
-  BUILD_TYPE: release
 
 jobs:
   build:
@@ -35,12 +32,23 @@ jobs:
 
     - uses: mulle-sde/github-ci@v1
 
+    - name: Install sudo
+      if:   ${{ env.ACT }}
+      run:  |
+            apt-get update
+            apt-get install -y sudo
+
+    - name: Install rpmbuild
+      run:  sudo apt-get update && sudo apt-get install -y rpm
+
     - name: Install mulle-project
       run:  |
-            curl -L 'https://github.com/mulle-nat/mulle-project/archive/latest.tar.gz' \
-            | tar xfz - ´
+            mulle-fetch 'https://github.com/mulle-nat/mulle-project/archive/latest.tar.gz' \
             && cd 'mulle-project-latest' \
             && sudo ./bin/installer /usr
+
+    - name: Get version number
+      run:  echo "MULLE_CORE_VERSION"=$(mulle-project-version -s) >> $GITHUB_ENV
 
     - name: Dump Project Environment
       run:  |
@@ -51,25 +59,26 @@ jobs:
       run:  |
             mkdir -p package
             cd package
-            cmake -DCMAKE_BUILD_STYLE="Release" ..
+            cmake --version
+            cmake -DCMAKE_BUILD_TYPE="Release" ..
             cpack -G DEB
-            echo "DEB_PACKAGE=package/"*.deb >> $GITHUB_ENV
-
-    - name: Archive executable
-      uses: actions/upload-artifact@v2
-      with:
-        name: debian
-        path: ${{ env.DEB_PACKAGE }}
+            package="mulle-core_${MULLE_CORE_VERSION}-`arch`.deb"
+            mv *.deb "${package}"
+            echo "DEB_PACKAGE=package/${package}" >> $GITHUB_ENV
 
     - name: Build Redhat Package
       run:  |
             mkdir -p package
             cd package
             cpack -G RPM
-            echo "RPM_PACKAGE=package/"*.rpm >> $GITHUB_ENV
+            package="mulle-core_${MULLE_CORE_VERSION}-`arch`.rpm"
+            mv *.rpm "${package}"
+            echo "RPM_PACKAGE=package/${package}" >> $GITHUB_ENV
 
-    - name: Archive executable
-      uses: actions/upload-artifact@v2
+    - name: Upload packages (ZIP)
+      uses: actions/upload-artifact@v4
       with:
-        name: redhat
-        path: ${{ env.RPM_PACKAGE }}
+        name: Linux-packages
+        path: |
+              ${{ env.RPM_PACKAGE }}
+              ${{ env.DEB_PACKAGE }}
