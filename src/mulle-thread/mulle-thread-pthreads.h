@@ -53,7 +53,7 @@ typedef mulle_thread_rval_t   mulle_thread_function_t( void *);
 typedef void                  mulle_thread_callback_t( void *);
 
 
-//#define MULLE_THREAD_ONCE_INIT   PTHREAD_ONCE_INIT
+//#define MULLE_THREAD_ONCE_DATA   PTHREAD_ONCE_INIT
 
 #pragma mark - Threads
 
@@ -110,6 +110,18 @@ static inline void   mulle_thread_yield( void)
 
    sched_yield();
 }
+
+
+//
+// AS there is no PR_GET_NAME, this is useless
+//
+// static inline void   mulle_thread_set_name( char *name)
+// {
+//     prctl( PR_SET_NAME, thread_name, 0, 0, 0);
+// }
+//
+
+
 
 
 // static inline void   mulle_thread_once( mulle_thread_once_t  *once,

@@ -65,7 +65,7 @@ int   mulle_utf32_is_noncharacter( mulle_utf32_t c)
 }
 
 
-int   mulle_utf_is_noncharacterplane( unsigned int plane)
+int   mulle_utf_is_noncharacterplane( size_t plane)
 {
    return( 1);
 }

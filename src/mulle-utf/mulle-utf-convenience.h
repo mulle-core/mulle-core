@@ -68,20 +68,20 @@ mulle_utf32_t   *mulle_utf8_convert_to_utf32_string( char *src,
 
 MULLE__UTF_GLOBAL
 char    *mulle_utf16_convert_to_utf8_string( mulle_utf16_t *src,
-                                             unsigned int len,
+                                             size_t len,
                                              struct mulle_allocator *allocator);
 MULLE__UTF_GLOBAL
 mulle_utf32_t   *mulle_utf16_convert_to_utf32_string( mulle_utf16_t *src,
-                                                      unsigned int len,
+                                                      size_t len,
                                                       struct mulle_allocator *allocator);
 
 MULLE__UTF_GLOBAL
 char    *mulle_utf32_convert_to_utf8_string( mulle_utf32_t *src,
-                                             unsigned int len,
+                                             size_t len,
                                              struct mulle_allocator *allocator);
 MULLE__UTF_GLOBAL
 mulle_utf16_t   *mulle_utf32_convert_to_utf16_string( mulle_utf32_t *src,
-                                                      unsigned int len,
+                                                      size_t len,
                                                       struct mulle_allocator *allocator);
 
 

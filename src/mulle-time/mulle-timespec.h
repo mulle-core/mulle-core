@@ -16,6 +16,7 @@ mulle_timeinterval_t   mulle_timeinterval_now_monotonic( void);
 
 
 
+
 // timespec as used by nanosleep
 
 static inline mulle_time_comparison_t   timespec_compare( struct timespec a,
@@ -63,7 +64,7 @@ static inline struct timespec   timespec_sub( struct timespec a,
 
 
 static inline struct timespec
-   mulle_relativetime_get_timespec( mulle_relativetime_t time)
+   timespec_make_with_relativetime( mulle_relativetime_t time)
 {
    struct timespec   result;
 
@@ -72,6 +73,24 @@ static inline struct timespec
 
    return( result);
 }
+
+
+
+// deprecated version of above
+static inline struct timespec
+   mulle_relativetime_get_timespec( mulle_relativetime_t time)
+{
+   return( timespec_make_with_relativetime( time));
+}
+
+
+
+static inline mulle_relativetime_t
+   mulle_relativetime_make_with_timespec( struct timespec a)
+{
+   return( mulle_relativetime_init_with_s_ns( a.tv_sec, a.tv_sec));
+}
+
 
 void   mulle_relativetime_sleep( mulle_relativetime_t time);
 

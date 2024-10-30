@@ -1,17 +1,5 @@
 ## Constituents
 
-Add another constituent to the amalgamation with:
-
-``` bash
-mulle-sde dependency add --amalgamated \
-                         --fetchoptions "clibmode=copy" \
-                         --address src/mulle-container-debug \
-                         clib:mulle-c/mulle-container-debug
-```
-
-Then edit `mulle-core.h` and add the envelope header to the others.
-
-
 {%
    file     = nil
    taskInfo = [NSTask mulleStringSystemCallWithCommandString:"mulle-sde project-dir"]
@@ -36,3 +24,14 @@ Then edit `mulle-core.h` and add the envelope header to the others.
 {% endfor %}
 {% endif %}
 
+> #### Add another constituent to the amalgamation
+>
+> ``` bash
+> mulle-sde dependency add --amalgamated \
+>                          --fetchoptions "clibmode=copy" \
+>                          --address src/mulle-container-debug \
+>                          clib:mulle-c/mulle-container-debug
+> ```
+>
+> Then edit `mulle-core.h` and add the envelope header to the others.
+>

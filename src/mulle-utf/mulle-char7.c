@@ -275,7 +275,7 @@ size_t  mulle_char7_decode64( uint64_t value, char *dst, size_t len)
 }
 
 
-int  mulle_char7_get64( uint64_t value, unsigned int index)
+int  mulle_char7_get64( uint64_t value, size_t index)
 {
    int   char7;
 
@@ -291,7 +291,7 @@ int  mulle_char7_get64( uint64_t value, unsigned int index)
 }
 
 
-int  mulle_char7_get32( uint32_t value, unsigned int index)
+int  mulle_char7_get32( uint32_t value, size_t index)
 {
    int   char7;
 

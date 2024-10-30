@@ -80,6 +80,7 @@ src/mulle-data/mulle-prime.c
 src/mulle-data/mulle-range.c
 src/mulle-dlfcn/mulle-dlfcn.c
 src/mulle-fifo/mulle-fifo.c
+src/mulle-fprintf/mulle-buffer-stdio.c
 src/mulle-fprintf/mulle-fprintf.c
 src/mulle-http/http_parser.c
 src/mulle-linkedlist/mulle-concurrent-linkedlist.c
@@ -160,7 +161,6 @@ src/mulle-vararg/mulle-vararg.c
 # contents selected with patternfile ??-source--standalone-sources
 #
 set( STANDALONE_SOURCES
-src/mulle-buffer/mulle-buffer-standalone.c
 src/mulle-concurrent/mulle-concurrent-standalone.c
 src/mulle-dlfcn/mulle-dlfcn-standalone.c
 src/mulle-regex/mulle-regex-standalone.c

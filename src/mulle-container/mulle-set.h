@@ -61,7 +61,7 @@ struct mulle_set
    MULLE_SET_BASE;
 };
 
-#define MULLE_SET_INIT( xcallback, xallocator) \
+#define MULLE_SET_DATA( xcallback, xallocator) \
    ((struct mulle_set)                         \
    {                                           \
       .callback  = (xcallback),                \
@@ -70,13 +70,13 @@ struct mulle_set
 
 
 MULLE__CONTAINER_GLOBAL
-struct mulle_set   *mulle_set_create( unsigned int capacity,
+struct mulle_set   *mulle_set_create( size_t capacity,
                                       struct mulle_container_keycallback *callback,
                                       struct mulle_allocator *allocator);
 
 MULLE__CONTAINER_GLOBAL
 void   mulle_set_init( struct mulle_set *set,
-                       unsigned int capacity,
+                       size_t capacity,
                        struct mulle_container_keycallback *callback,
                        struct mulle_allocator *allocator);
 
@@ -122,13 +122,13 @@ static inline struct mulle_container_keycallback   *
 }
 
 
-static inline unsigned int   mulle_set_get_count( struct mulle_set *set)
+static inline size_t   mulle_set_get_count( struct mulle_set *set)
 {
    return( set ? _mulle__set_get_count( (struct mulle__set *) set) : 0);
 }
 
 
-static inline unsigned int   mulle_set_get_size( struct mulle__set *set)
+static inline size_t   mulle_set_get_size( struct mulle__set *set)
 {
    return( set ? _mulle__set_get_size( (struct mulle__set *) set) : 0);
 }
@@ -335,7 +335,7 @@ static inline void   mulle_setenumerator_done( struct mulle_setenumerator *rover
 
 #define mulle_set_do( name, callback)                             \
    for( struct mulle_set                                          \
-           name ## __container = MULLE_SET_INIT( callback, NULL), \
+           name ## __container = MULLE_SET_DATA( callback, NULL), \
            *name = &name ## __container,                          \
            *name ## __i = NULL;                                   \
         ! name ## __i;                                            \
@@ -351,14 +351,14 @@ static inline void   mulle_setenumerator_done( struct mulle_setenumerator *rover
 
 // created by make-container-for.sh src/set/mulle-set.c
 
-#define mulle_set_for( name, item)                                               \
-   assert( sizeof( item) == sizeof( void *));                                    \
-   for( struct mulle_setenumerator                                               \
-           rover__ ## item = mulle_set_enumerate( name),                         \
-           *rover___  ## item ## __i = (void *) 0;                               \
-        ! rover___  ## item ## __i;                                              \
-        rover___ ## item ## __i = (_mulle_setenumerator_done( &rover__ ## item), \
-                                   (void *) 1))                                  \
+#define mulle_set_for( name, item)                                              \
+   assert( sizeof( item) == sizeof( void *));                                   \
+   for( struct mulle_setenumerator                                              \
+           rover__ ## item = mulle_set_enumerate( name),                        \
+           *rover__  ## item ## __i = (void *) 0;                               \
+        ! rover__  ## item ## __i;                                              \
+        rover__ ## item ## __i = (_mulle_setenumerator_done( &rover__ ## item), \
+                                   (void *) 1))                                 \
       while( _mulle_setenumerator_next( &rover__ ## item, (void **) &item))
 
 #endif

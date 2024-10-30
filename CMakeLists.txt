@@ -8,7 +8,7 @@
 #
 cmake_minimum_required( VERSION 3.19) # for REAL_PATH
 
-project( mulle-core C)
+project( mulle-core VERSION 0.3.0 LANGUAGES C)
 
 
 set( MULLE_PROJECT_TYPE "Library")
@@ -16,9 +16,9 @@ set( MULLE_PROJECT_TYPE "Library")
 ### mulle-sde environment
 
 # add cmake module paths to search path
-list( INSERT CMAKE_MODULE_PATH 0 "${PROJECT_SOURCE_DIR}/cmake/share")
-list( INSERT CMAKE_MODULE_PATH 0 "${PROJECT_SOURCE_DIR}/cmake/reflect")
-list( INSERT CMAKE_MODULE_PATH 0 "${PROJECT_SOURCE_DIR}/cmake")
+list( INSERT CMAKE_MODULE_PATH 0 "${CMAKE_CURRENT_SOURCE_DIR}/cmake/share")
+list( INSERT CMAKE_MODULE_PATH 0 "${CMAKE_CURRENT_SOURCE_DIR}/cmake/reflect")
+list( INSERT CMAKE_MODULE_PATH 0 "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 include( Environment)
 
@@ -142,6 +142,11 @@ else()
 
    message( ERROR "Unknown project type \"${MULLE_PROJECT_TYPE}\"")
 
+endif()
+
+if( LINK_PHASE)
+   include( InstallCMakeInclude)
+   include( InstallCMakePackage)
 endif()
 
 include( FinalOutput OPTIONAL)

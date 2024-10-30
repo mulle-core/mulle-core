@@ -112,7 +112,7 @@ static void   mulle_utf32_rover_dial_back( struct mulle_utf_rover *rover)
 
 void   _mulle_utf32_rover_init( struct mulle_utf_rover *rover,
                                 mulle_utf32_t *s,
-                                unsigned int len)
+                                size_t len)
 {
    rover->s        = s;
    rover->sentinel = &s[ len];
@@ -123,7 +123,7 @@ void   _mulle_utf32_rover_init( struct mulle_utf_rover *rover,
 
 void   _mulle_utf16_rover_init( struct mulle_utf_rover *rover,
                                 mulle_utf16_t *s,
-                                unsigned int len)
+                                size_t len)
 {
    rover->s        = s;
    rover->sentinel = &s[ len];

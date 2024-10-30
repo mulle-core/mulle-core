@@ -66,7 +66,7 @@ MULLE_C_NONNULL_FIRST
 void   *_mulle_lockingpointermultififo_read_barrier( struct mulle_lockingpointermultififo *p);
 
 //
-// will return -1 on failure, which is usually EAGAIN (errno), which means the
+// will return -1 on failure, which is usually EBUSY (errno), which means the
 // fifo is full. This can be remedied by making the fifo larger, but ususally
 // indicates, that consumers are taking too long...
 //

@@ -44,6 +44,15 @@ struct mulle_storage
 };
 
 
+/**
+ * Initialize the storage with the given parameters.
+ *
+ * @param alloc The storage allocator.
+ * @param sizeof_struct The size of the structure to be stored.
+ * @param alignof_struct The alignment of the structure to be stored.
+ * @param capacity The initial capacity of the storage.
+ * @param allocator The allocator to be used for memory management.
+ */
 MULLE_C_NONNULL_FIRST
 static inline void
    _mulle_storage_init( struct mulle_storage *alloc,
@@ -61,7 +70,11 @@ static inline void
    _mulle__pointerarray_init( &alloc->_freed, capacity / 32, allocator);
 }
 
-
+/**
+ * Finalize the storage, freeing any allocated resources.
+ *
+ * @param alloc The storage allocator.
+ */
 MULLE_C_NONNULL_FIRST
 static inline void
    _mulle_storage_done( struct mulle_storage *alloc)
@@ -73,7 +86,13 @@ static inline void
    mulle_structqueue_done( &alloc->_structs);
 }
 
-
+/**
+ * Allocate memory for a new element from the storage.
+ * If there are freed elements, reuse one of them.
+ *
+ * @param alloc The storage allocator.
+ * @return A pointer to the allocated memory.
+ */
 MULLE_C_NONNULL_FIRST
 static inline void  *
    _mulle_storage_malloc( struct mulle_storage *alloc)
@@ -86,7 +105,13 @@ static inline void  *
    return( p);
 }
 
-
+/**
+ * Allocate and zero-initialize memory for a new element from the storage.
+ * If there are freed elements, reuse one of them.
+ *
+ * @param alloc The storage allocator.
+ * @return A pointer to the allocated and zero-initialized memory.
+ */
 MULLE_C_NONNULL_FIRST
 static inline void  *
    _mulle_storage_calloc( struct mulle_storage *alloc)
@@ -98,7 +123,12 @@ static inline void  *
    return( p);
 }
 
-
+/**
+ * Free an element and add it to the list of freed elements for reuse.
+ *
+ * @param alloc The storage allocator.
+ * @param p The pointer to the element to be freed.
+ */
 MULLE_C_NONNULL_FIRST
 static inline void
    _mulle_storage_free( struct mulle_storage *alloc, void *p)
@@ -115,7 +145,13 @@ static inline void
    mulle__pointerarray_add( &alloc->_freed, p, allocator);
 }
 
-
+/**
+ * Allocate memory for a new element and copy the contents of an existing element into it.
+ *
+ * @param alloc The storage allocator.
+ * @param q The pointer to the existing element to be copied.
+ * @return A pointer to the newly allocated and copied element.
+ */
 MULLE_C_NONNULL_FIRST
 static inline void *
    _mulle_storage_copy( struct mulle_storage *alloc, void *q)
@@ -127,7 +163,12 @@ static inline void *
    return( p);
 }
 
-
+/**
+ * Get the allocator associated with the storage.
+ *
+ * @param alloc The storage allocator.
+ * @return The allocator associated with the storage.
+ */
 MULLE_C_NONNULL_FIRST
 static inline struct mulle_allocator *
    _mulle_storage_get_allocator( struct mulle_storage *alloc)
@@ -135,14 +176,24 @@ static inline struct mulle_allocator *
    return( _mulle_structqueue_get_allocator( &alloc->_structs));
 }
 
-
+/**
+ * Get the allocator associated with the storage, or NULL if the storage is NULL.
+ *
+ * @param alloc The storage allocator.
+ * @return The allocator associated with the storage, or NULL if the storage is NULL.
+ */
 static inline struct mulle_allocator *
    mulle_storage_get_allocator( struct mulle_storage *alloc)
 {
    return( alloc ? _mulle_structqueue_get_allocator( &alloc->_structs) : NULL);
 }
 
-
+/**
+ * Get the count of active elements in the storage.
+ *
+ * @param alloc The storage allocator.
+ * @return The count of active elements in the storage.
+ */
 MULLE_C_NONNULL_FIRST
 static inline unsigned int
    _mulle_storage_get_count( struct mulle_storage *alloc)
@@ -151,7 +202,12 @@ static inline unsigned int
            _mulle__pointerarray_get_count( &alloc->_freed));
 }
 
-
+/**
+ * Get the count of active elements in the storage, or 0 if the storage is NULL.
+ *
+ * @param alloc The storage allocator.
+ * @return The count of active elements in the storage, or 0 if the storage is NULL.
+ */
 static inline unsigned int
    mulle_storage_get_count( struct mulle_storage *alloc)
 {

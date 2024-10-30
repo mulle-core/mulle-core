@@ -30,18 +30,6 @@ The advantages of using **mulle-core** are:
 
 ## Constituents
 
-Add another constituent to the amalgamation with:
-
-``` bash
-mulle-sde dependency add --amalgamated \
-                         --fetchoptions "clibmode=copy" \
-                         --address src/mulle-container-debug \
-                         clib:mulle-c/mulle-container-debug
-```
-
-Then edit `mulle-core.h` and add the envelope header to the others.
-
-
 
 | Constituent                                  | Description
 |----------------------------------------------|-----------------------
@@ -75,9 +63,28 @@ Then edit `mulle-core.h` and add the envelope header to the others.
 | [mulle-stacktrace](https://github.com/mulle-core/mulle-stacktrace) | 👣 Stracktrace support for various OS
 | [mulle-time](https://github.com/mulle-core/mulle-time) | 🕕 Simple time types with arithmetic on timespec and timeval
 
+> #### Add another constituent to the amalgamation
+>
+> ``` bash
+> mulle-sde dependency add --amalgamated \
+>                          --fetchoptions "clibmode=copy" \
+>                          --address src/mulle-container-debug \
+>                          clib:mulle-c/mulle-container-debug
+> ```
+>
+> Then edit `mulle-core.h` and add the envelope header to the others.
+>
 
 
 ## Add
+
+There are various methods how to get mulle-core into your project.
+One common denominator is that you will
+`#include <mulle-core/mulle-core.h>` in your sources and link
+with `-lmulle-core`.
+
+
+### Add as a dependency with mulle-sde
 
 Use [mulle-sde](//github.com/mulle-sde) to add mulle-core to your project:
 
@@ -89,6 +96,22 @@ This library does not include [mulle-atinit](//github.com/mulle-core/mulle-atini
 and [mulle-atexit](//github.com/mulle-core/mulle-atexit) and
 [mulle-testallocator](//github.com/mulle-core/mulle-testallocator). If you
 add these libraries, it is important that mulle-core is added before them.
+
+
+
+
+### Add as subproject with cmake and git
+
+``` bash
+git submodule add https://github.com/mulle-core/mulle-core.git stash/mulle-core
+git submodule update --init --recursive
+```
+
+``` cmake
+add_subdirectory( stash/mulle-core)
+target_link_libraries( ${PROJECT_NAME} PRIVATE mulle-core)
+```
+
 
 ## Install
 

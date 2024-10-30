@@ -199,10 +199,10 @@ size_t   _mulle_utf8_strnxspn( char *string, size_t length, char *search, int fl
 
 
 
-char   *mulle_utf8_skiputf32( char *s, unsigned int *p_n)
+char   *mulle_utf8_skiputf32( char *s, size_t *p_n)
 {
-   unsigned int   n;
-   unsigned int   i;
+   size_t   n;
+   size_t   i;
    mulle_utf32_t  c;
 
    i = 0;

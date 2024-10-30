@@ -21,7 +21,7 @@
 
 
 
-unsigned int  mulle_utf16_strnlen( mulle_utf16_t *src, unsigned int len)
+size_t  mulle_utf16_strnlen( mulle_utf16_t *src, size_t len)
 {
    mulle_utf16_t   *sentinel;
    mulle_utf16_t   *p;
@@ -29,7 +29,7 @@ unsigned int  mulle_utf16_strnlen( mulle_utf16_t *src, unsigned int len)
    if( ! src)
       return( 0);
 
-   assert( len != (unsigned int) -1);
+   assert( len != (size_t) -1);
 
    p        = src;
    sentinel = &p[ len];
@@ -78,7 +78,7 @@ mulle_utf16_t  *mulle_utf16_strdup( mulle_utf16_t *s)
 /*
  * only terminates, does not fill with zero
  */
-mulle_utf16_t   *mulle_utf16_strncpy( mulle_utf16_t *dst, unsigned int len, mulle_utf16_t *src)
+mulle_utf16_t   *mulle_utf16_strncpy( mulle_utf16_t *dst, size_t len, mulle_utf16_t *src)
 {
    mulle_utf16_t   *memo;
    mulle_utf16_t   *sentinel;
@@ -87,7 +87,7 @@ mulle_utf16_t   *mulle_utf16_strncpy( mulle_utf16_t *dst, unsigned int len, mull
    if( ! dst || ! src)
       return( dst);
 
-   assert( len != (unsigned int) -1);
+   assert( len != (size_t) -1);
    assert( src >= &dst[ len] || src <= dst); // len for dst is known, but can't be inferred for src
 
    memo     = dst;
@@ -156,11 +156,11 @@ mulle_utf16_t   *mulle_utf16_strchr( mulle_utf16_t *s, mulle_utf32_t c)
 
 mulle_utf16_t  *mulle_utf16_strstr( mulle_utf16_t *s, mulle_utf16_t *pattern)
 {
-   unsigned int   hash_pattern;
-   unsigned int   hash_text;
-   unsigned int   Bm;
-   unsigned int   i;
-   unsigned int   n;
+   size_t   hash_pattern;
+   size_t   hash_text;
+   size_t   Bm;
+   size_t   i;
+   size_t   n;
 
    if( ! s || ! pattern)
       return( NULL);
@@ -195,13 +195,13 @@ mulle_utf16_t  *mulle_utf16_strstr( mulle_utf16_t *s, mulle_utf16_t *pattern)
 }
 
 
-int   mulle_utf16_strncmp( mulle_utf16_t *s1, mulle_utf16_t *s2, unsigned int len)
+int   mulle_utf16_strncmp( mulle_utf16_t *s1, mulle_utf16_t *s2, size_t len)
 {
    mulle_utf16_t   *sentinel;
    mulle_utf32_t   c;
    mulle_utf32_t   d;
 
-   if( len == (unsigned int) -1)
+   if( len == (size_t) -1)
       len = mulle_utf16_strlen( s2);
 
    sentinel = &s2[ len];
@@ -255,15 +255,15 @@ static inline mulle_utf32_t   mulle_utf16_pull_surrogatepair( mulle_utf16_t c, m
             order. It will not match 0xDCxx, 0xD8xx. It can match a single
             surrogate though if needed.
 */
-static unsigned int   _mulle_utf16_strxspn( mulle_utf16_t *s1, mulle_utf16_t *s2, int flag)
+static size_t   _mulle_utf16_strxspn( mulle_utf16_t *s1, mulle_utf16_t *s2, int flag)
 {
    mulle_utf16_t   *start;
    mulle_utf16_t   *tmp;
    mulle_utf32_t   c;
    mulle_utf32_t   d;
    mulle_utf32_t   *buf;
-   unsigned int    s2_len;
-   unsigned int    i;
+   size_t    s2_len;
+   size_t    i;
    int             found;
    mulle_utf32_t   space[ 32];
 
@@ -308,13 +308,13 @@ static unsigned int   _mulle_utf16_strxspn( mulle_utf16_t *s1, mulle_utf16_t *s2
 }
 
 
-unsigned int   mulle_utf16_strspn( mulle_utf16_t *s1, mulle_utf16_t *s2)
+size_t   mulle_utf16_strspn( mulle_utf16_t *s1, mulle_utf16_t *s2)
 {
    return( _mulle_utf16_strxspn( s1, s2, 1));
 }
 
 
-unsigned int   mulle_utf16_strcspn( mulle_utf16_t *s1, mulle_utf16_t *s2)
+size_t   mulle_utf16_strcspn( mulle_utf16_t *s1, mulle_utf16_t *s2)
 {
    return( _mulle_utf16_strxspn( s1, s2, 0));
 }

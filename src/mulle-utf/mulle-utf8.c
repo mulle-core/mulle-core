@@ -127,7 +127,7 @@ mulle_utf32_t   _mulle_utf8_next_utf32character( char **s_p)
    char            *s;
    char            c;
    mulle_utf32_t   value;
-   unsigned int    len;
+   size_t    len;
 
    s = *s_p;
    c = *s++;
@@ -149,7 +149,7 @@ mulle_utf32_t   __mulle_utf8data_next_utf32character( struct mulle_utf8data *rov
                                                       char c)
 {
    mulle_utf32_t   value;
-   unsigned int    len;
+   size_t    len;
 
    len = mulle_utf8_get_extracharacterslength( (unsigned char) c);
    if( len >= rover->length)
@@ -200,7 +200,7 @@ mulle_utf32_t   _mulle_utf8_previous_utf32character( char **s_p)
    char            *s;
    char            c;
    mulle_utf32_t   value;
-   unsigned int    extra_len;
+   size_t    extra_len;
 
    extra_len = 0;
    s         = *s_p;
@@ -833,13 +833,13 @@ int   mulle_utf8_is_ascii( char *src, size_t len)
 //
 // this routine does not validate...
 //
-unsigned int   mulle_utf8_utf16length( char *src, size_t len)
+size_t   mulle_utf8_utf16length( char *src, size_t len)
 {
    char            *end;
    char            *sentinel;
    char            _c;
-   unsigned int    extra_len;
-   unsigned int    dst_len;
+   size_t    extra_len;
+   size_t    dst_len;
 
    if( ! src)
       return( 0);
@@ -881,13 +881,13 @@ unsigned int   mulle_utf8_utf16length( char *src, size_t len)
 //
 // this routine does not validate...
 //
-unsigned int  mulle_utf8_utf32length( char *src, size_t len)
+size_t  mulle_utf8_utf32length( char *src, size_t len)
 {
    char           *end;
    char           *sentinel;
    char           _c;
-   unsigned int   extra_len;
-   unsigned int   dst_len;
+   size_t   extra_len;
+   size_t   dst_len;
 
    if( ! src)
       return( 0);
@@ -896,7 +896,7 @@ unsigned int  mulle_utf8_utf32length( char *src, size_t len)
       len = mulle_utf8_strlen( src);
 
    sentinel = &src[ len];
-   dst_len  = (unsigned int) len;
+   dst_len  = (size_t) len;
 
    for( ; src < sentinel; src++)
    {

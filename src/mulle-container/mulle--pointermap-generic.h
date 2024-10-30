@@ -42,7 +42,7 @@
 //
 
 MULLE__CONTAINER_GLOBAL
-void   **mulle__pointermap_allocate_storage_generic( unsigned int n,
+void   **mulle__pointermap_allocate_storage_generic( size_t n,
                                                      void *notakey,
                                                      struct mulle_allocator *allocator);
 
@@ -93,12 +93,35 @@ void    *_mulle__pointermap_insert_pair_generic( struct mulle__pointermap *map,
 }
 
 
+MULLE_C_NONNULL_FIRST_SECOND_THIRD
+static inline void *
+   _mulle__pointermap_update_pair_generic( struct mulle__pointermap *map,
+                                             struct mulle_pointerpair *pair,
+                                             struct mulle_container_keyvaluecallback *callback,
+                                             struct mulle_allocator *allocator)
+{
+   MULLE__CONTAINER_GLOBAL
+   void   *_mulle__pointermap_write_pair_generic( struct mulle__pointermap *map,
+                                                  struct mulle_pointerpair *pair,
+                                                  enum mulle_container_write_mode mode,
+                                                  struct mulle_container_keyvaluecallback *callback,
+                                                  struct mulle_allocator *allocator);
+
+   // can do this only if the release is a nop (could also do this technically
+   // with autoreleases, but we don't know it here)
+   assert( ! _mulle_container_valuecallback_releases( &callback->valuecallback));
+   return( _mulle__pointermap_write_pair_generic( map, pair, mulle_container_update_e, callback, allocator));
+}
+
+
+
 MULLE__CONTAINER_GLOBAL
 MULLE_C_NONNULL_FIRST_FOURTH
-void   *_mulle__pointermap__get_generic_knownhash( struct mulle__pointermap *map,
-                                                   void *key,
-                                                   uintptr_t hash,
-                                                   struct mulle_container_keyvaluecallback *callback);
+void   *
+   _mulle__pointermap__get_generic_knownhash( struct mulle__pointermap *map,
+                                              void *key,
+                                              uintptr_t hash,
+                                              struct mulle_container_keyvaluecallback *callback);
 
 //
 // the __get function does not do a quick check for pointer equality.
@@ -167,10 +190,10 @@ void   _mulle__pointermap_copy_items_generic( struct mulle__pointermap *dst,
 
 MULLE__CONTAINER_GLOBAL
 MULLE_C_NONNULL_FIRST_SECOND
-unsigned int
+size_t
    _mulle__pointermap_count_collisions_generic( struct mulle__pointermap *set,
                                                 struct mulle_container_keyvaluecallback *callback,
-                                                unsigned int *perfects);
+                                                size_t *perfects);
 
 
 # pragma mark - enumeration
@@ -179,8 +202,8 @@ unsigned int
 #define MULLE__GENERICPOINTERMAPENUMERATOR_BASE   \
    struct mulle_pointerpair    _space;            \
    void                        **_curr;           \
-   unsigned int                _left;             \
-   unsigned int                _offset;           \
+   size_t                _left;             \
+   size_t                _offset;           \
    void                        *_notakey
 
 

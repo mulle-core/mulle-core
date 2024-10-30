@@ -50,6 +50,13 @@ static inline void
 }
 
 
+
+static inline mulle_calendartime_t
+   mulle_calendartime_make( mulle_timeinterval_t value)
+{
+   return( (mulle_calendartime_t) value);
+}
+
 //
 // struct mulle_calendartimerange is a... range of time with a start and an end.
 // The end is thought of as being inclusive.
@@ -61,7 +68,7 @@ struct mulle_calendartimerange
 };
 
 
-#define MULLE_CALENDARTIMERANGE_INIT( start, end)  \
+#define MULLE_CALENDARTIMERANGE_DATA( start, end)  \
    ((struct mulle_calendartimerange)               \
    {                                               \
       (start),                                     \
@@ -73,7 +80,7 @@ static inline struct mulle_calendartimerange
                                  mulle_calendartime_t end)
 {
     struct mulle_calendartimerange result = { start, end };
-    return result;
+    return( result);
 }
 
 

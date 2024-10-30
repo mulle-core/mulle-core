@@ -42,29 +42,50 @@
 #define MULLE_FNV1A_64_INIT    0xcbf29ce484222325ULL
 
 
-static inline uint32_t   _mulle_fnv1a_init_32( void)
+/**
+ * Initializes a 32-bit FNV-1a hash value.
+ *
+ * @return The initial 32-bit FNV-1a hash value.
+ */
+static inline uint32_t _mulle_fnv1a_init_32(void)
 {
-   return( MULLE_FNV1A_32_INIT);
+    return MULLE_FNV1A_32_INIT;
 }
 
-static inline uint64_t   _mulle_fnv1a_init_64( void)
+/**
+ * Initializes a 64-bit FNV-1a hash value.
+ *
+ * @return The initial 64-bit FNV-1a hash value.
+ */
+static inline uint64_t _mulle_fnv1a_init_64(void)
 {
-   return( MULLE_FNV1A_64_INIT);
+    return MULLE_FNV1A_64_INIT;
 }
 
-
-static inline uintptr_t   _mulle_fnv1a_init( void)
+/**
+ * Initializes an FNV-1a hash value with the appropriate size (32-bit or 64-bit)
+ * based on the size of `uintptr_t`.
+ *
+ * @return The initial FNV-1a hash value.
+ */
+static inline uintptr_t _mulle_fnv1a_init(void)
 {
-   if( sizeof( uintptr_t) == sizeof( uint32_t))
-      return( (uintptr_t) _mulle_fnv1a_init_32());
-   return( (uintptr_t) _mulle_fnv1a_init_64());
+    if (sizeof(uintptr_t) == sizeof(uint32_t))
+        return (uintptr_t)_mulle_fnv1a_init_32();
+    return (uintptr_t)_mulle_fnv1a_init_64();
 }
-
 
 #define MULLE_FNV1A_32_PRIME   0x01000193
 #define MULLE_FNV1A_64_PRIME   0x0100000001b3ULL
 
 
+/**
+ * Performs a single step of the FNV-1a hash algorithm for a 32-bit hash value.
+ *
+ * @param hash The current 32-bit hash value.
+ * @param value The byte value to incorporate into the hash.
+ * @return The updated 32-bit hash value.
+ */
 static inline uint32_t
    _mulle_fnv1a_step_32( uint32_t hash, unsigned char value)
 {
@@ -74,6 +95,13 @@ static inline uint32_t
 }
 
 
+/**
+ * Performs a single step of the FNV-1a hash algorithm for a 64-bit hash value.
+ *
+ * @param hash The current 64-bit hash value.
+ * @param value The byte value to incorporate into the hash.
+ * @return The updated 64-bit hash value.
+ */
 static inline uint64_t
    _mulle_fnv1a_step_64( uint64_t hash, unsigned char value)
 {
@@ -83,6 +111,14 @@ static inline uint64_t
 }
 
 
+/**
+ * Performs a single step of the FNV-1a hash algorithm using the appropriate
+ * 32-bit or 64-bit implementation based on the size of `uintptr_t`.
+ *
+ * @param hash The current hash value.
+ * @param value The byte value to incorporate into the hash.
+ * @return The updated hash value.
+ */
 static inline uintptr_t   _mulle_fnv1a_step( uintptr_t hash, unsigned char value)
 {
    if( sizeof( uintptr_t) == sizeof( uint32_t))
@@ -91,25 +127,63 @@ static inline uintptr_t   _mulle_fnv1a_step( uintptr_t hash, unsigned char value
 }
 
 
+/**
+ * Performs a single step of the FNV-1a hash algorithm for a 32-bit hash value.
+ *
+ * @param hash The current 32-bit hash value.
+ * @param buf The buffer to hash.
+ * @param len The length of the buffer.
+ * @return The updated 32-bit hash value.
+ */
+uint32_t _mulle_fnv1a_chained_32(void *buf, size_t len, uint32_t hash);
 MULLE__DATA_GLOBAL
 uint32_t   _mulle_fnv1a_chained_32( void *buf, size_t len, uint32_t hash);
 
+/**
+ * Performs a chained FNV-1a hash algorithm for a 64-bit hash value.
+ *
+ * @param buf The buffer to hash.
+ * @param len The length of the buffer.
+ * @param hash The initial 64-bit hash value.
+ * @return The updated 64-bit hash value.
+ */
 MULLE__DATA_GLOBAL
 uint64_t   _mulle_fnv1a_chained_64( void *buf, size_t len, uint64_t hash);
 
 
+/**
+ * Performs a single step of the FNV-1a hash algorithm for a 32-bit hash value.
+ *
+ * @param buf The buffer to hash.
+ * @param len The length of the buffer.
+ * @return The 32-bit hash value.
+ */
 static inline uint32_t   _mulle_fnv1a_32( void *buf, size_t len)
 {
    return( _mulle_fnv1a_chained_32( buf, len, MULLE_FNV1A_32_INIT));
 }
 
 
+/**
+ * Performs a 64-bit FNV-1a hash on the given buffer.
+ *
+ * @param buf The buffer to hash.
+ * @param len The length of the buffer.
+ * @return The 64-bit hash value.
+ */
 static inline uint64_t   _mulle_fnv1a_64( void *buf, size_t len)
 {
    return( _mulle_fnv1a_chained_64( buf, len, MULLE_FNV1A_64_INIT));
 }
 
 
+/**
+ * Performs an FNV-1a hash on the given buffer, using the appropriate 32-bit or 64-bit implementation based on the size of `uintptr_t`.
+ *
+ * @param buf The buffer to hash.
+ * @param len The length of the buffer.
+ * @return The hashed value as a `uintptr_t`.
+ */
 static inline uintptr_t   _mulle_fnv1a( void *buf, size_t len)
 {
    if( sizeof( uintptr_t) == sizeof( uint32_t))
@@ -118,6 +192,14 @@ static inline uintptr_t   _mulle_fnv1a( void *buf, size_t len)
 }
 
 
+/**
+ * Performs an FNV-1a hash on the given buffer, using the appropriate 32-bit or 64-bit implementation based on the size of `uintptr_t`.
+ *
+ * @param buf The buffer to hash.
+ * @param len The length of the buffer.
+ * @param hash The initial hash value.
+ * @return The updated hash value.
+ */
 static inline uintptr_t   _mulle_fnv1a_chained( void *buf,
                                                 size_t len,
                                                 uintptr_t hash)
@@ -129,6 +211,14 @@ static inline uintptr_t   _mulle_fnv1a_chained( void *buf,
 
 
 
+/**
+ * Performs a 32-bit FNV-1a hash on the given buffer, chaining the hash value.
+ *
+ * @param buf The buffer to hash.
+ * @param len The length of the buffer.
+ * @param hash The initial hash value.
+ * @return The updated hash value.
+ */
 // unfortunately can't put it into a switch statement label
 static inline uint32_t
    _mulle_fnv1a_chained_32_inline( void *buf, size_t len, uint32_t hash)
@@ -152,6 +242,14 @@ static inline uint32_t
 }
 
 
+/**
+ * Performs a 64-bit FNV-1a hash on the given buffer, chaining the hash value.
+ *
+ * @param buf The buffer to hash.
+ * @param len The length of the buffer.
+ * @param hash The initial hash value.
+ * @return The updated hash value.
+ */
 static inline uint64_t
    _mulle_fnv1a_chained_64_inline( void *buf, size_t len, uint64_t hash)
 {
@@ -174,18 +272,39 @@ static inline uint64_t
 }
 
 
+/**
+ * Performs a 32-bit FNV-1a hash on the given buffer.
+ *
+ * @param buf The buffer to hash.
+ * @param len The length of the buffer.
+ * @return The hash value.
+ */
 static inline uint32_t   _mulle_fnv1a_32_inline( void *buf, size_t len)
 {
    return( _mulle_fnv1a_chained_32_inline( buf, len, MULLE_FNV1A_32_INIT));
 }
 
 
+/**
+ * Performs a 64-bit FNV-1a hash on the given buffer.
+ *
+ * @param buf The buffer to hash.
+ * @param len The length of the buffer.
+ * @return The hash value.
+ */
 static inline uint64_t   _mulle_fnv1a_64_inline( void *buf, size_t len)
 {
    return( _mulle_fnv1a_chained_64_inline( buf, len, MULLE_FNV1A_64_INIT));
 }
 
 
+/**
+ * Performs an FNV-1a hash on the given buffer, using the appropriate 32-bit or 64-bit implementation based on the size of `uintptr_t`.
+ *
+ * @param buf The buffer to hash.
+ * @param len The length of the buffer.
+ * @return The hash value as an `uintptr_t`.
+ */
 static inline uintptr_t   _mulle_fnv1a_inline( void *buf, size_t len)
 {
    if( sizeof( uintptr_t) == sizeof( uint32_t))
@@ -194,6 +313,14 @@ static inline uintptr_t   _mulle_fnv1a_inline( void *buf, size_t len)
 }
 
 
+/**
+ * Performs an FNV-1a hash on the given buffer, using the appropriate 32-bit or 64-bit implementation based on the size of `uintptr_t`.
+ *
+ * @param buf The buffer to hash.
+ * @param len The length of the buffer.
+ * @param hash The initial hash value to use.
+ * @return The hash value as an `uintptr_t`.
+ */
 static inline uintptr_t   _mulle_fnv1a_chained_inline( void *buf,
                                                        size_t len,
                                                        uintptr_t hash)
@@ -204,10 +331,30 @@ static inline uintptr_t   _mulle_fnv1a_chained_inline( void *buf,
 }
 
 
-uint32_t   _mulle_string_hash_32( char *s);
-uint64_t   _mulle_string_hash_64( char *s);
+/**
+ * Performs a 32-bit FNV-1a hash on the given string.
+ *
+ * @param s The string to hash.
+ * @return The hash value as a 32-bit unsigned integer.
+ */
+uint32_t _mulle_string_hash_32(char *s);
+
+/**
+ * Performs a 64-bit FNV-1a hash on the given string.
+ *
+ * @param s The string to hash.
+ * @return The hash value as a 64-bit unsigned integer.
+ */
+uint64_t _mulle_string_hash_64(char *s);
 
 
+
+/**
+ * Performs an FNV-1a hash on the given string, using the appropriate 32-bit or 64-bit implementation based on the size of `uintptr_t`.
+ *
+ * @param s The string to hash.
+ * @return The hash value as an `uintptr_t`.
+ */
 static inline uintptr_t   _mulle_string_hash( char *s)
 {
    if( sizeof( uintptr_t) == sizeof( uint64_t))
@@ -216,10 +363,33 @@ static inline uintptr_t   _mulle_string_hash( char *s)
 }
 
 
-uint32_t   _mulle_string_hash_chained_32( char *s, uint32_t hash);
-uint64_t   _mulle_string_hash_chained_64( char *s, uint64_t hash);
+/**
+ * Performs an FNV-1a hash on the given string, chaining the hash value.
+ *
+ * @param s The string to hash.
+ * @param hash The initial hash value to use.
+ * @return The hash value as a 32-bit unsigned integer.
+ */
+uint32_t _mulle_string_hash_chained_32(char *s, uint32_t hash);
+
+/**
+ * Performs an FNV-1a hash on the given string, chaining the hash value.
+ *
+ * @param s The string to hash.
+ * @param hash The initial hash value to use.
+ * @return The hash value as a 64-bit unsigned integer.
+ */
+uint64_t _mulle_string_hash_chained_64(char *s, uint64_t hash);
 
 
+
+/**
+ * Performs an FNV-1a hash on the given string, chaining the hash value.
+ *
+ * @param s The string to hash.
+ * @param hash The initial hash value to use.
+ * @return The hash value as an `uintptr_t`.
+ */
 static inline uintptr_t   _mulle_string_hash_chained( char *s, uintptr_t hash)
 {
    if( sizeof( uintptr_t) == sizeof( uint32_t))

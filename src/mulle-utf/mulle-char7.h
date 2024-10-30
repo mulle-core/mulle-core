@@ -55,9 +55,9 @@ MULLE__UTF_GLOBAL
 size_t   mulle_char7_decode64( uint64_t value, char *src, size_t len);
 
 MULLE__UTF_GLOBAL
-int   mulle_char7_get64( uint64_t value, unsigned int index);
+int   mulle_char7_get64( uint64_t value, size_t index);
 MULLE__UTF_GLOBAL
-int   mulle_char7_get32( uint32_t value, unsigned int index);
+int   mulle_char7_get32( uint32_t value, size_t index);
 
 
 static inline int  mulle_char7_next64( uint64_t *value)
@@ -167,7 +167,7 @@ static inline size_t   mulle_char7_fstrlen32( uint32_t value)
 }
 
 
-static inline uint64_t   mulle_char7_substring64( uint64_t value, unsigned int location, unsigned int length)
+static inline uint64_t   mulle_char7_substring64( uint64_t value, size_t location, size_t length)
 {
    assert( location + length <= mulle_char7_strlen64( value));
 
@@ -177,7 +177,7 @@ static inline uint64_t   mulle_char7_substring64( uint64_t value, unsigned int l
 }
 
 
-static inline uint32_t   mulle_char7_substring32( uint32_t value, unsigned int location, unsigned int length)
+static inline uint32_t   mulle_char7_substring32( uint32_t value, size_t location, size_t length)
 {
    assert( location + length <= mulle_char7_strlen32( value));
 
@@ -237,7 +237,7 @@ static inline int   mulle_char7_next( mulle_char7_t *value)
 }
 
 
-static inline int   mulle_char7_get( mulle_char7_t value, unsigned int index)
+static inline int   mulle_char7_get( mulle_char7_t value, size_t index)
 {
    if( sizeof( mulle_char7_t) == sizeof( uint32_t))
       return( mulle_char7_get32( (uint32_t) value, index));
@@ -270,8 +270,8 @@ static inline size_t  mulle_char7_get_maxlength( void)
 
 
 static inline mulle_char7_t  mulle_char7_substring( mulle_char7_t value,
-                                                    unsigned int location,
-                                                    unsigned int length)
+                                                    size_t location,
+                                                    size_t length)
 {
    if( sizeof( mulle_char7_t) == sizeof( uint32_t))
       return( (mulle_char7_t) mulle_char7_substring32( (uint32_t) value, location, length));

@@ -171,7 +171,7 @@ int   _mulle_pointermultififo_write( struct mulle_pointermultififo *p,
             if( actual == NOTYET)
                continue;
 
-            errno = ENOSPC;
+            errno = EBUSY;
             return( -1);
          }
 

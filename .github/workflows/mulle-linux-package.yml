@@ -82,3 +82,64 @@ jobs:
         path: |
               ${{ env.RPM_PACKAGE }}
               ${{ env.DEB_PACKAGE }}
+
+  arch-package:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ ubuntu-latest ]
+
+    container:
+      image: archlinux
+      options: --privileged
+
+    steps:
+    - name: Set MULLE_HOSTNAME
+      run: |
+        name="${GITHUB_REF##*/}"
+        MULLE_HOSTNAME="${MULLE_HOSTNAME:-ci-${name##*-}}"
+        echo "MULLE_HOSTNAME=${MULLE_HOSTNAME}" >> $GITHUB_ENV
+
+    - name: Add to path
+      run:  echo "$HOME/bin" >> $GITHUB_PATH
+
+    - name: Dump Environment
+      run:  env | sort
+
+    - uses: actions/checkout@v3
+
+    - uses: mulle-sde/github-ci@v1
+
+    - name: Install mulle-project
+      run:  |
+            mulle-fetch 'https://github.com/mulle-nat/mulle-project/archive/latest.tar.gz' \
+            && cd 'mulle-project-latest' \
+            && sudo ./bin/installer /usr
+
+    - name: Get version number
+      run:  echo "MULLE_CORE_VERSION"=$(mulle-project-version -s) >> $GITHUB_ENV
+
+    - name: Dump Project Environment
+      run:  |
+            [ ! -d .mulle/etc/env ] || ls -l .mulle/etc/env/environment*.sh
+            mulle-sde environment
+
+    - name: Create PKGBUILD
+      run:  mulle-project-pacman-pkg > PKGBUILD
+
+    - name: Build Arch Linux package
+      uses: FFY00/build-arch-package@v1
+      with:
+        PKGBUILD: PKGBUILD
+        OUTDIR: ${{ env.PWD }}/package
+
+    - name: Build Arch Package
+      run:  |
+          echo "ARCH_PACKAGE=package/*.zst" >> $GITHUB_ENV
+
+    - name: Upload packages (ZIP)
+      uses: actions/upload-artifact@v4
+      with:
+        name: Arch-packages
+        path: |
+              ${{ env.ARCH_PACKAGE }}

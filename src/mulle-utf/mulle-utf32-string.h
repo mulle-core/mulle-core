@@ -21,13 +21,13 @@
 
 
 MULLE__UTF_GLOBAL
-unsigned int  mulle_utf32_strnlen( mulle_utf32_t *src, unsigned int len);
+size_t  mulle_utf32_strnlen( mulle_utf32_t *src, size_t len);
 
 MULLE__UTF_GLOBAL
 mulle_utf32_t  *mulle_utf32_strdup( mulle_utf32_t *s);
 
 MULLE__UTF_GLOBAL
-mulle_utf32_t  *mulle_utf32_strncpy( mulle_utf32_t *dst, unsigned int len, mulle_utf32_t *src);
+mulle_utf32_t  *mulle_utf32_strncpy( mulle_utf32_t *dst, size_t len, mulle_utf32_t *src);
 
 MULLE__UTF_GLOBAL
 mulle_utf32_t  *mulle_utf32_strchr( mulle_utf32_t *s, mulle_utf32_t c);
@@ -39,13 +39,13 @@ MULLE__UTF_GLOBAL
 mulle_utf32_t  *mulle_utf32_strstr( mulle_utf32_t *s1, mulle_utf32_t *s2);
 
 MULLE__UTF_GLOBAL
-int             mulle_utf32_strncmp( mulle_utf32_t *s1, mulle_utf32_t *s2, unsigned int len);
+int             mulle_utf32_strncmp( mulle_utf32_t *s1, mulle_utf32_t *s2, size_t len);
 
 MULLE__UTF_GLOBAL
-unsigned int          mulle_utf32_strspn( mulle_utf32_t *s1, mulle_utf32_t *s2);
+size_t          mulle_utf32_strspn( mulle_utf32_t *s1, mulle_utf32_t *s2);
 
 MULLE__UTF_GLOBAL
-unsigned int          mulle_utf32_strcspn( mulle_utf32_t *s1, mulle_utf32_t *s2);
+size_t          mulle_utf32_strcspn( mulle_utf32_t *s1, mulle_utf32_t *s2);
 
 
 static inline int      mulle_utf32_strcmp( mulle_utf32_t *s1, mulle_utf32_t *s2)
@@ -59,13 +59,13 @@ static inline int   mulle_utf32_atoi( mulle_utf32_t *s)
 }
 
 
-static inline void   mulle_utf32_memcpy( mulle_utf32_t *dst, mulle_utf32_t *src, unsigned int len)
+static inline void   mulle_utf32_memcpy( mulle_utf32_t *dst, mulle_utf32_t *src, size_t len)
 {
    memcpy( dst, src, sizeof( mulle_utf32_t) * len);
 }
 
 
-static inline void   mulle_utf32_memmove( mulle_utf32_t *dst, mulle_utf32_t *src, unsigned int len)
+static inline void   mulle_utf32_memmove( mulle_utf32_t *dst, mulle_utf32_t *src, size_t len)
 {
    memmove( dst, src, sizeof( mulle_utf32_t) * len);
 }

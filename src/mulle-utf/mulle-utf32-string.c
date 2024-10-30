@@ -21,7 +21,7 @@
 #endif
 
 
-unsigned int  mulle_utf32_strnlen( mulle_utf32_t *src, unsigned int len)
+size_t  mulle_utf32_strnlen( mulle_utf32_t *src, size_t len)
 {
    mulle_utf32_t   *sentinel;
    mulle_utf32_t   *p;
@@ -29,7 +29,7 @@ unsigned int  mulle_utf32_strnlen( mulle_utf32_t *src, unsigned int len)
    if( ! src)
       return( 0);
 
-   assert( len != (unsigned int) -1);
+   assert( len != (size_t) -1);
 
    p        = src;
    sentinel = &p[ len];
@@ -53,7 +53,7 @@ unsigned int  mulle_utf32_strnlen( mulle_utf32_t *src, unsigned int len)
 */
 
 
-mulle_utf32_t   *mulle_utf32_strncpy( mulle_utf32_t *dst, unsigned int len, mulle_utf32_t *src)
+mulle_utf32_t   *mulle_utf32_strncpy( mulle_utf32_t *dst, size_t len, mulle_utf32_t *src)
 {
    mulle_utf32_t   *memo;
    mulle_utf32_t   *sentinel;
@@ -63,7 +63,7 @@ mulle_utf32_t   *mulle_utf32_strncpy( mulle_utf32_t *dst, unsigned int len, mull
       return( dst);
 
    assert( src);
-   assert( len != (unsigned int) -1);
+   assert( len != (size_t) -1);
 
    assert( src >= &dst[ len] || src <= dst); // len for dst is known, but can't be inferred for src
 
@@ -123,11 +123,11 @@ mulle_utf32_t  *mulle_utf32_strdup( mulle_utf32_t *s)
 
 mulle_utf32_t  *mulle_utf32_strstr( mulle_utf32_t *s, mulle_utf32_t *pattern)
 {
-   unsigned int   hash_pattern;
-   unsigned int   hash_text;
-   unsigned int   Bm;
-   unsigned int   i;
-   unsigned int   n;
+   size_t   hash_pattern;
+   size_t   hash_text;
+   size_t   Bm;
+   size_t   i;
+   size_t   n;
 
    if( pattern[ 0] == 0)
       return( s);
@@ -159,13 +159,13 @@ mulle_utf32_t  *mulle_utf32_strstr( mulle_utf32_t *s, mulle_utf32_t *pattern)
 }
 
 
-int   mulle_utf32_strncmp( mulle_utf32_t *s1, mulle_utf32_t *s2, unsigned int len)
+int   mulle_utf32_strncmp( mulle_utf32_t *s1, mulle_utf32_t *s2, size_t len)
 {
    mulle_utf32_t   *sentinel;
    mulle_utf32_t   c;
    mulle_utf32_t   d;
 
-   if( len == (unsigned int) -1)
+   if( len == (size_t) -1)
       len = mulle_utf32_strlen( s2);
 
    sentinel = &s1[ len];
@@ -194,14 +194,14 @@ static int   _compare_mulle_utf32_t( mulle_utf32_t *a, mulle_utf32_t *b)
 
 #define compare_mulle_utf32_t   ((int (*)( const void *, const void *)) _compare_mulle_utf32_t)
 
-static unsigned int   _mulle_utf32_strspn( mulle_utf32_t *s1, mulle_utf32_t *s2, int flag)
+static size_t   _mulle_utf32_strspn( mulle_utf32_t *s1, mulle_utf32_t *s2, int flag)
 {
    mulle_utf32_t   *start;
    mulle_utf32_t   *tmp;
    mulle_utf32_t   c;
    mulle_utf32_t   d;
-   unsigned int          s2_len;
-   unsigned int    i;
+   size_t          s2_len;
+   size_t    i;
 
    assert( flag == 0 || flag == 1);
 
@@ -243,13 +243,13 @@ static unsigned int   _mulle_utf32_strspn( mulle_utf32_t *s1, mulle_utf32_t *s2,
 }
 
 
-unsigned int   mulle_utf32_strspn( mulle_utf32_t *s1, mulle_utf32_t *s2)
+size_t   mulle_utf32_strspn( mulle_utf32_t *s1, mulle_utf32_t *s2)
 {
    return( _mulle_utf32_strspn( s1, s2, 1));
 }
 
 
-unsigned int   mulle_utf32_strcspn( mulle_utf32_t *s1, mulle_utf32_t *s2)
+size_t   mulle_utf32_strcspn( mulle_utf32_t *s1, mulle_utf32_t *s2)
 {
    return( _mulle_utf32_strspn( s1, s2, 0));
 }

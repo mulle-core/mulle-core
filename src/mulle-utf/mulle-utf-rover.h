@@ -76,11 +76,11 @@ static inline void   _mulle_utf_rover_dial_back( struct mulle_utf_rover *rover)
 MULLE__UTF_GLOBAL
 void   _mulle_utf32_rover_init( struct mulle_utf_rover *rover,
                                 mulle_utf32_t *s,
-                                unsigned int len);
+                                size_t len);
 MULLE__UTF_GLOBAL
 void   _mulle_utf16_rover_init( struct mulle_utf_rover *rover,
                                 mulle_utf16_t *s,
-                                unsigned int len);
+                                size_t len);
 MULLE__UTF_GLOBAL
 void   _mulle_utf8_rover_init( struct mulle_utf_rover *rover,
                                char *s,

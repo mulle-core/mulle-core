@@ -37,7 +37,7 @@
 #ifndef mulle_http_h__
 #define mulle_http_h__
 
-#define MULLE__HTTP_VERSION  ((0UL << 20) | (1 << 8) | 7)
+#define MULLE__HTTP_VERSION  ((0UL << 20) | (1 << 8) | 8)
 
 #include "include.h"
 

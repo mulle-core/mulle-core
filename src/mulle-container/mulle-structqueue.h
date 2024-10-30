@@ -53,7 +53,7 @@ struct mulle_structqueue
 };
 
 
-#define MULLE_STRUCTQUEUE_INIT( type, xallocator)                     \
+#define MULLE_STRUCTQUEUE_DATA( type, xallocator)                     \
    ((struct mulle_structqueue)                                        \
    {                                                                  \
       ._read_index         = 64,                                      \
@@ -89,7 +89,7 @@ static inline void
 MULLE_C_NONNULL_FIRST
 static inline void  _mulle_structqueue_init( struct mulle_structqueue *queue,
                                              size_t sizeof_struct,
-                                             unsigned int alignof_struct,
+                                             size_t alignof_struct,
                                              unsigned short bucket_size,
                                              unsigned short spare_allowance,
                                              struct mulle_allocator *allocator)
@@ -105,7 +105,7 @@ static inline void  _mulle_structqueue_init( struct mulle_structqueue *queue,
 
 static inline void  mulle_structqueue_init( struct mulle_structqueue *queue,
                                             size_t sizeof_struct,
-                                            unsigned int alignof_struct,
+                                            size_t alignof_struct,
                                             unsigned short bucket_size,
                                             unsigned short spare_allowance,
                                             struct mulle_allocator *allocator)
@@ -123,7 +123,7 @@ static inline void  mulle_structqueue_init( struct mulle_structqueue *queue,
 static inline void
    mulle_structqueue_init_default( struct mulle_structqueue *queue,
                                    size_t sizeof_struct,
-                                   unsigned int alignof_struct,
+                                   size_t alignof_struct,
                                    struct mulle_allocator *allocator)
 {
    if( queue)
@@ -140,7 +140,7 @@ static inline void
 MULLE__CONTAINER_GLOBAL
 struct mulle_structqueue *
    mulle_structqueue_create( size_t sizeof_struct,
-                             unsigned int alignof_struct,
+                             size_t alignof_struct,
                              unsigned short bucket_size,
                              unsigned short spare_allowance,
                              struct mulle_allocator *allocator);
@@ -148,7 +148,7 @@ struct mulle_structqueue *
 
 static inline struct mulle_structqueue *
    mulle_structqueue_create_default( size_t sizeof_struct,
-                                     unsigned int alignof_struct,
+                                     size_t alignof_struct,
                                      struct mulle_allocator *allocator)
 {
    return( mulle_structqueue_create( sizeof_struct,
@@ -339,14 +339,14 @@ int   mulle_structqueue_pop( struct mulle_structqueue *queue, void *p)
 
 
 MULLE_C_NONNULL_FIRST
-static inline unsigned int
+static inline size_t
    _mulle_structqueue_get_count( struct mulle_structqueue *queue)
 {
    return( _mulle__structqueue_get_count( (struct mulle__structqueue *) queue));
 }
 
 
-static inline unsigned int
+static inline size_t
    mulle_structqueue_get_count( struct mulle_structqueue *queue)
 {
    return( queue ? _mulle_structqueue_get_count( queue) : 0);
@@ -361,7 +361,7 @@ static inline unsigned short
 }
 
 
-static inline unsigned int
+static inline size_t
    mulle_structqueue_get_bucketsize( struct mulle_structqueue *queue)
 {
    return( queue ? _mulle_structqueue_get_bucketsize( queue) : 0);
@@ -369,13 +369,13 @@ static inline unsigned int
 
 
 MULLE_C_NONNULL_FIRST
-static inline unsigned int
+static inline size_t
    _mulle_structqueue_get_element_size( struct mulle_structqueue *queue)
 {
    return( _mulle__structqueue_get_element_size( (struct mulle__structqueue *) queue));
 }
 
-static inline unsigned int
+static inline size_t
    mulle_structqueue_get_element_size( struct mulle_structqueue *queue)
 {
    return( queue ? _mulle__structqueue_get_element_size( (struct mulle__structqueue *) queue) : 0);
@@ -451,7 +451,7 @@ static inline void
 
 #define mulle_structqueue_do( name, type)                              \
    for( struct mulle_structqueue                                       \
-           name ## __container = MULLE_STRUCTQUEUE_INIT( type, NULL),  \
+           name ## __container = MULLE_STRUCTQUEUE_DATA( type, NULL),  \
            *name = &name ## __container,                               \
            *name ## __i = NULL;                                        \
         ! name ## __i;                                                 \
@@ -472,9 +472,9 @@ static inline void
    assert( sizeof( item) == sizeof( void *));                                            \
    for( struct mulle_structqueueenumerator                                               \
            rover__ ## item = mulle_structqueue_enumerate( name),                         \
-           *rover___  ## item ## __i = (void *) 0;                                       \
-        ! rover___  ## item ## __i;                                                      \
-        rover___ ## item ## __i = (_mulle_structqueueenumerator_done( &rover__ ## item), \
+           *rover__  ## item ## __i = (void *) 0;                                        \
+        ! rover__  ## item ## __i;                                                       \
+        rover__ ## item ## __i = (_mulle_structqueueenumerator_done( &rover__ ## item),  \
                                    (void *) 1))                                          \
       while( _mulle_structqueueenumerator_next( &rover__ ## item, (void **) &item))
 

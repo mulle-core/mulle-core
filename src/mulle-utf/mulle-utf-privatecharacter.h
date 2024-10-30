@@ -20,6 +20,6 @@ int   mulle_utf16_is_privatecharacter( uint16_t c);
 MULLE__UTF_GLOBAL
 int   mulle_utf32_is_privatecharacter( int32_t c);
 MULLE__UTF_GLOBAL
-int   mulle_utf_is_privatecharacterplane( unsigned int plane);
+int   mulle_utf_is_privatecharacterplane( size_t plane);
 
 #endif

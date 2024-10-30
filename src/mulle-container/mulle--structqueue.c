@@ -41,7 +41,7 @@ int   __mulle__structqueueenumerator_next( struct mulle__structqueueenumerator *
 
 struct mulle__structqueue   *
    mulle__structqueue_create( size_t sizeof_struct,
-                              unsigned int alignof_struct,
+                              size_t alignof_struct,
                               unsigned short bucket_size,
                               unsigned short spare_allowance,
                               struct mulle_allocator *allocator)
@@ -75,7 +75,7 @@ struct mulle__structqueuebucket *
    {
       space = (sizeof( struct mulle__structqueuebucket) -
                sizeof( struct mulle__structqueuebucket *)) +
-               queue->_bucket_size * queue->_sizeof_struct;
+               (size_t) queue->_bucket_size * (size_t) queue->_sizeof_struct;
 
       p = mulle_allocator_malloc( allocator, space);
    }
@@ -161,7 +161,7 @@ void   _mulle__structqueue_shrink( struct mulle__structqueue *queue,
 void  *_mulle__structqueue_reserve( struct mulle__structqueue *queue,
                                     struct mulle_allocator *allocator)
 {
-   unsigned int   offset;
+   size_t   offset;
 
    if( queue->_write_index >= queue->_bucket_size)
       _mulle__structqueue_grow( queue, allocator);
@@ -217,7 +217,7 @@ static inline int
   _mulle__structqueue_pop_noshrink( struct mulle__structqueue *queue,
                                     void *dst)
 {
-   unsigned int   offset;
+   size_t   offset;
 
    // if nothing to read, read struct points at write
    if( queue->_read == queue->_write)

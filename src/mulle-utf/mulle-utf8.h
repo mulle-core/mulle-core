@@ -93,7 +93,7 @@ static inline int   mulle_utf8_is_validcontinuationcharacter( char c)
 
 
 // length excluding 'c'
-static inline unsigned int  mulle_utf8_get_extracharacterslength( char c)
+static inline size_t  mulle_utf8_get_extracharacterslength( char c)
 {
    assert( mulle_utf8_get_startcharactertype( c) == mulle_utf8_multiple_start_character);
 
@@ -120,10 +120,10 @@ static inline unsigned int  mulle_utf8_get_extracharacterslength( char c)
 // returned length does not include BOM
 //
 MULLE__UTF_GLOBAL
-unsigned int  mulle_utf8_utf16length( char *src, size_t len);
+size_t  mulle_utf8_utf16length( char *src, size_t len);
 
 MULLE__UTF_GLOBAL
-unsigned int  mulle_utf8_utf32length( char *src, size_t len);
+size_t  mulle_utf8_utf32length( char *src, size_t len);
 
 
 static inline size_t  mulle_utf8_utf16maxlength( size_t len)
@@ -401,21 +401,15 @@ void   mulle_utf8_bufferconvert_to_utf32( char *src,
 // dst should be 2 * len
 // These routines do not add a trailing zero. (untested)
 MULLE__UTF_GLOBAL
-char   *_mulle_iso1_convert_to_utf8( char *src,
-                                             size_t len,
-                                             char *dst);
+char   *_mulle_iso1_convert_to_utf8( char *src, size_t len, char *dst);
 
 // as above but for macroman
 MULLE__UTF_GLOBAL
-char   *_mulle_macroman_convert_to_utf8( char *macroman,
-                                                 size_t len,
-                                                 char *dst);
+char   *_mulle_macroman_convert_to_utf8( char *macroman, size_t len, char *dst);
 
 // as above but for nextstep
 MULLE__UTF_GLOBAL
-char   *_mulle_nextstep_convert_to_utf8( char *nextstep,
-                                                 size_t len,
-                                                 char *dst);
+char   *_mulle_nextstep_convert_to_utf8( char *nextstep, size_t len, char *dst);
 //
 // latin iso1 this len, will bail if it can't covert (return NULL) and unknown
 // is -1. If unknown is 0, will just skip. Otherwise will replace with unknown.

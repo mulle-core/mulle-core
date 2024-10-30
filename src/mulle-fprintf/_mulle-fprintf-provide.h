@@ -13,7 +13,7 @@
 #define _mulle__fprintf__provide_h__
 
 
-// no headers
+#include "mulle-buffer-stdio.h"
 
 
 #endif

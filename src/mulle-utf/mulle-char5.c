@@ -367,7 +367,7 @@ size_t  mulle_char5_decode64( uint64_t value, char *dst, size_t len)
 }
 
 
-int   mulle_char5_get64( uint64_t value, unsigned int index)
+int   mulle_char5_get64( uint64_t value, size_t index)
 {
    int   char5;
 
@@ -385,7 +385,7 @@ int   mulle_char5_get64( uint64_t value, unsigned int index)
 }
 
 
-int   mulle_char5_get32( uint32_t value, unsigned int index)
+int   mulle_char5_get32( uint32_t value, size_t index)
 {
    int   char5;
 

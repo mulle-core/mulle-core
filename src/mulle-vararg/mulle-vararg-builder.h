@@ -8,7 +8,7 @@
 
 // Sketched out: an idea for a vararg builder.
 // The builder function returns the address to push the next argument unto.
-// It's the callers responsiblity to:
+// It's the callers responsibility to:
 // * remember the start of the vararg buffer
 // * ensure that the buffer is large enough (tricky!)
 // * use the returned value as the first argument next time
@@ -34,14 +34,14 @@ typedef double   mulle_vararg_builderbuffer_t;
    (((n) + sizeof( mulle_vararg_builderbuffer_t) - 1) / sizeof( mulle_vararg_builderbuffer_t))
 
 
-#define _mulle_vararg_push( ap, type, value)                           \
-do                                                                     \
-{                                                                      \
-   ap.p             = mulle_pointer_align( ap.p, alignof( type));      \
-   *((type *) ap.p) = value;                                           \
-   ap.p             = &((char *) ap.p)[ sizeof( type)];                \
-}                                                                      \
-while( 0)                                                              \
+#define _mulle_vararg_push( ap, type, value)                      \
+do                                                                \
+{                                                                 \
+   ap.p             = mulle_pointer_align( ap.p, alignof( type)); \
+   *((type *) ap.p) = value;                                      \
+   ap.p             = &((char *) ap.p)[ sizeof( type)];           \
+}                                                                 \
+while( 0)                                                         \
 
 
 #define mulle_vararg_sizeof_integer( type)          \
@@ -107,29 +107,42 @@ while( 0)                                                              \
 #define mulle_vararg_sizeof_double()             mulle_vararg_sizeof_integer( double)
 
 
-#define mulle_vararg_push_integer( ap, type, value)                    \
-do                                                                     \
-{                                                                      \
-   if( sizeof( type) <= sizeof( int))                                  \
-      _mulle_vararg_push( ap, int, (value));                           \
-   else                                                                \
-      if( sizeof( type) <= sizeof( long))                              \
-         _mulle_vararg_push( ap, long, (value));                       \
-      else                                                             \
-         _mulle_vararg_push( ap, long long, (value));                  \
-}                                                                      \
+#define mulle_vararg_push_integer( ap, type, value)    \
+do                                                     \
+{                                                      \
+   if( sizeof( type) <= sizeof( int))                  \
+      _mulle_vararg_push( ap, int, (value));           \
+   else                                                \
+      if( sizeof( type) <= sizeof( long))              \
+         _mulle_vararg_push( ap, long, (value));       \
+      else                                             \
+         _mulle_vararg_push( ap, long long, (value));  \
+}                                                      \
 while( 0)
 
 
-#define mulle_vararg_push_fp( ap, type, value)                         \
-do                                                                     \
-{                                                                      \
-   if( sizeof( type) <= sizeof( double))                               \
-      _mulle_vararg_push( ap, double, (value));                        \
-   else                                                                \
-      _mulle_vararg_push( ap, long double, (value));                   \
-}                                                                      \
+#define mulle_vararg_push_fp( ap, type, value)         \
+do                                                     \
+{                                                      \
+   if( sizeof( type) <= sizeof( double))               \
+      _mulle_vararg_push( ap, double, (value));        \
+   else                                                \
+      _mulle_vararg_push( ap, long double, (value));   \
+}                                                      \
 while( 0)
+
+
+#define mulle_vararg_push_struct( ap, value)           \
+do                                                     \
+{                                                      \
+   ap.p = mulle_pointer_align( ap.p, alignof( value)); \
+   memcpy( ap.p, &value, sizeof( value));              \
+   ap.p = &((char *) ap.p)[ sizeof( value)];           \
+}                                                      \
+while( 0)
+
+#define mulle_vararg_push_union( ap, value)            \
+   mulle_vararg_push_struct( p, value)
 
 
 #define mulle_vararg_push_pointer( ap, value) \
@@ -137,19 +150,6 @@ while( 0)
 
 #define mulle_vararg_push_functionpointer( ap, value) \
    _mulle_vararg_push( ap, void (*)( void), value)
-
-
-#define mulle_vararg_push_struct( ap, value)                           \
-do                                                                     \
-{                                                                      \
-   ap.p = mulle_pointer_align( ap.p, alignof( value));                 \
-   memcpy( ap.p, &value, sizeof( value));                              \
-   ap.p = &((char *) ap.p)[ sizeof( value)];                           \
-}                                                                      \
-while( 0)
-
-#define mulle_vararg_push_union( ap, value)                            \
-   mulle_vararg_push_struct( p, value)
 
 
 #define mulle_vararg_push_char( ap, value)  \
@@ -205,5 +205,10 @@ while( 0)
 
 #define mulle_vararg_push_longdouble( ap, value) \
    mulle_vararg_push_fp( ap, long double, value)
+
+
+#define mulle_vararg_builder_do( name, size) \
+   mulle_alloca_do( name, mulle_vararg_builderbuffer_t, mulle_vararg_builderbuffer_n( size))
+
 
 #endif

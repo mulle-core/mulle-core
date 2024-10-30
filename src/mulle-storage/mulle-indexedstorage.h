@@ -18,6 +18,15 @@ struct mulle_indexedstorage
 };
 
 
+/**
+ * Initialize the indexed storage with the given parameters.
+ *
+ * @param alloc The indexed storage allocator.
+ * @param sizeof_struct The size of the structure to be stored.
+ * @param alignof_struct The alignment of the structure to be stored.
+ * @param capacity The initial capacity of the storage.
+ * @param allocator The allocator to be used for memory management.
+ */
 MULLE_C_NONNULL_FIRST
 static inline void
    _mulle_indexedstorage_init( struct mulle_indexedstorage *alloc,
@@ -34,7 +43,11 @@ static inline void
    _mulle__pointerarray_init( &alloc->_freed, capacity / 32, allocator);
 }
 
-
+/**
+ * Finalize the indexed storage, freeing any allocated resources.
+ *
+ * @param alloc The indexed storage allocator.
+ */
 MULLE_C_NONNULL_FIRST
 static inline void
    _mulle_indexedstorage_done( struct mulle_indexedstorage *alloc)
@@ -46,7 +59,13 @@ static inline void
    mulle_structarray_done( &alloc->_structs);
 }
 
-
+/**
+ * Allocate an index for a new element in the indexed storage.
+ * If there are freed indices, reuse one of them.
+ *
+ * @param alloc The indexed storage allocator.
+ * @return The allocated index.
+ */
 MULLE_C_NONNULL_FIRST
 static inline unsigned int
    _mulle_indexedstorage_alloc( struct mulle_indexedstorage *alloc)
@@ -66,7 +85,12 @@ static inline unsigned int
    return( index);
 }
 
-
+/**
+ * Free an index and add it to the list of freed indices for reuse.
+ *
+ * @param alloc The indexed storage allocator.
+ * @param index The index to be freed.
+ */
 MULLE_C_NONNULL_FIRST
 static inline void
    _mulle_indexedstorage_free( struct mulle_indexedstorage *alloc, unsigned int index)
@@ -88,7 +112,13 @@ static inline void
    mulle__pointerarray_add( &alloc->_freed, index_1, allocator);
 }
 
-
+/**
+ * Get a pointer to the element at the given index in the indexed storage.
+ *
+ * @param alloc The indexed storage allocator.
+ * @param index The index of the element to be retrieved.
+ * @return A pointer to the element at the given index.
+ */
 MULLE_C_NONNULL_FIRST
 static inline void *
    _mulle_indexedstorage_get( struct mulle_indexedstorage *alloc, unsigned int index)
@@ -99,8 +129,12 @@ static inline void *
    return( _mulle_structarray_get( &alloc->_structs, (unsigned int) index));
 }
 
-
-
+/**
+ * Get the allocator associated with the indexed storage.
+ *
+ * @param alloc The indexed storage allocator.
+ * @return The allocator associated with the indexed storage.
+ */
 MULLE_C_NONNULL_FIRST
 static inline struct mulle_allocator *
    _mulle_indexedstorage_get_allocator( struct mulle_indexedstorage *alloc)
@@ -108,14 +142,24 @@ static inline struct mulle_allocator *
    return( _mulle_structarray_get_allocator( &alloc->_structs));
 }
 
-
+/**
+ * Get the allocator associated with the indexed storage, or NULL if the storage is NULL.
+ *
+ * @param alloc The indexed storage allocator.
+ * @return The allocator associated with the indexed storage, or NULL if the storage is NULL.
+ */
 static inline struct mulle_allocator *
    mulle_indexedstorage_get_allocator( struct mulle_indexedstorage *alloc)
 {
    return( alloc ? _mulle_structarray_get_allocator( &alloc->_structs) : NULL);
 }
 
-
+/**
+ * Get the count of active elements in the indexed storage.
+ *
+ * @param alloc The indexed storage allocator.
+ * @return The count of active elements in the indexed storage.
+ */
 MULLE_C_NONNULL_FIRST
 static inline unsigned int
    _mulle_indexedstorage_get_count( struct mulle_indexedstorage *alloc)
@@ -124,13 +168,17 @@ static inline unsigned int
            _mulle__pointerarray_get_count( &alloc->_freed));
 }
 
-
+/**
+ * Get the count of active elements in the indexed storage, or 0 if the storage is NULL.
+ *
+ * @param alloc The indexed storage allocator.
+ * @return The count of active elements in the indexed storage, or 0 if the storage is NULL.
+ */
 static inline unsigned int
    mulle_indexedstorage_get_count( struct mulle_indexedstorage *alloc)
 {
    return( alloc ? _mulle_indexedstorage_get_count( alloc) : 0);
 }
-
 
 
 /*

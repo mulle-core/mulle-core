@@ -6,10 +6,10 @@
 struct mulle_range   mulle_range_intersect( struct mulle_range range,
                                             struct mulle_range other)
 {
-   uintptr_t            location;
-   uintptr_t            min;
    uintptr_t            end1;
    uintptr_t            end2;
+   uintptr_t            location;
+   uintptr_t            min;
    struct mulle_range   result;
 
    end1 = mulle_range_get_max( range);

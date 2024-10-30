@@ -37,7 +37,7 @@ int   mulle_utf32_is_privatecharacter( int32_t c)
 }
 
 
-int   mulle_utf_is_privatecharacterplane( unsigned int plane)
+int   mulle_utf_is_privatecharacterplane( size_t plane)
 {
    switch( plane)
    {

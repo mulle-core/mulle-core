@@ -51,7 +51,7 @@ struct mulle__set
 
 MULLE__CONTAINER_GLOBAL
 MULLE_C_NONNULL_THIRD
-struct mulle__set   *_mulle__set_create( unsigned int capacity,
+struct mulle__set   *_mulle__set_create( size_t capacity,
                                          size_t extra,
                                          struct mulle_container_keycallback *callback,
                                          struct mulle_allocator *allocator) ;
@@ -66,7 +66,7 @@ void    _mulle__set_destroy( struct mulle__set *set,
 MULLE__CONTAINER_GLOBAL
 MULLE_C_NONNULL_FIRST_THIRD
 void    _mulle__set_init( struct mulle__set *set,
-                          unsigned int capacity,
+                          size_t capacity,
                           struct mulle_container_keycallback *callback,
                           struct mulle_allocator *allocator);
 
@@ -90,14 +90,14 @@ void   _mulle__set_reset( struct mulle__set *set,
 
 
 MULLE_C_NONNULL_FIRST
-static inline unsigned int   _mulle__set_get_size( struct mulle__set *set)
+static inline size_t   _mulle__set_get_size( struct mulle__set *set)
 {
    return( _mulle__pointerset_get_size( (struct mulle__pointerset *) set));
 }
 
 
 MULLE_C_NONNULL_FIRST
-static inline unsigned int   _mulle__set_get_count( struct mulle__set *set)
+static inline size_t   _mulle__set_get_count( struct mulle__set *set)
 {
    return( _mulle__pointerset_get_count( (struct mulle__pointerset *) set));
 }
@@ -344,9 +344,9 @@ static inline void   mulle__setenumerator_done( struct mulle__setenumerator *rov
    assert( sizeof( item) == sizeof( void *));                                     \
    for( struct mulle__setenumerator                                               \
            rover__ ## item = mulle__set_enumerate( name, callback),               \
-           *rover___  ## item ## __i = (void *) 0;                                \
-        ! rover___  ## item ## __i;                                               \
-        rover___ ## item ## __i = (_mulle__setenumerator_done( &rover__ ## item), \
+           *rover__  ## item ## __i = (void *) 0;                                \
+        ! rover__  ## item ## __i;                                               \
+        rover__ ## item ## __i = (_mulle__setenumerator_done( &rover__ ## item), \
                                    (void *) 1))                                   \
       while( _mulle__setenumerator_next( &rover__ ## item, (void **) &item))
 

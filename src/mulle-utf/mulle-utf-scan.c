@@ -112,7 +112,7 @@ int   _mulle_utf_rover_longlong_decimal( struct mulle_utf_rover *rover,
    }
    else
    {
-      if( value > (unsigned long) LLONG_MIN)
+      if( value > (unsigned long long) LLONG_MIN)
       {
          _mulle_utf_rover_dial_back( rover);
          return( mulle_utf_has_overflown);
@@ -142,7 +142,7 @@ int   _mulle_utf8_scan_longlong_decimal( char **p_s,
 
 
 int   _mulle_utf16_scan_longlong_decimal( mulle_utf16_t **p_s,
-                                          unsigned int len,
+                                          size_t len,
                                           long long *p_value)
 {
    struct mulle_utf_rover   rover;
@@ -157,7 +157,7 @@ int   _mulle_utf16_scan_longlong_decimal( mulle_utf16_t **p_s,
 
 
 int   _mulle_utf32_scan_longlong_decimal( mulle_utf32_t **p_s,
-                                          unsigned int len,
+                                          size_t len,
                                           long long *p_value)
 {
    struct mulle_utf_rover   rover;
@@ -184,7 +184,7 @@ int   _mulle_utf32_scan_longlong_decimal( mulle_utf32_t **p_s,
 // returns -3 : contains trailing garbage
 //
 int   _mulle_utf32_scan_longlong_decimal( mulle_utf32_t **p_s,
-                                          unsigned int len,
+                                          size_t len,
                                           long long *p_value)
 {
    enum scan_state      state;

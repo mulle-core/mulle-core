@@ -32,7 +32,7 @@ static inline int   mulle_char5_lookup_character( int c)
 {
    extern char   mulle_char5_lookup_table[ 128];
 
-   return( ((unsigned int) c < 128) ?  mulle_char5_lookup_table[ c] : -1);
+   return( ((size_t) c < 128) ?  mulle_char5_lookup_table[ c] : -1);
 }
 
 
@@ -97,9 +97,9 @@ MULLE__UTF_GLOBAL
 size_t   mulle_char5_decode64( uint64_t value, char *src, size_t len);
 
 MULLE__UTF_GLOBAL
-int   mulle_char5_get64( uint64_t value, unsigned int index);
+int   mulle_char5_get64( uint64_t value, size_t index);
 MULLE__UTF_GLOBAL
-int   mulle_char5_get32( uint32_t value, unsigned int index);
+int   mulle_char5_get32( uint32_t value, size_t index);
 
 
 static inline int   mulle_char5_next64( uint64_t *value)
@@ -218,7 +218,7 @@ static inline size_t  mulle_char5_fstrlen32( uint32_t value)
 }
 
 
-static inline uint64_t   mulle_char5_substring64( uint64_t value, unsigned int location, unsigned int length)
+static inline uint64_t   mulle_char5_substring64( uint64_t value, size_t location, size_t length)
 {
    assert( location + length <= mulle_char5_strlen64( value));
 
@@ -228,7 +228,7 @@ static inline uint64_t   mulle_char5_substring64( uint64_t value, unsigned int l
 }
 
 
-static inline uint32_t   mulle_char5_substring32( uint32_t value, unsigned int location, unsigned int length)
+static inline uint32_t   mulle_char5_substring32( uint32_t value, size_t location, size_t length)
 {
    assert( location + length <= mulle_char5_strlen32( value));
 
@@ -280,7 +280,7 @@ static inline size_t   mulle_char5_decode( mulle_char5_t value, char *src, size_
 }
 
 
-static inline int   mulle_char5_get( mulle_char5_t value, unsigned int index)
+static inline int   mulle_char5_get( mulle_char5_t value, size_t index)
 {
    if( sizeof( mulle_char5_t) == sizeof( uint32_t))
       return( mulle_char5_get32( (uint32_t) value, index));
@@ -320,8 +320,8 @@ static inline size_t  mulle_char5_get_maxlength( void)
 
 
 static inline mulle_char5_t  mulle_char5_substring( mulle_char5_t value,
-                                                    unsigned int location,
-                                                    unsigned int length)
+                                                    size_t location,
+                                                    size_t length)
 {
    if( sizeof( mulle_char5_t) == sizeof( uint32_t))
       return( (mulle_char5_t) mulle_char5_substring32( (uint32_t) value, location, length));

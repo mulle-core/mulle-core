@@ -20,7 +20,7 @@ int   mulle_utf16_is_noncharacter( mulle_utf16_t c);
 MULLE__UTF_GLOBAL
 int   mulle_utf32_is_noncharacter( mulle_utf32_t c);
 MULLE__UTF_GLOBAL
-int   mulle_utf_is_noncharacterplane( unsigned int plane);
+int   mulle_utf_is_noncharacterplane( size_t plane);
 
 
 // some more assorted funcions

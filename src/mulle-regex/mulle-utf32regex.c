@@ -910,7 +910,7 @@ static size_t   regex_repeat( struct exec *ep, node *node);
 #ifdef DEBUG
 int           regnarrate = 0;
 void          regex_dump();
-static char * regex_string_from_opcode();
+static char    *regex_string_from_opcode( node *op, char buf[64]);
 
 #endif
 

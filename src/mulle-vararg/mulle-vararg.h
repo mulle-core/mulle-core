@@ -14,7 +14,7 @@
 //
 // community version is always even
 //
-#define MULLE__VARARG_VERSION  ((1UL << 20) | (1 << 8) | 7)
+#define MULLE__VARARG_VERSION  ((1UL << 20) | (1 << 8) | 8)
 
 
 /*
@@ -65,12 +65,12 @@ static inline mulle_vararg_list   mulle_vararg_list_make( void *buf)
 }
 
 
-#define mulle_vararg_start( args, ap)                                                  \
-do                                                                                     \
-{                                                                                      \
-   args.p = &((char *) &ap)[ sizeof( ap) < sizeof( int) ? sizeof( int) : sizeof( ap)]; \
-}                                                                                      \
-while( 0)
+#define mulle_vararg_start( args, ap)     \
+   args.p = &((char *) &ap)[ sizeof( ap) < sizeof( int) ? sizeof( int) : sizeof( ap)]
+
+
+#define mulle_vararg_start_fp( args, ap)  \
+   args.p = &((char *) &ap)[ sizeof( ap) < sizeof( double) ? sizeof( double) : sizeof( ap)]
 
 
 // use this for integer types

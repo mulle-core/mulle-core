@@ -55,7 +55,7 @@ struct mulle_pointerarray
 };
 
 
-#define MULLE_POINTERARRAY_INIT( storage, count, xallocator) \
+#define MULLE_POINTERARRAY_DATA( storage, count, xallocator) \
    ((struct mulle_pointerarray)                              \
    {                                                         \
       ._storage         = (storage),                         \
@@ -68,7 +68,7 @@ struct mulle_pointerarray
 
 MULLE_C_NONNULL_FIRST
 static inline void   _mulle_pointerarray_init( struct mulle_pointerarray *array,
-                                               unsigned int capacity,
+                                               size_t capacity,
                                                struct mulle_allocator *allocator)
 {
    _mulle__pointerarray_init( (struct mulle__pointerarray *) array,
@@ -78,8 +78,12 @@ static inline void   _mulle_pointerarray_init( struct mulle_pointerarray *array,
    array->allocator = allocator;
 }
 
+#define _mulle_pointerarray_init_default( array)  \
+   _mulle_pointerarray_init( array, 8, NULL)
+
+
 static inline void   mulle_pointerarray_init( struct mulle_pointerarray *array,
-                                              unsigned int capacity,
+                                              size_t capacity,
                                               struct mulle_allocator *allocator)
 {
    if( array)
@@ -87,10 +91,14 @@ static inline void   mulle_pointerarray_init( struct mulle_pointerarray *array,
 }
 
 
+#define mulle_pointerarray_init_default( array)  \
+   mulle_pointerarray_init( array, 8, NULL)
+
+
 static inline void
    mulle_pointerarray_init_with_static_pointer( struct mulle_pointerarray *array,
                                                 void **pointers,
-                                                unsigned int capacity,
+                                                size_t capacity,
                                                 struct mulle_allocator *allocator)
 {
    if( array)
@@ -135,9 +143,12 @@ static inline struct mulle_pointerarray *
    struct mulle_pointerarray   *array;
 
    array = mulle_pointerarray_alloc( allocator);
-   _mulle_pointerarray_init( array, 0, allocator);
+   _mulle_pointerarray_init( array, 8, allocator);
    return( array);
 }
+
+#define mulle_pointerarray_create_default()  \
+   mulle_pointerarray_create( NULL)
 
 
 static inline void   mulle_pointerarray_destroy( struct mulle_pointerarray *array)
@@ -181,14 +192,14 @@ static inline void **
 
 
 MULLE_C_NONNULL_FIRST
-static inline unsigned int
+static inline size_t
    _mulle_pointerarray_get_size( struct mulle_pointerarray *array)
 {
    return( _mulle__pointerarray_get_size( (struct mulle__pointerarray *) array));
 }
 
 
-static inline unsigned int
+static inline size_t
    mulle_pointerarray_get_size( struct mulle_pointerarray *array)
 {
    return( mulle__pointerarray_get_size( (struct mulle__pointerarray *) array));
@@ -196,14 +207,14 @@ static inline unsigned int
 
 
 MULLE_C_NONNULL_FIRST
-static inline unsigned int
+static inline size_t
    _mulle_pointerarray_get_count( struct mulle_pointerarray *array)
 {
    return( _mulle__pointerarray_get_count( (struct mulle__pointerarray *) array));
 }
 
 
-static inline unsigned int
+static inline size_t
    mulle_pointerarray_get_count( struct mulle_pointerarray *array)
 {
    return( mulle__pointerarray_get_count( (struct mulle__pointerarray *) array));
@@ -212,14 +223,14 @@ static inline unsigned int
 
 
 MULLE_C_NONNULL_FIRST
-static inline unsigned int
+static inline size_t
 	_mulle_pointerarray_get_guaranteed_size( struct mulle_pointerarray *array)
 {
    return( _mulle__pointerarray_get_guaranteed_size( (struct mulle__pointerarray *) array));
 }
 
 
-static inline unsigned int
+static inline size_t
 	mulle_pointerarray_get_guaranteed_size( struct mulle__pointerarray *array)
 {
    return( mulle__pointerarray_get_guaranteed_size( (struct mulle__pointerarray *) array));
@@ -261,7 +272,7 @@ static inline struct mulle_allocator *
 MULLE_C_NONNULL_FIRST
 static inline void **
    _mulle_pointerarray_guarantee( struct mulle_pointerarray *array,
-                                  unsigned int length)
+                                  size_t length)
 {
    return( _mulle__pointerarray_guarantee( (struct mulle__pointerarray *) array,
                                            length,
@@ -271,7 +282,7 @@ static inline void **
 
 static inline void **
    mulle_pointerarray_guarantee( struct mulle_pointerarray *array,
-                                 unsigned int length)
+                                 size_t length)
 {
    if( ! array)
       return( NULL);
@@ -285,7 +296,7 @@ static inline void **
 MULLE_C_NONNULL_FIRST
 static inline void **
    _mulle_pointerarray_advance( struct mulle_pointerarray *array,
-                                unsigned int length)
+                                size_t length)
 {
    return( _mulle__pointerarray_advance( (struct mulle__pointerarray *) array,
                                          length,
@@ -435,8 +446,8 @@ void
  *  Loop over all items. This works as long as you don't remove
  *  anything from the array. It will not retrieve newly added elements.
  *
- *  unsigned int  i, n;
- *  unsigned int  *item;
+ *  size_t  i, n;
+ *  size_t  *item;
  *
  *  for( i = 0, n = mulle_pointerarray_get_count( array); i < n; i++)
  *  {
@@ -448,8 +459,8 @@ void
  *  anything but the last element from the array. It will not retrieve newly 
  *  added elements.
  *
- *  unsigned int  i;
- *  unsigned int  *item;
+ *  size_t  i;
+ *  size_t  *item;
  *
  *  for( i = mulle_pointerarray_get_count( array); i;)
  *  {
@@ -460,21 +471,21 @@ void
  */
 MULLE_C_NONNULL_FIRST
 static inline void  *
-	_mulle_pointerarray_get( struct mulle_pointerarray *array, unsigned int i)
+	_mulle_pointerarray_get( struct mulle_pointerarray *array, size_t i)
 {
    return( _mulle__pointerarray_get( (struct mulle__pointerarray *) array, i));
 }
 
 
 static inline void  *
-   mulle_pointerarray_get( struct mulle_pointerarray *array, unsigned int i)
+   mulle_pointerarray_get( struct mulle_pointerarray *array, size_t i)
 {
    return( mulle__pointerarray_get( (struct mulle__pointerarray *) array, i));
 }
 
 
 MULLE_C_NONNULL_FIRST_THIRD
-static inline unsigned int
+static inline size_t
    _mulle_pointerarray_get_in_range( struct mulle_pointerarray *array,
                                      struct mulle_range range,
                                      void *buf)
@@ -484,7 +495,7 @@ static inline unsigned int
                                               buf));
 }
 
-static inline unsigned int
+static inline size_t
    mulle_pointerarray_get_in_range( struct mulle_pointerarray *array,
                                     struct mulle_range range,
                                     void *buf)
@@ -560,7 +571,7 @@ static inline void
 
 MULLE_C_NONNULL_FIRST
 static inline void   *_mulle_pointerarray_set( struct mulle_pointerarray *array,
-                                               unsigned int i,
+                                               size_t i,
                                                void *p)
 {
    return( _mulle__pointerarray_set( (struct mulle__pointerarray *) array,
@@ -571,7 +582,7 @@ static inline void   *_mulle_pointerarray_set( struct mulle_pointerarray *array,
 
 
 static inline void   *mulle_pointerarray_set( struct mulle_pointerarray *array,
-                                              unsigned int i,
+                                              size_t i,
                                               void *p)
 {
    return( mulle__pointerarray_set( (struct mulle__pointerarray *) array,
@@ -588,7 +599,7 @@ static inline void   *mulle_pointerarray_set( struct mulle_pointerarray *array,
 //
 MULLE_C_NONNULL_FIRST
 static inline void   _mulle_pointerarray_set_zeroing( struct mulle_pointerarray *array,
-                                                      unsigned int i,
+                                                      size_t i,
                                                       void *value)
 {
    _mulle__pointerarray_set_zeroing( (struct mulle__pointerarray *) array,
@@ -599,7 +610,7 @@ static inline void   _mulle_pointerarray_set_zeroing( struct mulle_pointerarray 
 
 
 static inline void   mulle_pointerarray_set_zeroing( struct mulle_pointerarray *array,
-                                                     unsigned int i,
+                                                     size_t i,
                                                      void *value)
 {
    if( ! array)
@@ -610,7 +621,7 @@ static inline void   mulle_pointerarray_set_zeroing( struct mulle_pointerarray *
 
 MULLE_C_NONNULL_FIRST
 static inline void   *_mulle_pointerarray_get_zeroing( struct mulle_pointerarray *array,
-                                                       unsigned int i)
+                                                       size_t i)
 {
    return( _mulle__pointerarray_get_zeroing( (struct mulle__pointerarray *) array,
                                              i));
@@ -618,7 +629,7 @@ static inline void   *_mulle_pointerarray_get_zeroing( struct mulle_pointerarray
 
 
 static inline void   *mulle_pointerarray_get_zeroing( struct mulle_pointerarray *array,
-                                                      unsigned int i)
+                                                      size_t i)
 {
    if( ! array)
       return( NULL);
@@ -630,7 +641,7 @@ static inline void   *mulle_pointerarray_get_zeroing( struct mulle_pointerarray 
 MULLE_C_NONNULL_FIRST
 static inline void
    **_mulle_pointerarray_get_zeroing_address( struct mulle_pointerarray *array,
-                                              unsigned int i)
+                                              size_t i)
 {
    return( _mulle__pointerarray_get_zeroing_address( (struct mulle__pointerarray *) array,
                                                       i,
@@ -867,7 +878,7 @@ static inline int
    void   *name ## __storage[ stackcount];                                   \
    for( struct mulle_pointerarray                                            \
            name ## __container =                                             \
-              MULLE_POINTERARRAY_INIT( name ## __storage, stackcount, NULL), \
+              MULLE_POINTERARRAY_DATA( name ## __storage, stackcount, NULL), \
            *name = &name ## __container,                                     \
            *name ## __i = NULL;                                              \
         ! name ## __i;                                                       \
@@ -909,27 +920,27 @@ static inline int
 
 // created by make-container-for.sh src/array/pointer/mulle-pointerarray.c
 
-#define mulle_pointerarray_for( name, item)                                               \
-   assert( sizeof( item) == sizeof( void *));                                             \
-   for( struct mulle_pointerarrayenumerator                                               \
-           rover__ ## item = mulle_pointerarray_enumerate( name),                         \
-           *rover___  ## item ## __i = (void *) 0;                                        \
-        ! rover___  ## item ## __i;                                                       \
-        rover___ ## item ## __i = (_mulle_pointerarrayenumerator_done( &rover__ ## item), \
-                                   (void *) 1))                                           \
+#define mulle_pointerarray_for( name, item)                                              \
+   assert( sizeof( item) == sizeof( void *));                                            \
+   for( struct mulle_pointerarrayenumerator                                              \
+           rover__ ## item = mulle_pointerarray_enumerate( name),                        \
+           *rover__  ## item ## __i = (void *) 0;                                        \
+        ! rover__  ## item ## __i;                                                       \
+        rover__ ## item ## __i = (_mulle_pointerarrayenumerator_done( &rover__ ## item), \
+                                   (void *) 1))                                          \
       while( _mulle_pointerarrayenumerator_next( &rover__ ## item, (void **) &item))
 
 
 // created by make-container-for.sh --reverse src/array/pointer/mulle-pointerarray.c
 
-#define mulle_pointerarray_for_reverse( name, item)                                              \
-   assert( sizeof( item) == sizeof( void *));                                                    \
-   for( struct mulle_pointerarrayreverseenumerator                                               \
-           rover__ ## item = mulle_pointerarray_reverseenumerate( name),                         \
-           *rover___  ## item ## __i = (void *) 0;                                               \
-        ! rover___  ## item ## __i;                                                              \
-        rover___ ## item ## __i = (_mulle_pointerarrayreverseenumerator_done( &rover__ ## item), \
-                                   (void *) 1))                                                  \
+#define mulle_pointerarray_for_reverse( name, item)                                             \
+   assert( sizeof( item) == sizeof( void *));                                                   \
+   for( struct mulle_pointerarrayreverseenumerator                                              \
+           rover__ ## item = mulle_pointerarray_reverseenumerate( name),                        \
+           *rover__  ## item ## __i = (void *) 0;                                               \
+        ! rover__  ## item ## __i;                                                              \
+        rover__ ## item ## __i = (_mulle_pointerarrayreverseenumerator_done( &rover__ ## item), \
+                                   (void *) 1))                                                 \
       while( _mulle_pointerarrayreverseenumerator_next( &rover__ ## item, (void **) &item))
 
 #endif

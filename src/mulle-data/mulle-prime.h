@@ -38,6 +38,15 @@
 
 
 
+/**
+ * Returns the prime number for the given depth.
+ *
+ * The prime numbers are pre-computed and stored in a global array. This function
+ * simply looks up the appropriate prime number based on the given depth.
+ *
+ * @param depth The depth value, which must be between -32 and 32 (inclusive).
+ * @return The prime number for the given depth.
+ */
 static inline uintptr_t   mulle_prime_for_depth( int depth)
 {
    MULLE__DATA_GLOBAL
@@ -48,6 +57,17 @@ static inline uintptr_t   mulle_prime_for_depth( int depth)
 }
 
 
+/**
+ * Computes a hash value for the given value based on the specified depth.
+ *
+ * This function uses a series of modulo operations to compute a hash value that
+ * is dependent on the depth. The hash values are designed to be fast to compute
+ * and evenly distributed across the range of possible hash values.
+ *
+ * @param value The value to hash.
+ * @param depth The depth value, which must be between -32 and 32 (inclusive).
+ * @return The hash value for the given value and depth.
+ */
 //
 // this produces a lot of fast code...
 // it looks funny, but rocks on my i7

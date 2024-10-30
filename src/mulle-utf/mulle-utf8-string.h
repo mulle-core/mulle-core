@@ -131,7 +131,7 @@ size_t   mulle_utf8_strcspn( char *s, char *search);
 // p_n: contains utf32 chars to skip, returns actually skipped
 //
 MULLE__UTF_GLOBAL
-char   *mulle_utf8_skiputf32( char *s, unsigned int *p_n);
+char   *mulle_utf8_skiputf32( char *s, size_t *p_n);
 
 
 // MEMO: need these variety for ObjC where there might not be a terminating 0

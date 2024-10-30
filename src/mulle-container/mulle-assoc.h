@@ -66,7 +66,7 @@ struct mulle_assoc
 };
 
 
-#define MULLE_ASSOC_INIT( xcallback, xcompare, xallocator) \
+#define MULLE_ASSOC_DATA( xcallback, xcompare, xallocator) \
    ((struct mulle_assoc)                                   \
    {                                                       \
       .callback         = (xcallback),                     \
@@ -76,7 +76,7 @@ struct mulle_assoc
 
 MULLE_C_NONNULL_THIRD
 static inline void    mulle_assoc_init( struct mulle_assoc *assoc,
-                                        unsigned int length,
+                                        size_t length,
                                         struct mulle_container_keyvaluecallback *callback,
                                         mulle_pointerpair_compare_t *compare,
                                         struct mulle_allocator *allocator)
@@ -112,7 +112,7 @@ static inline void   mulle_assoc_done( struct mulle_assoc *assoc)
 
 MULLE__CONTAINER_GLOBAL
 struct mulle_assoc    *
-   mulle_assoc_create( unsigned int capacity,
+   mulle_assoc_create( size_t capacity,
                        struct mulle_container_keyvaluecallback *callback,
                        mulle_pointerpair_compare_t *compare,
                        struct mulle_allocator *allocator);
@@ -132,14 +132,14 @@ static inline void   mulle_assoc_destroy( struct mulle_assoc *assoc)
 # pragma mark - petty accessors
 
 MULLE_C_NONNULL_FIRST
-static inline unsigned int
+static inline size_t
    _mulle_assoc_get_size( struct mulle_assoc *assoc)
 {
    return( _mulle__assoc_get_size( (struct mulle__assoc *) assoc));
 }
 
 
-static inline unsigned int
+static inline size_t
    mulle_assoc_get_size( struct mulle_assoc *assoc)
 {
    return( mulle__assoc_get_size( (struct mulle__assoc *) assoc));
@@ -147,14 +147,14 @@ static inline unsigned int
 
 
 MULLE_C_NONNULL_FIRST
-static inline unsigned int
+static inline size_t
 	_mulle_assoc_get_guaranteed_size( struct mulle_assoc *assoc)
 {
    return( _mulle__assoc_get_guaranteed_size( (struct mulle__assoc *) assoc));
 }
 
 
-static inline unsigned int
+static inline size_t
 	mulle_assoc_get_guaranteed_size( struct mulle_assoc *assoc)
 {
    return( mulle__assoc_get_guaranteed_size( (struct mulle__assoc *) assoc));
@@ -162,14 +162,14 @@ static inline unsigned int
 
 
 MULLE_C_NONNULL_FIRST
-static inline unsigned int
+static inline size_t
    _mulle_assoc_get_count( struct mulle_assoc *assoc)
 {
    return( _mulle__assoc_get_count( (struct mulle__assoc *) assoc));
 }
 
 
-static inline unsigned int
+static inline size_t
    mulle_assoc_get_count( struct mulle_assoc *assoc)
 {
    return( mulle__assoc_get_count( (struct mulle__assoc *) assoc));
@@ -495,7 +495,7 @@ static inline int   mulle_assoc_is_equal( struct mulle_assoc *assoc,
 
 static inline
 struct mulle_pointerpair  mulle_assoc_get_at_index( struct mulle_assoc *assoc,
-                                                    unsigned int index)
+                                                    size_t index)
 {
    if( ! assoc)
       return( mulle_pointerpair_make_invalid());
@@ -506,7 +506,7 @@ struct mulle_pointerpair  mulle_assoc_get_at_index( struct mulle_assoc *assoc,
 
 
 MULLE_C_NONNULL_FIRST_THIRD
-static inline unsigned int
+static inline size_t
    _mulle_assoc_get_in_range( struct mulle_assoc *assoc,
                               struct mulle_range range,
                               struct mulle_pointerpair *buf)
@@ -518,7 +518,7 @@ static inline unsigned int
 }
 
 
-static inline unsigned int
+static inline size_t
    mulle_assoc_get_in_range( struct mulle_assoc *assoc,
                              struct mulle_range range,
                              struct mulle_pointerpair *buf)
@@ -717,7 +717,7 @@ static inline void   mulle_assocenumerator_done( struct mulle_assocenumerator *r
 
 #define mulle_assoc_do( name, callback, compare)                             \
    for( struct mulle_assoc                                                   \
-           name ## __container = MULLE_ASSOC_INIT( callback, compare, NULL), \
+           name ## __container = MULLE_ASSOC_DATA( callback, compare, NULL), \
            *name = &name ## __container,                                     \
            *name ## __i = NULL;                                              \
         ! name ## __i;                                                       \
@@ -740,9 +740,9 @@ static inline void   mulle_assocenumerator_done( struct mulle_assocenumerator *r
    assert( sizeof( value) == sizeof( void *));                                                                 \
    for( struct mulle_assocenumerator                                                                           \
            rover__ ## key ## __ ## value = mulle_assoc_enumerate( name),                                       \
-           *rover___  ## key ## __ ## value ## __i = (void *) 0;                                               \
-        ! rover___  ## key ## __ ## value ## __i;                                                              \
-        rover___ ## key ## __ ## value ## __i = (_mulle_assocenumerator_done( &rover__ ## key ## __ ## value), \
+           *rover__  ## key ## __ ## value ## __i = (void *) 0;                                               \
+        ! rover__  ## key ## __ ## value ## __i;                                                              \
+        rover__ ## key ## __ ## value ## __i = (_mulle_assocenumerator_done( &rover__ ## key ## __ ## value), \
                                               (void *) 1))                                                     \
       while( _mulle_assocenumerator_next( &rover__ ## key ## __ ## value,                                      \
                                       (void **) &key,                                                          \

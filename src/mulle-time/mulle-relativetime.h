@@ -23,6 +23,14 @@ static inline void   mulle_relativetime_init( mulle_relativetime_t *p,
 
 
 static inline mulle_relativetime_t
+   mulle_relativetime_make_with_s_ns( int tv_sec, long tv_nsec)
+{
+   return( tv_sec + tv_nsec / (double) (1000L*1000*1000));
+}
+
+
+// deprecated naming
+static inline mulle_relativetime_t
    mulle_relativetime_init_with_s_ns( int tv_sec, long tv_nsec)
 {
    return( tv_sec + tv_nsec / (double) (1000L*1000*1000));
@@ -43,7 +51,7 @@ struct mulle_relativetimerange
 };
 
 
-#define MULLE_RELATIVETIMERANGE_INIT( delay, duration)  \
+#define MULLE_RELATIVETIMERANGE_DATA( delay, duration)  \
    ((struct mulle_relativetimerange)                    \
    {                                                    \
       (delay),                                          \
@@ -71,7 +79,6 @@ static inline void
       p->duration = duration;
    }
 }
-
 
 
 #endif

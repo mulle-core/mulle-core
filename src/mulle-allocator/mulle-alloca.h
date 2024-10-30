@@ -124,6 +124,10 @@
     ? _mulle_alloca_stackitems( size, type)                       \
     : 1)
 
+#define _mulle_alloca_do_get_size_as_length( name)                \
+   (sizeof( name ## __storage) / sizeof( name ## __storage[ 0]))
+
+
 // returns 1 for loop convenience
 #define _mulle_alloca_do_free( name)                              \
   ((name != name ## __storage)                                    \
@@ -156,15 +160,29 @@ do                                                                \
 }                                                                 \
 while( 0)
 
-#define _mulle_alloca_do_get_size_as_length( name)                \
-   (sizeof( name ## __storage) / sizeof( name ## __storage[ 0]))
-
 
 /* API */
 
+/**
+ * Reallocates the memory block pointed to by `name` to the specified size .
+ * This macro can only be used inside a `mulle_alloca_do` code block.
+ *
+ * If `name` is currently using the stack-allocated `name__storage` buffer, and
+ * the new size exceeds the capacity of the buffer, the memory is reallocated
+ * using `mulle_malloc` and the contents of the buffer are copied over.
+ *
+ * If `name` is already using dynamically allocated memory, it is reallocated
+ * using `mulle_realloc`. If the new size is 0, the memory is reallocated to a
+ * single element.
+ *
+ * The `name__count` variable is updated to reflect the new size in elements.
+ *
+ * @param name The variable name of the memory block to reallocate.
+ * @param count The new size in elements to reallocate the memory block to.
+ */
 //
 // Usable only inside of a `mulle_alloca_do` code block.
-// If you `mulle_alloca_do_realloc` to zero, you really get one.
+// If you call `mulle_alloca_do_realloc` with zero, you really get one.
 //
 #define mulle_alloca_do_realloc( name, count)                     \
 do                                                                \
@@ -191,6 +209,24 @@ do                                                                \
 while( 0)
 
 
+/**
+ * Extracts the dynamically allocated memory block pointed to by `name` and
+ * assigns it to the `receiver` variable. This macro can only be used inside a
+ * `mulle_alloca_do` code block.
+ *
+ * If `name` is currently using the stack-allocated `name__storage` buffer, the
+ * memory is reallocated using `mulle_malloc` and the contents of the buffer are
+ * copied over before being assigned to `receiver`. If `name` is already using
+ * dynamically allocated memory, it is simply assigned to `receiver` and `name`
+ * is set to `NULL`.
+ *
+ * This macro is useful when you need to extract the dynamically allocated
+ * memory from the `mulle_alloca_do` block for further processing, while
+ * avoiding the need to manually manage the memory allocation.
+ *
+ * @param name The variable name of the memory block to extract.
+ * @param receiver The variable name to assign the extracted memory block to.
+ */
 /* MEMO: Why is there no `mulle_calloca_do_allocator` ? This is all for
          temporary storage on stack, with fallback to a temporary malloc
          block if needed. If extraction is the main concern of the code,
@@ -216,72 +252,164 @@ do                                                                          \
 while( 0)
 
 
+/**
+ * This macro defines a flexible block of memory that can be allocated either on
+ * the stack or dynamically on the heap, depending on the size required. The
+ * memory block is allocated using `mulle_malloc` if the requested size exceeds
+ * the stack size, or from the stack-allocated `name__storage` array otherwise.
+ *
+ * The macro takes the following parameters:
+ * @param name: The name of the variable that will hold the memory block.
+ * @param type: The type of the elements in the memory block.
+ * @param stacksize: The initial size of the stack-allocated memory block in bytes.
+ * @param count: The number of elements to allocate in the memory block.
+ *
+ * The macro creates a `for` loop that initializes the memory block and
+ * automatically frees it at the end of the loop. The memory block can be
+ * accessed using the `name` variable within the loop.
+ */
 // The "type" is needed for proper stack alignment.
 // "name__count" is useful for realloc and also to have only one expansion
 // point for the macro parameter. Generally all macros in this header have
 // only one expansion point, unless noted.
+// We need the triple for, because unfortunately when you pass a pointer as
+// the type (like struct foo *), the '*' is only applied to the first variable
+// of the for variables.
 //
-#define mulle_alloca_do( name, type, count)                                                    \
-   for( type name ## __storage[ _mulle_alloca_stackitems_1( MULLE_ALLOCA_STACKSIZE, type)],    \
-   	    *name ## __count = (type *) (uintptr_t) (count),                                     \
-   	    *name = ((uintptr_t) name ## __count) <= _mulle_alloca_do_get_size_as_length( name)  \
-   	            ? name ## __storage                                                          \
-   	            : mulle_malloc( sizeof( type) * (uintptr_t) name ## __count),                \
-        *name ## __i = NULL;                                                                   \
-        ! name ## __i;                                                                         \
-        name ## __i = _mulle_alloca_do_free( name)                                             \
-      )                                                                                        \
-                                                                                               \
-      for( int  name ## __j = 0;    /* break protection */                                     \
-           name ## __j < 1;                                                                    \
-           name ## __j++)
+#define mulle_alloca_do( name, type, count)                                                          \
+   for( type name ## __storage[ _mulle_alloca_stackitems_1( MULLE_ALLOCA_STACKSIZE, type)],          \
+        *name ## __count = (void *) (uintptr_t) (count),                                             \
+        *name ## __k = NULL;                                                                         \
+        ! name ## __k;                                                                               \
+        name ## __k++)                                                                               \
+      for( type *name = ((uintptr_t) name ## __count) <= _mulle_alloca_do_get_size_as_length( name)  \
+                     ? name ## __storage                                                             \
+                     : mulle_malloc( sizeof( type) * (uintptr_t) (void *) name ## __count),          \
+           *name ## __j = NULL;                                                                      \
+           ! name ## __j;                                                                            \
+           name ## __j = _mulle_alloca_do_free( name)                                                \
+         )                                                                                           \
+         for( int  name ## __i = 0;    /* break protection */                                        \
+              name ## __i < 1;                                                                       \
+              name ## __i++)
 
+/**
+ * This macro defines a flexible block of memory that can be allocated either on
+ * the stack or dynamically on the heap, depending on the size required. The
+ * memory block is allocated using `mulle_malloc` if the requested size exceeds
+ * the stack size, or from the stack-allocated `name__storage` array otherwise.
+ *
+ * The macro takes the following parameters:
+ * @param name: The name of the variable that will hold the memory block.
+ * @param type: The type of the elements in the memory block.
+ * @param stacksize: The initial size of the stack-allocated memory block in bytes.
+ * @param count: The number of elements to allocate in the memory block.
+ *
+ * The macro creates a `for` loop that initializes the memory block and
+ * automatically frees it at the end of the loop. The memory block can be
+ * accessed using the `name` variable within the loop.
+ */
 //
 // As above, but you can set the initial size in bytes
 //
-#define mulle_alloca_do_flexible( name, type, stacksize, count)                                \
-   for( type name ## __storage[ _mulle_alloca_stackitems_1( stacksize, type)],                 \
-          *name ## __count = (type *) (uintptr_t) (count),                                     \
-          *name = ((uintptr_t) name ## __count) <= _mulle_alloca_do_get_size_as_length( name)  \
-                  ? name ## __storage                                                          \
-                  : mulle_malloc( sizeof( type) * (uintptr_t) name ## __count),                \
-        *name ## __i = NULL;                                                                   \
-        ! name ## __i;                                                                         \
-        name ## __i = _mulle_alloca_do_free( name)                                             \
-      )                                                                                        \
-                                                                                               \
-      for( int  name ## __j = 0;    /* break protection */                                     \
-           name ## __j < 1;                                                                    \
-           name ## __j++)
+#define mulle_alloca_do_flexible( name, type, stacksize, count)                                      \
+   for( type name ## __storage[ _mulle_alloca_stackitems_1( stacksize, type)],                       \
+        *name ## __count = (void *) (uintptr_t) (count),                                             \
+        *name ## __k = NULL;                                                                         \
+        ! name ## __k;                                                                               \
+        name ## __k++)                                                                               \
+                                                                                                     \
+      for( type *name = ((uintptr_t) name ## __count) <= _mulle_alloca_do_get_size_as_length( name)  \
+                     ? name ## __storage                                                             \
+                     : mulle_malloc( sizeof( type) * (uintptr_t) (void *) name ## __count),          \
+           *name ## __j = NULL;                                                                      \
+           ! name ## __j;                                                                            \
+           name ## __j = _mulle_alloca_do_free( name)                                                \
+                                                                                                     \
+         )                                                                                           \
+         for( int  name ## __i = 0;    /* break protection */                                        \
+              name ## __i < 1;                                                                       \
+              name ## __i++)
 
+
+/**
+ * This macro defines a block of memory that is allocated on the. The
+ * memory block is allocated using `mulle_malloc` and automatically freed at the
+ * end of the loop.
+ *
+ * The macro takes the following parameters:
+ * @param name: The name of the variable that will hold the memory block.
+ * @param type: The type of the elements in the memory block.
+ * @param count: The number of elements to allocate in the memory block.
+ *
+ * The macro creates a `for` loop that initializes the memory block and
+ * automatically frees it at the end of the loop. The memory block can be
+ * accessed using the `name` variable within the loop.
+ */
 
 //
 // complements mulle_alloca_do
 //         
+/**
+ * This macro defines a block of memory that is allocated on the heap using `mulle_malloc`.
+ * The memory block is automatically freed at the end of the loop.
+ *
+ * The macro takes the following parameters:
+ * @param name: The name of the variable that will hold the memory block.
+ * @param type: The type of the elements in the memory block.
+ * @param count: The number of elements to allocate in the memory block.
+ *
+ * The macro creates a `for` loop that initializes the memory block and
+ * automatically frees it at the end of the loop. The memory block can be
+ * accessed using the `name` variable within the loop.
+ */
 #define mulle_malloc_do( name, type, count)                                 \
-   for( type *name ## __count = (type *) (uintptr_t) (count),               \
-        *name = mulle_malloc( sizeof( type) * (uintptr_t) name ## __count); \
+   for( type *name = mulle_malloc( sizeof( type) * (count));                \
         name;                                                               \
         name = (mulle_free( name), NULL)                                    \
       )                                                                     \
                                                                             \
-      for( int  name ## __j = 0;    /* break protection */                  \
-           name ## __j < 1;                                                 \
-           name ## __j++)
+      for( int  name ## __i = 0;    /* break protection */                  \
+           name ## __i < 1;                                                 \
+           name ## __i++)
 
-#define mulle_calloc_do( name, type, count)                                 \
-   for( type *name ## __count = (type *) (uintptr_t) (count),               \
-        *name = mulle_calloc( sizeof( type), (uintptr_t) name ## __count);  \
+/**
+ * This macro defines a zeroed block of memory that is allocated on the heap using `mulle_calloc`.
+ * The memory block is automatically freed at the end of the loop.
+ *
+ * The macro takes the following parameters:
+ * @param name: The name of the variable that will hold the memory block.
+ * @param type: The type of the elements in the memory block.
+ * @param count: The number of elements to allocate in the memory block.
+ *
+ * The macro creates a `for` loop that initializes the memory block and
+ * automatically frees it at the end of the loop. The memory block can be
+ * accessed using the `name` variable within the loop.
+ */
+ #define mulle_calloc_do( name, type, count)                                \
+   for( type *name = mulle_calloc( (count), sizeof( type));                 \
         name;                                                               \
         name = (mulle_free( name), NULL)                                    \
       )                                                                     \
                                                                             \
-      for( int  name ## __j = 0;    /* break protection */                  \
-           name ## __j < 1;                                                 \
-           name ## __j++)
+      for( int  name ## __i = 0;    /* break protection */                  \
+           name ## __i < 1;                                                 \
+           name ## __i++)
 
 
 
+/**
+ * This macro defines a loop that iterates over a dynamically allocated buffer.
+ *
+ * The macro takes the following parameters:
+ * @param name: The name of the dynamically allocated buffer.
+ * @param len: The number of elements in the buffer.
+ * @param p: A pointer variable that will be used to iterate over the buffer.
+ *
+ * The macro creates a `for` loop that initializes the `p` pointer to the start of
+ * the buffer, and iterates until the pointer reaches the end of the buffer. The
+ * `p` pointer can be used within the loop to access the elements of the buffer.
+ */
 // This macro works outside of mulle_alloca_do, you have to give it
 // the number of elements in "name" though.
 // name and "p" must be a pointer of the correct type.
@@ -293,6 +421,20 @@ while( 0)
         p < name ## __sentinel;                                 \
         ++p)
 
+/**
+ * This macro defines a loop that iterates over a dynamically allocated buffer created by `mulle_alloca_do`.
+ *
+ * The macro takes the following parameters:
+ * @param name: The name of the dynamically allocated buffer.
+ * @param p: A pointer variable that will be used to iterate over the buffer.
+ *
+ * The macro creates a `for` loop that initializes the `p` pointer to the start of
+ * the buffer, and iterates until the pointer reaches the end of the buffer. The
+ * `p` pointer can be used within the loop to access the elements of the buffer.
+ *
+ * This macro is intended to be used within the scope of a `mulle_alloca_do` block,
+ * where the size of the buffer is known.
+ */
 //
 // This function only works inside mulle_alloca_do
 // 'p' needs to be declared outside, for mental consistency with
@@ -312,6 +454,20 @@ while( 0)
    mulle_alloca_do_extract( name, receiver)
 
 
+/**
+ * Reallocates a dynamically allocated buffer created by `mulle_alloca_do`.
+ *
+ * This macro is used to reallocate a buffer that was originally allocated using
+ * `mulle_alloca_do`. It will automatically handle the case where the buffer was
+ * allocated on the stack (using `name__storage`) or on the heap (using `mulle_malloc`).
+ *
+ * If the new size fits within the existing stack-allocated buffer, the macro will
+ * simply return without performing any reallocation. Otherwise, it will reallocate
+ * the buffer on the heap using `mulle_realloc`.
+ *
+ * @param name The name of the dynamically allocated buffer to be reallocated.
+ * @param count The new size (in elements) for the buffer.
+ */
 #define mulle_calloca_do_realloc( name, count)                  \
 do                                                              \
 {                                                               \
@@ -343,43 +499,119 @@ do                                                              \
 while( 0)
 
 
-#define mulle_calloca_do( name, type, count)                                                        \
-   for( type name ## __storage[ _mulle_alloca_stackitems_1( MULLE_ALLOCA_STACKSIZE, type)] = { 0 }, \
-          *name ## __count = (type *) (uintptr_t) (count),                                          \
-          *name = ((uintptr_t) name ## __count) <= _mulle_alloca_do_get_size_as_length( name)       \
-                  ? name ## __storage                                                               \
-                  : mulle_calloc( sizeof( type), (uintptr_t) name ## __count),                      \
-        *name ## __i = NULL;                                                                        \
-        ! name ## __i;                                                                              \
-        name ## __i = _mulle_alloca_do_free( name)                                                  \
-      )                                                                                             \
-                                                                                                    \
-      for( int  name ## __j = 0;    /* break protection */                                          \
-           name ## __j < 1;                                                                         \
-           name ## __j++)
+/**
+ * Allocates a dynamically sized zeroed buffer on the stack or heap, depending on the
+ * requested size. The buffer is automatically freed at the end of the loop.
+ *
+ * This macro is used to allocate a buffer that can grow dynamically, but still
+ * take advantage of stack-based allocation when possible. It will allocate the
+ * buffer on the stack if the requested size fits within a predefined limit
+ * (`MULLE_ALLOCA_STACKSIZE`), otherwise it will allocate the buffer on the heap
+ * using `mulle_calloc`.
+ *
+ * The buffer is automatically freed at the end of the loop using the
+ * `_mulle_alloca_do_free` function.
+ *
+ * @param name The name of the dynamically allocated buffer.
+ * @param type The type of the elements in the buffer.
+ * @param count The initial size (in elements) of the buffer.
+ */
+#define mulle_calloca_do( name, type, count)                                                         \
+   for( type name ## __storage[ _mulle_alloca_stackitems_1( MULLE_ALLOCA_STACKSIZE, type)] = { 0 },  \
+        *name ## __count = (void *) (uintptr_t) (count),                                             \
+        *name ## __k = NULL;                                                                         \
+        ! name ## __k;                                                                               \
+        name ## __k++)                                                                               \
+      for( type *name = ((uintptr_t) name ## __count) <= _mulle_alloca_do_get_size_as_length( name)  \
+                     ? name ## __storage                                                             \
+                     : mulle_calloc( (size_t) (void *) name ## __count, sizeof( type)),              \
+           *name ## __j = NULL;                                                                      \
+           ! name ## __j;                                                                            \
+           name ## __j = _mulle_alloca_do_free( name)                                                \
+         )                                                                                           \
+         for( int  name ## __i = 0;    /* break protection */                                        \
+              name ## __i < 1;                                                                       \
+              name ## __i++)
 
+
+/**
+ * Allocates a dynamically sized zeroed buffer on the stack or heap, depending on the
+ * requested size and a specified stack size limit. The buffer is automatically freed
+ * at the end of the loop.
+ *
+ * This macro is used to allocate a buffer that can grow dynamically, but still
+ * take advantage of stack-based allocation when possible. It will allocate the
+ * buffer on the stack if the requested size fits within the specified stack size
+ * limit, otherwise it will allocate the buffer on the heap using `mulle_calloc`.
+ *
+ * The buffer is automatically freed at the end of the loop using the
+ * `_mulle_alloca_do_free` function.
+ *
+ * @param name The name of the dynamically allocated buffer.
+ * @param type The type of the elements in the buffer.
+ * @param stacksize The maximum size (in bytes) of the buffer to allocate on the stack.
+ * @param count The initial size (in elements) of the buffer.
+ */
 //
 // as above, but you can set the initial size
 //
-#define mulle_calloca_do_flexible( name, type, stacksize, count)                              \
-   for( type name ## __storage[ _mulle_alloca_stackitems_1( stacksize, type)] = { 0 },        \
-          *name ## __count = (type *) (uintptr_t) (count),                                    \
-          *name = ((uintptr_t) name ## __count) <= _mulle_alloca_do_get_size_as_length( name) \
-                  ? name ## __storage                                                         \
-                  : mulle_calloc( sizeof( type), (uintptr_t) name ## __count),                \
-        *name ## __i = NULL;                                                                  \
-        ! name ## __i;                                                                        \
-        name ## __i = _mulle_alloca_do_free( name)                                            \
-      )                                                                                       \
-                                                                                              \
-      for( int  name ## __j = 0;    /* break protection */                                    \
-           name ## __j < 1;                                                                   \
-           name ## __j++)
+#define mulle_calloca_do_flexible( name, type, stacksize, count)                                     \
+   for( type name ## __storage[ _mulle_alloca_stackitems_1( stacksize, type)] = { 0 },               \
+        *name ## __count = (void *) (uintptr_t) (count),                                             \
+        *name ## __k = NULL;                                                                         \
+        ! name ## __k;                                                                               \
+        name ## __k++)                                                                               \
+      for( type *name = ((uintptr_t) name ## __count) <= _mulle_alloca_do_get_size_as_length( name)  \
+                     ? name ## __storage                                                             \
+                     : mulle_calloc( (size_t) (void *) name ## __count, sizeof( type)),              \
+           *name ## __j = NULL;                                                                      \
+           ! name ## __j;                                                                            \
+           name ## __j = _mulle_alloca_do_free( name)                                                \
+         )                                                                                           \
+         for( int  name ## __i = 0;    /* break protection */                                        \
+              name ## __i < 1;                                                                       \
+              name ## __i++)
 
 
+/**
+ * Allocates a dynamically sized zeroed buffer on the stack or heap, depending on the
+ * requested size and a specified stack size limit. The buffer is automatically freed
+ * at the end of the loop.
+ *
+ * This macro is used to allocate a buffer that can grow dynamically, but still
+ * take advantage of stack-based allocation when possible. It will allocate the
+ * buffer on the stack if the requested size fits within the specified stack size
+ * limit, otherwise it will allocate the buffer on the heap using `mulle_calloc`.
+ *
+ * The buffer is automatically freed at the end of the loop using the
+ * `_mulle_alloca_do_free` function.
+ *
+ * @param name The name of the dynamically allocated buffer.
+ * @param type The type of the elements in the buffer.
+ * @param stacksize The maximum size (in bytes) of the buffer to allocate on the stack.
+ * @param count The initial size (in elements) of the buffer.
+ */
 #define mulle_calloc_for( name, len, p) \
    mulle_malloc_for( name, len, p)
 
+/**
+ * Allocates a dynamically sized zeroed buffer on the stack or heap, depending on the
+ * requested size and a specified stack size limit. The buffer is automatically freed
+ * at the end of the loop.
+ *
+ * This macro is used to allocate a buffer that can grow dynamically, but still
+ * take advantage of stack-based allocation when possible. It will allocate the
+ * buffer on the stack if the requested size fits within the specified stack size
+ * limit, otherwise it will allocate the buffer on the heap using `mulle_calloc`.
+ *
+ * The buffer is automatically freed at the end of the loop using the
+ * `_mulle_alloca_do_free` function.
+ *
+ * @param name The name of the dynamically allocated buffer.
+ * @param type The type of the elements in the buffer.
+ * @param stacksize The maximum size (in bytes) of the buffer to allocate on the stack.
+ * @param count The initial size (in elements) of the buffer.
+ */
 //
 // This function only works inside mulle_alloca_do
 // 'p' needs to be declared outside, for mental consistency with
@@ -388,5 +620,11 @@ while( 0)
 #define mulle_calloca_do_for( name, p)   \
    mulle_alloca_do_for( name, p)
 
+
+// backwards compatibility
+#define mulle_flexarray_do( a, b, c, d)    mulle_alloca_do( a, b, d)
+#define mulle_flexarray_realloc( a, b)     mulle_alloca_do_realloc( a, b)
+#define _mulle_flexarray_return( a, b)     _mulle_alloca_do_return( a, b)
+#define _mulle_flexarray_return_void( a)   _mulle_alloca_do_return_void( a)
 
 #endif

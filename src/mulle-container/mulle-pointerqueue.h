@@ -53,7 +53,7 @@ struct mulle_pointerqueue
 };
 
 
-#define MULLE_POINTERQUEUE_INIT( xbucket_size, xspare_allowance, xallocator) \
+#define MULLE_POINTERQUEUE_DATA( xbucket_size, xspare_allowance, xallocator) \
    ((struct mulle_pointerqueue)                                              \
    {                                                                         \
       ._bucket_size     = xbucket_size,                                      \
@@ -286,14 +286,14 @@ void   *mulle_pointerqueue_pop( struct mulle_pointerqueue *queue)
 
 
 MULLE_C_NONNULL_FIRST
-static inline unsigned int
+static inline size_t
    _mulle_pointerqueue_get_count( struct mulle_pointerqueue *queue)
 {
    return( _mulle__pointerqueue_get_count( (struct mulle__pointerqueue *) queue));
 }
 
 
-static inline unsigned int
+static inline size_t
    mulle_pointerqueue_get_count( struct mulle_pointerqueue *queue)
 {
    return( queue ? _mulle_pointerqueue_get_count( queue) : 0);
@@ -308,7 +308,7 @@ static inline unsigned short
 }
 
 
-static inline unsigned int
+static inline size_t
    mulle_pointerqueue_get_bucketsize( struct mulle_pointerqueue *queue)
 {
    return( queue ? _mulle_pointerqueue_get_bucketsize( queue) : 0);
@@ -379,7 +379,7 @@ static inline void   mulle_pointerqueueenumerator_done( struct mulle_pointerqueu
 
 #define mulle_pointerqueue_do( name)                                    \
    for( struct mulle_pointerqueue                                       \
-           name ## __container = MULLE_POINTERQUEUE_INIT( 64, 0, NULL), \
+           name ## __container = MULLE_POINTERQUEUE_DATA( 64, 0, NULL), \
            *name = &name ## __container,                                \
            *name ## __i = NULL;                                         \
         ! name ## __i;                                                  \
@@ -400,9 +400,9 @@ static inline void   mulle_pointerqueueenumerator_done( struct mulle_pointerqueu
    assert( sizeof( item) == sizeof( void *));                                             \
    for( struct mulle_pointerqueueenumerator                                               \
            rover__ ## item = mulle_pointerqueue_enumerate( name),                         \
-           *rover___  ## item ## __i = (void *) 0;                                        \
-        ! rover___  ## item ## __i;                                                       \
-        rover___ ## item ## __i = (_mulle_pointerqueueenumerator_done( &rover__ ## item), \
+           *rover__  ## item ## __i = (void *) 0;                                        \
+        ! rover__  ## item ## __i;                                                       \
+        rover__ ## item ## __i = (_mulle_pointerqueueenumerator_done( &rover__ ## item), \
                                    (void *) 1))                                           \
       while( _mulle_pointerqueueenumerator_next( &rover__ ## item, (void **) &item))
 

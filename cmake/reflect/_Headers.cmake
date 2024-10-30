@@ -252,9 +252,9 @@ src/mulle-buffer/mulle--buffer.h
 src/mulle-buffer/mulle-buffer.h
 src/mulle-buffer/_mulle-buffer-include.h
 src/mulle-buffer/_mulle-buffer-versioncheck.h
-src/mulle-buffer/mulle-flexbuffer.h
 src/mulle-buffer/mulle-flushablebuffer.h
 src/mulle-c11/mulle-c11-bool.h
+src/mulle-c11/mulle-c11-endian.h
 src/mulle-c11/mulle-c11-eval.h
 src/mulle-c11/mulle-c11.h
 src/mulle-c11/mulle-c11-integer.h
@@ -309,7 +309,6 @@ src/mulle-container/mulle-container-math.h
 src/mulle-container/mulle-container-operation.h
 src/mulle-container/_mulle-container-provide.h
 src/mulle-container/_mulle-container-versioncheck.h
-src/mulle-container/mulle-flexarray.h
 src/mulle-container/mulle--map.h
 src/mulle-container/mulle-map.h
 src/mulle-container/mulle--pointerarray.h
@@ -364,6 +363,7 @@ src/mulle-fifo/mulle--pointerfifo64.h
 src/mulle-fifo/mulle--pointerfifo8192.h
 src/mulle-fifo/mulle--pointerfifo8.h
 src/mulle-fifo/mulle-pointerfifo.h
+src/mulle-fprintf/mulle-buffer-stdio.h
 src/mulle-fprintf/mulle-fprintf.h
 src/mulle-fprintf/_mulle-fprintf-include.h
 src/mulle-fprintf/_mulle-fprintf-include-public.h

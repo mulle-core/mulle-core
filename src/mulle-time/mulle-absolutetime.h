@@ -48,6 +48,12 @@ static inline void
 }
 
 
+static inline mulle_absolutetime_t
+   mulle_absolutetime_make( mulle_timeinterval_t value)
+{
+   return( (mulle_absolutetime_t) value);
+}
+
 //
 // struct mulle_absolutetimerange is a... range of time with a start and an end.
 // The end is thought of as being inclusive.
@@ -59,7 +65,7 @@ struct mulle_absolutetimerange
 };
 
 
-#define MULLE_ABSOLUTETIMERANGE_INIT( start, end)  \
+#define MULLE_ABSOLUTETIMERANGE_DATA( start, end)  \
    ((struct mulle_absolutetimerange)               \
    {                                               \
       (start),                                     \

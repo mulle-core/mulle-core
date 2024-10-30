@@ -45,17 +45,20 @@ struct mulle_allocator;
 
 enum
 {
-  MULLE_BUFFER_IS_FLEXIBLE      = 0,
-  MULLE_BUFFER_IS_INFLEXIBLE    = 1,
-  MULLE_BUFFER_IS_FLUSHABLE     = 2
+  MULLE_BUFFER_IS_FLEXIBLE   = 0,
+  MULLE_BUFFER_IS_INFLEXIBLE = 1,
+  MULLE_BUFFER_IS_FLUSHABLE  = 2
 };
 
 
 //
 // this is the base for MULLE_BUFFER, but it does not contain an allocator
 // and none of the functions check for NULL pointers
+//
 // _size is there to keep "capacity" for initial allocation (could be
-// optimized away, if we don't need capacity)
+// optimized away, if we don't need capacity) or remember what the size of
+// _initial_storage is. It is never modified unless you run into the overflow
+// condition, then the length before the overflow is kept there.
 //
 #define MULLE__BUFFER_BASE            \
    unsigned char   *_storage;         \
@@ -76,7 +79,7 @@ struct mulle__buffer
    MULLE__BUFFER_BASE;
 };
 
-#define MULLE__BUFFER_INIT_FLEXIBLE( data, len)    \
+#define MULLE__BUFFER_FLEXIBLE_DATA( data, len)    \
    ((struct mulle__buffer)                         \
    {                                               \
       (unsigned char *) data,                      \
@@ -87,7 +90,7 @@ struct mulle__buffer
       MULLE_BUFFER_IS_FLEXIBLE                     \
    })
 
-#define MULLE__BUFFER_INIT_INFLEXIBLE( data, len)  \
+#define MULLE__BUFFER_INFLEXIBLE_DATA( data, len)  \
    ((struct mulle__buffer)                         \
    {                                               \
       (unsigned char *) data,                      \
@@ -95,7 +98,7 @@ struct mulle__buffer
       &((unsigned char *) data)[ (len)],           \
       (unsigned char *) data,                      \
       (len),                                       \
-      MULLE_BUFFER_IS_FLEXIBLE                     \
+      MULLE_BUFFER_IS_INFLEXIBLE                   \
    })
 
 
@@ -125,6 +128,8 @@ static inline void   _mulle__buffer_init_with_allocated_bytes( struct mulle__buf
    buffer->_sentinel        = &buffer->_storage[ length];
    buffer->_size            = length;
    buffer->_type            = MULLE_BUFFER_IS_FLEXIBLE;
+
+   assert( buffer->_sentinel >= buffer->_storage);
 }
 
 
@@ -140,27 +145,13 @@ static inline void   _mulle__buffer_init_with_static_bytes( struct mulle__buffer
    buffer->_sentinel        = &buffer->_storage[ length];
    buffer->_size            = length;
    buffer->_type            = MULLE_BUFFER_IS_FLEXIBLE;
+
+   assert( buffer->_sentinel >= buffer->_storage);
 }
 
 
-static inline void    _mulle__buffer_init( struct mulle__buffer *buffer)
-{
-   memset( buffer, 0, sizeof( struct mulle__buffer));
-}
-
-
-static inline void   _mulle__buffer_set_initial_capacity( struct mulle__buffer *buffer,
-                                                          size_t capacity)
-{
-   assert( buffer);
-   assert( buffer->_storage  == 0);
-   assert( buffer->_size == 0);
-   buffer->_size =  capacity >> 1;
-}
-
-
-static inline void   _mulle__buffer_init_with_capacity( struct mulle__buffer *buffer,
-                                                        size_t capacity)
+static inline void   _mulle__buffer_init( struct mulle__buffer *buffer,
+                                          size_t capacity)
 {
    buffer->_initial_storage  =
    buffer->_curr             =
@@ -171,20 +162,20 @@ static inline void   _mulle__buffer_init_with_capacity( struct mulle__buffer *bu
 }
 
 
-static inline void
+MULLE__BUFFER_GLOBAL
+MULLE_C_NONNULL_FIRST
+void
   _mulle__buffer_init_inflexible_with_static_bytes( struct mulle__buffer *buffer,
                                                     void *storage,
-                                                    size_t length)
-{
-   assert( length != (size_t) -1);
+                                                    size_t length);
 
-   buffer->_initial_storage  =
-   buffer->_storage          =
-   buffer->_curr             = storage;
-   buffer->_sentinel         = &buffer->_storage[ length];
-   buffer->_size             = length;
-   buffer->_type             = MULLE_BUFFER_IS_INFLEXIBLE;
-}
+
+MULLE__BUFFER_GLOBAL
+MULLE_C_NONNULL_FIRST
+void
+  _mulle__buffer_init_with_const_bytes( struct mulle__buffer *buffer,
+                                        const void *storage,
+                                        size_t length);
 
 
 static inline void   _mulle__buffer_done( struct mulle__buffer *buffer,
@@ -203,7 +194,7 @@ static inline void   _mulle__buffer_reset( struct mulle__buffer *buffer,
                                            struct mulle_allocator *allocator)
 {
    _mulle__buffer_done( buffer, allocator);
-   _mulle__buffer_init( buffer);
+   _mulle__buffer_init( buffer, 0);
 }
 
 
@@ -218,8 +209,23 @@ void   _mulle__buffer_make_inflexible( struct mulle__buffer *buffer,
 
 static inline int   _mulle__buffer_has_overflown( struct mulle__buffer *buffer)
 {
-   return( buffer->_curr > buffer->_sentinel); // only ever yes for inflexible buffer
+   return( buffer->_curr > buffer->_sentinel);
 }
+
+
+/**
+ * Sets the buffer's overflown state.
+ *
+ * This internal function is used to mark the buffer as overflown, indicating that
+ * its capacity has been exceeded. It sets the current pointer to a position past
+ * the sentinel, signaling that the buffer is in an overflown state.
+ *
+ * @param buffer The buffer to set as overflown.
+ */
+MULLE__BUFFER_GLOBAL
+MULLE_C_NONNULL_FIRST
+void  _mulle__buffer_set_overflown( struct mulle__buffer *buffer);
+
 
 
 #pragma mark - resize
@@ -233,18 +239,14 @@ MULLE__BUFFER_GLOBAL
 void   _mulle__buffer_size_to_fit( struct mulle__buffer *buffer,
                                    struct mulle_allocator *allocator);
 
-// this zeroes, when advancing, shrinks otherwise
-MULLE__BUFFER_GLOBAL
-void   _mulle__buffer_zero_to_length( struct mulle__buffer *buffer,
-                                      size_t length,
-                                      struct mulle_allocator *allocator);
 
 
 // this zeroes, when advancing, shrinks otherwise
 MULLE__BUFFER_GLOBAL
-size_t   _mulle__buffer_set_length( struct mulle__buffer *buffer,
-                                    size_t length,
-                                    struct mulle_allocator *allocator);
+int   _mulle__buffer_set_length( struct mulle__buffer *buffer,
+                                 size_t length,
+                                 unsigned int options,
+                                 struct mulle_allocator *allocator);
 
 
 static inline void   *_mulle__buffer_guarantee( struct mulle__buffer *buffer,
@@ -309,10 +311,21 @@ static inline int   _mulle__buffer_is_full( struct mulle__buffer *buffer)
 }
 
 
+static inline size_t   _mulle__buffer_get_allocation_length( struct mulle__buffer *buffer)
+{
+   return( buffer->_sentinel - buffer->_storage);
+}
+
+
+static inline size_t   _mulle__buffer_get_remaining_length( struct mulle__buffer *buffer)
+{
+   return( _mulle__buffer_has_overflown( buffer) ? 0 : buffer->_sentinel - buffer->_curr);
+}
+
+
 static inline int   _mulle__buffer_is_big_enough( struct mulle__buffer *buffer,
                                                   size_t len)
 {
-   assert( len);
    return( &buffer->_curr[ len] <= buffer->_sentinel);
 }
 
@@ -332,7 +345,7 @@ static inline int   _mulle__buffer_is_void( struct mulle__buffer *buffer)
 static inline size_t   _mulle__buffer_get_length( struct mulle__buffer *buffer)
 {
    return( _mulle__buffer_has_overflown( buffer)
-          ? buffer->_sentinel - buffer->_storage  // sticky contents
+          ? buffer->_size
           : buffer->_curr - buffer->_storage);
 }
 
@@ -343,6 +356,7 @@ static inline size_t  _mulle__buffer_get_capacity( struct mulle__buffer *buffer)
       return( buffer->_size << 1);
    return( _mulle__buffer_get_length( buffer));
 }
+
 
 
 enum
@@ -356,7 +370,7 @@ MULLE__BUFFER_GLOBAL
 long   _mulle__buffer_get_seek( struct mulle__buffer *buffer);
 
 MULLE__BUFFER_GLOBAL
-int      _mulle__buffer_set_seek( struct mulle__buffer *buffer, int mode, long seek);
+int      _mulle__buffer_set_seek( struct mulle__buffer *buffer, long seek, int mode);
 
 
 
@@ -396,27 +410,22 @@ char   *_mulle__buffer_get_string( struct mulle__buffer *buffer,
                                    struct mulle_allocator *allocator);
 
 
-static inline struct mulle_data   _mulle__buffer_get_data( struct mulle__buffer *buffer)
-{
-   struct mulle_data   data;
-
-   data.bytes  = buffer->_storage;
-   data.length = _mulle__buffer_get_length( buffer);
-
-   return( data);
-}
-
-
 static inline void   *_mulle__buffer_get_bytes( struct mulle__buffer *buffer)
 {
    return( buffer->_storage);
 }
 
 
-static inline size_t   _mulle__buffer_get_size( struct mulle__buffer *buffer)
+static inline struct mulle_data   _mulle__buffer_get_data( struct mulle__buffer *buffer)
 {
-   return( buffer->_size);
+   struct mulle_data   data;
+
+   data.bytes  = _mulle__buffer_get_bytes( buffer);
+   data.length = _mulle__buffer_get_length( buffer);
+
+   return( data);
 }
+
 
 static inline size_t   _mulle__buffer_get_staticlength( struct mulle__buffer *buffer)
 {
@@ -425,10 +434,11 @@ static inline size_t   _mulle__buffer_get_staticlength( struct mulle__buffer *bu
           : 0);
 }
 
+
 static inline size_t   _mulle__buffer_get_staticsize( struct mulle__buffer *buffer)
 {
    return( buffer->_storage == buffer->_initial_storage
-          ? _mulle__buffer_get_size( buffer)
+          ? buffer->_size
           : 0);
 }
 
@@ -450,16 +460,6 @@ static inline void    _mulle__buffer_add_byte( struct mulle__buffer *buffer,
 }
 
 
-static inline int    _mulle__buffer_get_last_byte( struct mulle__buffer *buffer)
-{
-   assert( ! _mulle__buffer_is_empty( buffer));
-   assert( ! _mulle__buffer_has_overflown( buffer));
-
-   if( buffer->_curr == buffer->_storage)
-      return( -1);
-   return( buffer->_curr[ -1]);
-}
-
 
 static inline void    _mulle__buffer_remove_last_byte( struct mulle__buffer *buffer)
 {
@@ -467,6 +467,21 @@ static inline void    _mulle__buffer_remove_last_byte( struct mulle__buffer *buf
    assert( ! _mulle__buffer_has_overflown( buffer));
 
    --buffer->_curr;
+}
+
+
+static inline int    _mulle__buffer_pop_byte( struct mulle__buffer *buffer,
+                                              struct mulle_allocator *allocator)
+{
+   MULLE_C_UNUSED( allocator); // future
+   // no longer overflown I guess
+   if( _mulle__buffer_has_overflown( buffer))
+      buffer->_curr = buffer->_sentinel;
+   if( _mulle__buffer_is_empty( buffer))
+      return( -1);
+
+   --buffer->_curr;
+   return( *buffer->_curr);
 }
 
 
@@ -479,6 +494,7 @@ static inline void    _mulle__buffer_add_char( struct mulle__buffer *buffer,
                                                struct mulle_allocator *allocator)
 {
    assert( c <= CHAR_MAX && c >= CHAR_MIN);
+
    _mulle__buffer_add_byte( buffer, (unsigned char) c, allocator);
 }
 
@@ -683,42 +699,39 @@ static inline void   _mulle__buffer_memset( struct mulle__buffer *buffer,
 }
 
 
-static inline int   _mulle__buffer_memcmp( struct mulle__buffer *buffer,
-                                           void  *bytes,
-                                           size_t length)
-{
-   if( length > _mulle__buffer_get_length( buffer))
-      return( 1);
-
-   return( memcmp( buffer->_storage, bytes, length));
-}
-
 
 //
 // a bit weird, but it is used to truncate or a append a 0 string
-// but size is not adjusted, useful when retrieving the buffer and
+// but size is not adjusted. Useful when retrieving the buffer and
 // use it as cString, but the buffer is fixed size. You can then print
 // the strlen or print the contents. You can then easily just append
 // another string.
 //
+// returns 0 : last byte is zeroed no loss
+//         1 : last byte zeroed (lossy!, potentially corrupting UTF8)
+//         2 : is NULL
+//
 static inline int   _mulle__buffer_zero_last_byte( struct mulle__buffer *buffer)
 {
-   if( ! _mulle__buffer_is_void( buffer))
-   {
-      if( _mulle__buffer_has_overflown( buffer))
-      {
-         buffer->_curr[ -2] = 0;
-         return( 2);
-      }
+   unsigned char   *p;
+   int             rval;
 
-      if( _mulle__buffer_is_full( buffer))
-      {
-         buffer->_curr[ -1] = 0;
-         return( 1);
-      }
-      buffer->_curr[ 0] = 0;
+   if( _mulle__buffer_is_void( buffer))
+      return( 2); // NULL
+
+   rval = 0;
+   p    = buffer->_curr;
+
+   if( _mulle__buffer_has_overflown( buffer))
+      p = &buffer->_storage[ buffer->_size];
+
+   if( p == buffer->_sentinel)
+   {
+      --p;
+      rval = 1;  // truncate
    }
-   return( 0);
+   *p = 0;
+   return( rval);
 }
 
 
@@ -742,8 +755,11 @@ void   _mulle__buffer_add_buffer_range( struct mulle__buffer *buffer,
                                         struct mulle_allocator *allocator);
 
 
-// zeroes if inflexible, otherwise adds
-// returns number of bytes inflexible buffer truncated 
+//
+// returns 0 : no truncation
+//         1 : truncated! (e.g. possibly UTF8 corruption
+//         2 : buffer is void (NULL)
+//
 MULLE__BUFFER_GLOBAL
 int   _mulle__buffer_make_string( struct mulle__buffer *buffer,
                                   struct mulle_allocator *allocator);
@@ -754,6 +770,48 @@ int  _mulle__buffer_flush( struct mulle__buffer *buffer);
 
 
 #pragma mark - reading
+
+
+// returns -1 if not a byte
+static inline int   _mulle__buffer_get_byte( struct mulle__buffer *buffer, unsigned int index)
+{
+   if( &buffer->_storage[ index] >= buffer->_sentinel)
+      return( -1);
+   return( ((uint8_t *) buffer->_storage)[ index]);
+}
+
+
+// returns -1 if not a word
+static inline int   _mulle__buffer_get_uint16( struct mulle__buffer *buffer, unsigned int index)
+{
+   // we access 1 additional bytes after index, so gotta check that as well
+   if( &((uint16_t *) buffer->_storage)[ index * sizeof( uint32_t)] > &((uint16_t *) buffer->_sentinel)[ -1])
+      return( -1);
+   return( ((uint16_t *) buffer->_storage)[ index * sizeof( uint32_t)]);
+}
+
+
+// returns -1 if not a word
+static inline int64_t   _mulle__buffer_get_uint32( struct mulle__buffer *buffer, unsigned int index)
+{
+   // we access 3 additional bytes after index, so gotta check that as well
+   if( &((uint32_t *) buffer->_storage)[ index * sizeof( uint32_t)] > &((uint32_t *) buffer->_sentinel)[ -1])
+      return( -1);
+   return( ((uint32_t *) buffer->_storage)[ index * sizeof( uint32_t)]);
+}
+
+
+
+static inline int    _mulle__buffer_get_last_byte( struct mulle__buffer *buffer)
+{
+   size_t   length;
+
+   length = _mulle__buffer_get_length( buffer);
+   if( ! length)
+      return( -1);
+
+   return( buffer->_storage[ length - 1]);
+}
 
 /*
  * Limited read support for inflexible buffers
@@ -791,11 +849,13 @@ static inline void   *_mulle__buffer_reference_bytes( struct mulle__buffer *buff
 
 
 static inline int   _mulle__buffer_next_bytes( struct mulle__buffer *buffer,
-                                              void *buf,
-                                              size_t len)
+                                               void *buf,
+                                               size_t len)
 {
    if( ! _mulle__buffer_is_big_enough( buffer, len))
       return( -1);
+
+   assert( buf || ! len);
 
    memmove( buf, buffer->_curr, len);
    buffer->_curr += len;
@@ -809,6 +869,18 @@ static inline int   _mulle__buffer_next_character( struct mulle__buffer *buffer)
       return( INT_MAX);
    return( (char) *buffer->_curr++);
 }
+
+
+static inline int   _mulle__buffer_memcmp( struct mulle__buffer *buffer,
+                                           void  *bytes,
+                                           size_t length)
+{
+   if( length > _mulle__buffer_get_length( buffer))
+      return( 1);
+
+   return( memcmp( buffer->_storage, bytes, length));
+}
+
 
 
 /* like a seek forwards, if something found */
@@ -832,7 +904,7 @@ static inline long   _mulle__buffer_seek_byte( struct mulle__buffer *buffer,
 MULLE__BUFFER_GLOBAL
 void   _mulle__buffer_copy_range( struct mulle__buffer *buffer,
                                   struct mulle_range range,
-                                  unsigned char *dst);
+                                  void *dst);
 
 
 #pragma mark - backwards compatibility
