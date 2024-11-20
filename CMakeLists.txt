@@ -8,7 +8,7 @@
 #
 cmake_minimum_required( VERSION 3.19) # for REAL_PATH
 
-project( mulle-core VERSION 0.3.0 LANGUAGES C)
+project( mulle-core VERSION 0.4.0 LANGUAGES C)
 
 
 set( MULLE_PROJECT_TYPE "Library")
