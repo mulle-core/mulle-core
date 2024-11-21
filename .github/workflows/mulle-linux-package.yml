@@ -18,9 +18,9 @@ jobs:
     steps:
     - name: Set MULLE_HOSTNAME
       run: |
-        name="${GITHUB_REF##*/}"
-        MULLE_HOSTNAME="${MULLE_HOSTNAME:-ci-${name##*-}}"
-        echo "MULLE_HOSTNAME=${MULLE_HOSTNAME}" >> $GITHUB_ENV
+           name="${GITHUB_REF##*/}"
+           MULLE_HOSTNAME="${MULLE_HOSTNAME:-ci-${name##*-}}"
+           echo "MULLE_HOSTNAME=${MULLE_HOSTNAME}" >> $GITHUB_ENV
 
     - name: Add to path
       run:  echo "$HOME/bin" >> $GITHUB_PATH
@@ -34,10 +34,10 @@ jobs:
 
     - name: Install sudo if needed
       run: |
-        if ! command -v sudo &> /dev/null; then
-          apt-get update
-          apt-get install -y sudo
-        fi
+           if ! command -v sudo &> /dev/null; then
+             apt update
+             apt install -y sudo
+           fi
 
     - name: Install rpmbuild
       run:  sudo apt-get update && sudo apt-get install -y rpm
@@ -97,9 +97,9 @@ jobs:
     steps:
     - name: Set MULLE_HOSTNAME
       run: |
-        name="${GITHUB_REF##*/}"
-        MULLE_HOSTNAME="${MULLE_HOSTNAME:-ci-${name##*-}}"
-        echo "MULLE_HOSTNAME=${MULLE_HOSTNAME}" >> $GITHUB_ENV
+           name="${GITHUB_REF##*/}"
+           MULLE_HOSTNAME="${MULLE_HOSTNAME:-ci-${name##*-}}"
+           echo "MULLE_HOSTNAME=${MULLE_HOSTNAME}" >> $GITHUB_ENV
 
     - name: Add to path
       run:  echo "$HOME/bin" >> $GITHUB_PATH
@@ -113,10 +113,10 @@ jobs:
 
     - name: Install sudo if needed
       run: |
-        if ! command -v sudo &> /dev/null; then
-          apt-get update
-          apt-get install -y sudo
-        fi
+           if ! command -v sudo &> /dev/null; then
+             apt update
+             apt install -y sudo
+           fi
 
     - name: Install mulle-project
       run:  |
