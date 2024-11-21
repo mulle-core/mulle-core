@@ -32,10 +32,12 @@ jobs:
 
     - uses: mulle-sde/github-ci@v2
 
-    - name: Install sudo
-      run:  |
-            apt-get update
-            apt-get install -y sudo
+    - name: Install sudo if needed
+      run: |
+        if ! command -v sudo &> /dev/null; then
+          apt-get update
+          apt-get install -y sudo
+        fi
 
     - name: Install rpmbuild
       run:  sudo apt-get update && sudo apt-get install -y rpm
@@ -109,10 +111,12 @@ jobs:
 
     - uses: mulle-sde/github-ci@v2
 
-    - name: Install sudo
-      run:  |
-            apt-get update
-            apt-get install -y sudo
+    - name: Install sudo if needed
+      run: |
+        if ! command -v sudo &> /dev/null; then
+          apt-get update
+          apt-get install -y sudo
+        fi
 
     - name: Install mulle-project
       run:  |
