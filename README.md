@@ -107,6 +107,8 @@ git submodule add https://github.com/mulle-core/mulle-core.git stash/mulle-core
 git submodule update --init --recursive
 ```
 
+Add this to your `CMakeLists.txt`:
+
 ``` cmake
 add_subdirectory( stash/mulle-core)
 target_link_libraries( ${PROJECT_NAME} PRIVATE mulle-core)
