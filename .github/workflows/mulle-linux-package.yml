@@ -32,8 +32,13 @@ jobs:
 
     - uses: mulle-sde/github-ci@v2
 
-    - name: Install sudo and rpmbuild
-      run:  sudo apt-get update && sudo apt-get install -y rpm sudo
+    - name: Install sudo
+      run:  |
+            apt-get update
+            apt-get install -y sudo
+
+    - name: Install rpmbuild
+      run:  sudo apt-get update && sudo apt-get install -y rpm
 
     - name: Install mulle-project
       run:  |
@@ -103,6 +108,11 @@ jobs:
     - uses: actions/checkout@v4
 
     - uses: mulle-sde/github-ci@v2
+
+    - name: Install sudo
+      run:  |
+            apt-get update
+            apt-get install -y sudo
 
     - name: Install mulle-project
       run:  |
