@@ -41,6 +41,10 @@
  *  r+  Open the stream for reading and writing.
  *  w+  Open the stream for reading and writing.  The buffer contents are truncated (i.e., '\0' is placed in the first byte of the buffer).
  *  a+  Append; open the stream for reading and writing, with the initial buffer position set to the first null byte.
+ *
+ * Unfortunately in a cross-platform scenario (at least darwin and linux,
+ * the fmemopen interface is super flakey and unpredictable when it comes
+ * to seeking and writing in various modes).
  */
 MULLE__FPRINTF_GLOBAL
 void   *mulle_buffer_fmemopen( void *buf, size_t size, const char *mode);
