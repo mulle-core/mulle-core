@@ -1,3 +1,8 @@
+## 0.5.0
+
+* incorporate changes from subprojects
+
+
 ## 0.4.0
 
 * new version, see constituents for changes

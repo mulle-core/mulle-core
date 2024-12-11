@@ -50,7 +50,7 @@
  *
  *  version:  major, minor, patch
  */
-#define MULLE__STACKTRACE_VERSION  ((0UL << 20) | (2 << 8) | 9)
+#define MULLE__STACKTRACE_VERSION  ((0UL << 20) | (3 << 8) | 0)
 
 
 static inline unsigned int   mulle_stacktrace_get_version_major( void)
@@ -109,7 +109,8 @@ enum mulle_stacktrace_format
 {
    mulle_stacktrace_normal   = 0,
    mulle_stacktrace_trimmed  = 1, 
-   mulle_stacktrace_linefeed = 2
+   mulle_stacktrace_linefeed = 2,
+   mulle_stacktrace_csv      = 3
 };
 
 // stacktrace may be NULL
@@ -132,7 +133,11 @@ static inline void   mulle_stacktrace_once( FILE *fp)
 }
 
 
+MULLE__STACKTRACE_GLOBAL
 int   mulle_stacktrace_count_frames( void);
+
+MULLE__STACKTRACE_GLOBAL
+char  *mulle_stacktrace_symbolize_nothing( void *adresse, size_t max, char *buf, size_t len, void **userinfo);
 
 
 #ifdef __has_include

@@ -43,6 +43,7 @@
 #include <errno.h>
 #include <string.h>
 #include <stdlib.h>
+#include <ctype.h>
 #include <execinfo.h>
 
 // clang speciality
@@ -224,12 +225,12 @@ static int   _dump_less_shabby( struct mulle_stacktrace *stacktrace,
 
 
 static void  _shabby_default_dump( struct mulle_stacktrace *stacktrace,
-                                  void **callstack,
-                                  int frames,
-                                  int offset,
-                                  FILE *fp,
-                                  char *delimchar,
-                                  enum mulle_stacktrace_format format)
+                                   void **callstack,
+                                   int frames,
+                                   int offset,
+                                   FILE *fp,
+                                   char *delimchar,
+                                   enum mulle_stacktrace_format format)
 {
    char   **strs;
    char   **p;
@@ -262,6 +263,10 @@ static struct mulle_stacktrace   dummy =
 };
 
 
+// csv output:
+//
+//    address,symbol,symbol_offset,segment_name,segment_offset
+//
 static void   mulle_stacktrace_dump( struct mulle_stacktrace *stacktrace,
                                      void **callstack,
                                      int frames,
@@ -272,17 +277,25 @@ static void   mulle_stacktrace_dump( struct mulle_stacktrace *stacktrace,
 {
    char        *delim;
    char        *s;
+   char        *segment_name;
+   char        *symbol_name;
+   char        buf[ 512];
    Dl_info     info;
-   ptrdiff_t   diff;
-   size_t      max;
    int         havedl;
+   int         i;
+   intptr_t    segment_offset;
+   intptr_t    symbol_offset;
+   size_t      max;
    void        **p;
    void        **sentinel;
    void        *address;
+   void        *segment_address;
+   void        *symbol_address;
    void        *userinfo;
-//   char        **strs;
-   char        buf[ 512];
-   int         i;
+#if 0
+   int         symbol_name_length;
+   int         segment_name_length;
+#endif
 
    // non underscore shouldn't crash for NULL params
    if( ! stacktrace || ! callstack || ! fp || ! delimchar)
@@ -300,54 +313,107 @@ static void   mulle_stacktrace_dump( struct mulle_stacktrace *stacktrace,
       delim = (i == 0) ? "" : delimchar;
       ++i;
 
-      address = *--p;
-      max     = 0x800;
+      address         = *--p;
+      symbol_address  = NULL;
+      segment_address = NULL;
+      symbol_offset   = 0;
+      segment_offset  = (intptr_t) address;
+      symbol_name     = "";
+      segment_name    = "";
+
       //musl doesn't have  it ?
+      max     = 0x800;
       havedl  = dladdr( address, &info);
-      if( havedl && info.dli_saddr)
+      if( havedl)
       {
-         max = (intptr_t) address - (intptr_t) info.dli_saddr;
-         if( max > 0x800)
-            max = 0x800;
+         if( info.dli_saddr)
+         {
+            symbol_address = info.dli_saddr;
+            symbol_offset  = (intptr_t) address - (intptr_t) symbol_address;
+            max            = symbol_offset < max ? symbol_offset : max;
+         }
+         segment_name    = info.dli_fname ? (char *) info.dli_fname : "";
+         segment_address = info.dli_fbase;
+         segment_offset  = (intptr_t) address - (intptr_t) segment_address;
+         symbol_name     = info.dli_sname ? (char *) info.dli_sname : "";
       }
 
-      // try to improve on max with symbolizer
+      // try to improve on max with symbolizer, if we aren't close enough
+      // complete heuristic
       if( max)
       {
          s = stacktrace->symbolize( address, max - 1, buf, sizeof( buf), &userinfo);
-         if( s)
+         if( s && (! symbol_name || strcmp( symbol_name, s)))
          {
-            if( ! stacktrace->is_boring( s, -1))
-               fprintf( fp, "%s %s", delim, s);
-            continue;
+            symbol_name   = s;
+            symbol_offset = 0; // now unknown really
          }
+      }
+
+#if 0
+      // for some weird reason symbol_name and segment_name have linefeeds
+      // at the end
+      symbol_name_length  = symbol_name ? strlen( symbol_name) : 0;
+      while( symbol_name_length)
+      {
+         if( isprint( symbol_name[ symbol_name_length - 1]))
+            break;
+         symbol_name_length--;
+      }
+
+      segment_name_length = segment_name ? strlen( segment_name) : 0;
+      while( segment_name_length)
+      {
+         if( isprint( segment_name[ segment_name_length - 1]))
+            break;
+         segment_name_length--;
+      }
+#endif
+
+      // address,segment_offset,symbol_offset,symbol_address,symbol_name,segment_address,segment_name
+      if( format == mulle_stacktrace_csv)
+      {
+         fprintf( fp, "%p,0x%tx,0x%td,",
+                        address,
+                        segment_offset,
+                        symbol_offset);
+         if( symbol_address)
+            fprintf( fp, "%p,\"%s\",",
+                        symbol_address,
+                        symbol_name);
+         else
+            fprintf( fp, ",\"%s\",", symbol_name);
+
+         fprintf( fp, "0x%tx,\"%s\"\n",
+                      (intptr_t) segment_address,
+                      segment_name);
+
+         continue;
       }
 
       if( havedl)
       {
-         if( info.dli_sname)
+         if( symbol_name)
          {
-            if( ! stacktrace->is_boring( (char *) info.dli_sname, -1))
-            {
-               diff = (intptr_t) address - (intptr_t) info.dli_saddr;
-               if( diff)
-                  fprintf( fp, "%s %s+0x%0lx", delim, info.dli_sname, (long) diff);
-               else
-                  fprintf( fp, "%s %s", delim, info.dli_sname);
-            }
-            continue;
+            if( stacktrace->is_boring( (char *) symbol_name, -1))
+               continue;
+
+            if( symbol_offset)
+               fprintf( fp, "%s %s+0x%0lx", delim, symbol_name, (long) symbol_offset);
+            else
+               fprintf( fp, "%s %s", delim, symbol_name);
          }
 
-         if( info.dli_fname)
+         if( segment_name)
          {
-            s = strrchr( info.dli_fname, '/');
+            s = strrchr( segment_name, '/');
             if( s)
                s = &s[ 1];
             else
-               s = (char *) info.dli_fname;
+               s = (char *) segment_name;
 
             // relative address of shared lib is not really useful
-            fprintf( fp, "%s %s:%p", delim, s, address);
+            fprintf( fp, "%s %s:0x%tx", delim, s, segment_offset);
             continue;
          }
       }
@@ -377,11 +443,28 @@ void   _mulle_stacktrace( struct mulle_stacktrace *stacktrace,
    if( ! fp)
       fp = stderr;
 
-   delimchar = "\n";
-   if( ! (format & mulle_stacktrace_linefeed))
+
+   // mulle_stacktrace_normal   = 0,
+   // mulle_stacktrace_trimmed  = 1,
+   // mulle_stacktrace_linefeed = 2,
+   // mulle_stacktrace_csv      = 3
+
+   switch( format)
    {
+   case mulle_stacktrace_normal  :
+   case mulle_stacktrace_trimmed :
       fprintf( fp, " : [");
-      delimchar = " |";
+      delimchar = " |";;
+      break;
+
+   case mulle_stacktrace_linefeed :
+      delimchar = "\n";
+      break;
+
+   default :
+      fprintf( fp, "address,segment_offset,symbol_offset,symbol_address,symbol_name,segment_address,segment_name\n");
+      delimchar = "\n";
+      break;
    }
 
    {
@@ -396,7 +479,15 @@ void   _mulle_stacktrace( struct mulle_stacktrace *stacktrace,
 #endif
    }
 
-   fputc( (format & mulle_stacktrace_linefeed) ? '\n' : ']', fp);
+   switch( format)
+   {
+   case mulle_stacktrace_normal   :                    // fall thru
+   case mulle_stacktrace_trimmed  : fputc( ']', fp);
+                                    break;
+
+   case mulle_stacktrace_linefeed : fputc( '\n', fp);  // fall thru
+   default :                        break;
+   }
 }
 
 
