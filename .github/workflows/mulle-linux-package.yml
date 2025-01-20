@@ -1,12 +1,12 @@
 name: Artifacts
 
 on:
- release:
-    types: [published]
- push:
-    tags:
-    - '*'
- workflow_dispatch:
+  release:
+     types: [published]
+  push:
+     tags:
+     - '*'
+  workflow_dispatch:
 
 jobs:
   build:
@@ -28,16 +28,23 @@ jobs:
     - name: Dump Environment
       run:  env | sort
 
-    - uses: actions/checkout@v4
-
-    - uses: mulle-sde/github-ci@v2
-
     - name: Install sudo if needed
       run: |
            if ! command -v sudo &> /dev/null; then
              apt update
              apt install -y sudo
+           else
+              sudo apt-get update
            fi
+
+    - name: Install git, curl, developer stuff
+      run: |
+           sudo apt-get install -y git curl build-essential
+           # git config --global --add safe.directory "*"
+           
+    - uses: actions/checkout@v4
+
+    - uses: mulle-sde/github-ci@v2
 
     - name: Install rpmbuild
       run:  sudo apt-get update && sudo apt-get install -y rpm
@@ -83,8 +90,9 @@ jobs:
         path: |
               ${{ env.RPM_PACKAGE }}
               ${{ env.DEB_PACKAGE }}
-
+  
   arch-package:
+    if: false  # Arch is broken due to: https://github.com/FFY00/build-arch-package/issues/11
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -92,14 +100,14 @@ jobs:
 
     container:
       image: archlinux
-      options: --privileged
+      options: --privileged --cap-add=SYS_ADMIN --security-opt seccomp=unconfined
 
     steps:
     - name: Set MULLE_HOSTNAME
-      run: |
-           name="${GITHUB_REF##*/}"
-           MULLE_HOSTNAME="${MULLE_HOSTNAME:-ci-${name##*-}}"
-           echo "MULLE_HOSTNAME=${MULLE_HOSTNAME}" >> $GITHUB_ENV
+      run:  |
+            name="${GITHUB_REF##*/}"
+            MULLE_HOSTNAME="${MULLE_HOSTNAME:-ci-${name##*-}}"
+            echo "MULLE_HOSTNAME=${MULLE_HOSTNAME}" >> $GITHUB_ENV
 
     - name: Add to path
       run:  echo "$HOME/bin" >> $GITHUB_PATH
@@ -107,17 +115,26 @@ jobs:
     - name: Dump Environment
       run:  env | sort
 
-    - uses: actions/checkout@v4
-
-    - uses: mulle-sde/github-ci@v2
-
     - name: Install sudo if needed
-      run: |
-           if ! command -v sudo &> /dev/null; then
-             apt update
-             apt install -y sudo
-           fi
+      run:  |
+            if ! command -v sudo &> /dev/null; then
+              pacman -Sy --noconfirm sudo
+            fi
+           
+    - name: Install git, curl, developer stuff
+      run:  |
+            sudo pacman -Sy --noconfirm git base-devel curl
 
+    - name: Muck around with f*g systemd and new r*t*d git checks
+      run:  |
+            git config --global --add safe.directory "*"
+            # sudo systemctl enable dbus
+            # sudo systemctl start dbus
+           
+    - uses: actions/checkout@v4
+ 
+    - uses: mulle-sde/github-ci@v2
+    
     - name: Install mulle-project
       run:  |
             mulle-fetch 'https://github.com/mulle-nat/mulle-project/archive/latest.tar.gz' \
@@ -125,7 +142,7 @@ jobs:
             && sudo ./bin/installer /usr
 
     - name: Get version number
-      run:  echo "MULLE_CORE_VERSION"=$(mulle-project-version -s) >> $GITHUB_ENV
+      run:  echo "PROJECT_VERSION"=$(mulle-project-version -s) >> $GITHUB_ENV
 
     - name: Dump Project Environment
       run:  |
@@ -135,15 +152,22 @@ jobs:
     - name: Create PKGBUILD
       run:  mulle-project-pacman-pkg > PKGBUILD
 
+    - name: Initialize pacman key
+      run:  |
+            sudo pacman-key --init
+            sudo pacman-key --populate archlinux
+        
     - name: Build Arch Linux package
-      uses: FFY00/build-arch-package@v1
+      uses: mulle-cc/build-arch-package@v2
+      env:
+        DBUS_SESSION_BUS_ADDRESS: "unix:path=/dev/null"
       with:
         PKGBUILD: PKGBUILD
         OUTDIR: ${{ env.PWD }}/package
 
     - name: Build Arch Package
       run:  |
-          echo "ARCH_PACKAGE=package/*.zst" >> $GITHUB_ENV
+            echo "ARCH_PACKAGE=package/*.zst" >> $GITHUB_ENV
 
     - name: Upload packages (ZIP)
       uses: actions/upload-artifact@v4
