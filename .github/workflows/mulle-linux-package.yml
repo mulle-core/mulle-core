@@ -146,6 +146,11 @@ jobs:
     - name: Create PKGBUILD
       run:  mulle-project-pacman-pkg > PKGBUILD
 
+    - name: Initialize pacman key
+      run: |
+        sudo pacman-key --init
+        sudo pacman-key --populate archlinux
+        
     - name: Build Arch Linux package
       uses: FFY00/build-arch-package@v1
       with:
