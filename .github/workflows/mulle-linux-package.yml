@@ -38,7 +38,7 @@ jobs:
     - name: Install git, curl, developer stuff
       run: |
            sudo apt-get install -y git curl build-essential
-           git config --global --add safe.directory "*"
+           # git config --global --add safe.directory "*"
            
     - uses: actions/checkout@v4
 
@@ -134,7 +134,7 @@ jobs:
             && sudo ./bin/installer /usr
 
     - name: Get version number
-      run:  echo "MULLE_CORE_VERSION"=$(mulle-project-version -s) >> $GITHUB_ENV
+      run:  echo "PROJECT_VERSION"=$(mulle-project-version -s) >> $GITHUB_ENV
 
     - name: Dump Project Environment
       run:  |
