@@ -30,9 +30,11 @@ jobs:
 
     - name: Install sudo if needed
       run: |
-           apt update
            if ! command -v sudo &> /dev/null; then
+             apt update
              apt install -y sudo
+           else
+              sudo apt-get update
            fi
 
     - name: Install git, curl, developer stuff
