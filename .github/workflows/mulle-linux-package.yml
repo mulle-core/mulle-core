@@ -99,7 +99,7 @@ jobs:
 
     container:
       image: archlinux
-      options: --privileged
+      options: --privileged --cap-add=SYS_ADMIN --security-opt seccomp=unconfined
 
     steps:
     - name: Set MULLE_HOSTNAME
