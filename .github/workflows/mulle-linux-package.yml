@@ -30,11 +30,16 @@ jobs:
 
     - name: Install sudo if needed
       run: |
+           apt update
            if ! command -v sudo &> /dev/null; then
-             apt update
              apt install -y sudo
            fi
 
+    - name: Install git, curl, developer stuff
+      run: |
+           sudo apt-get install -y git curl build-essential
+           git config --global --add safe.directory "*"
+           
     - uses: actions/checkout@v4
 
     - uses: mulle-sde/github-ci@v2
@@ -113,12 +118,13 @@ jobs:
              pacman -Sy --noconfirm sudo
            fi
            
-    - name: Install git, curl, developer stiff
+    - name: Install git, curl, developer stuff
       run: |
            sudo pacman -Sy --noconfirm git base-devel curl
-
+           git config --global --add safe.directory "*"
+           
     - uses: actions/checkout@v4
-
+ 
     - uses: mulle-sde/github-ci@v2
     
     - name: Install mulle-project
