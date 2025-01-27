@@ -28,16 +28,16 @@ jobs:
     - name: Dump Environment
       run:  env | sort
 
-    - uses: actions/checkout@v4
-
-    - uses: mulle-sde/github-ci@v2
-
     - name: Install sudo if needed
       run: |
            if ! command -v sudo &> /dev/null; then
              apt update
              apt install -y sudo
            fi
+
+    - uses: actions/checkout@v4
+
+    - uses: mulle-sde/github-ci@v2
 
     - name: Install rpmbuild
       run:  sudo apt-get update && sudo apt-get install -y rpm
@@ -107,10 +107,6 @@ jobs:
     - name: Dump Environment
       run:  env | sort
 
-    - uses: actions/checkout@v4
-
-    - uses: mulle-sde/github-ci@v2
-
     - name: Install sudo if needed
       run: |
            if ! command -v sudo &> /dev/null; then
@@ -121,6 +117,10 @@ jobs:
       run: |
            sudo pacman -Sy --noconfirm git base-devel curl
 
+    - uses: actions/checkout@v4
+
+    - uses: mulle-sde/github-ci@v2
+    
     - name: Install mulle-project
       run:  |
             mulle-fetch 'https://github.com/mulle-nat/mulle-project/archive/latest.tar.gz' \
