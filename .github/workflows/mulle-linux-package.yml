@@ -123,7 +123,12 @@ jobs:
     - name: Install git, curl, developer stuff
       run: |
            sudo pacman -Sy --noconfirm git base-devel curl
-           git config --global --add safe.directory "*"
+
+    - name: Muck around with f*g systemd and new r*t*d git checks
+        run: |
+          git config --global --add safe.directory "*"
+          sudo systemctl enable dbus
+          sudo systemctl start dbus
            
     - uses: actions/checkout@v4
  
