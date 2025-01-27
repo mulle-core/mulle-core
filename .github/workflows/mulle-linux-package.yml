@@ -114,8 +114,7 @@ jobs:
     - name: Install sudo if needed
       run: |
            if ! command -v sudo &> /dev/null; then
-             apt update
-             apt install -y sudo
+             pacman -Sy --noconfirm sudo
            fi
 
     - name: Install mulle-project
