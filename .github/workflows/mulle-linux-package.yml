@@ -116,6 +116,10 @@ jobs:
            if ! command -v sudo &> /dev/null; then
              pacman -Sy --noconfirm sudo
            fi
+           
+    - name: Install git, curl, developer stiff
+      run: |
+           sudo pacman -Sy --noconfirm git base-devel curl
 
     - name: Install mulle-project
       run:  |
