@@ -43,8 +43,7 @@
 
 # pragma mark - generic operations
 
-// suitable for sue by mulle--set and mulle--pointerset
-
+// suitable for use by mulle--set and mulle--pointerset
 
 void   **_mulle__pointerset_allocate_storage_generic( size_t n,
                                                       void *notakey,
@@ -70,6 +69,23 @@ void   **_mulle__pointerset_allocate_storage_generic( size_t n,
 }
 
 
+void   _mulle__pointerset_release_all_generic( struct mulle__pointerset *set,
+                                               struct mulle_container_keycallback *callback,
+                                               struct mulle_allocator *allocator)
+{
+   struct mulle__genericpointersetenumerator   rover;
+   void                                        *item;
+
+   if( callback && _mulle_container_keycallback_releases( callback))
+   {
+      rover = _mulle__pointerset_enumerate_generic( set, callback);
+      while( _mulle__genericpointersetenumerator_next( &rover, &item))
+         (*callback->release)( callback, item, allocator);
+      _mulle__genericpointersetenumerator_done( &rover);
+   }
+}
+
+
 // don't inline this (!)
 void   _mulle__pointerset_reset_generic( struct mulle__pointerset *set,
                                          void *notakey)
@@ -83,6 +99,9 @@ void   _mulle__pointerset_reset_generic( struct mulle__pointerset *set,
       *p++ = notakey;
 
    set->_count = 0;
+#if MULLE__CONTAINER_HAVE_MUTATION_COUNT
+   set->_n_mutations++;
+#endif
 }
 
 
@@ -121,7 +140,9 @@ static void   copy_storage_generic( void **dst,
       if( p == callback->notakey)
          continue;
 
-      hash = (*callback->hash)( callback, p);
+      hash = _mulle__pointerset_keycallback_hash( (struct mulle__pointerset *) dst,
+                                                  callback,
+                                                  p);
       i    = (size_t) mulle__pointerset_hash_for_size( hash, dst_size);
       store_pointer_generic( dst, dst_size, i, p, callback->notakey);
    }
@@ -153,6 +174,9 @@ static void   grow_generic( struct mulle__pointerset *set,
 
    set->_storage = buf;
    set->_size    = new_size;
+#if MULLE__CONTAINER_HAVE_MUTATION_COUNT
+   set->_n_mutations++;
+#endif
 }
 
 
@@ -224,10 +248,12 @@ void   *_mulle__pointerset_write_generic( struct mulle__pointerset *set,
                                           struct mulle_container_keycallback *callback,
                                           struct mulle_allocator *allocator)
 {
-   size_t   i;
+   size_t         i;
    uintptr_t      hash;
-
-   hash = (*callback->hash)( callback, p);
+#ifndef MULLE__CONTAINER_MUTATION_NDEBUG
+   uintptr_t      memo_set = set->_n_mutations;
+#endif
+   hash = _mulle__pointerset_keycallback_hash( set, callback, p);
    if( set->_count)
    {
       void           *q;
@@ -236,6 +262,10 @@ void   *_mulle__pointerset_write_generic( struct mulle__pointerset *set,
 
       hole_index = 0xfeedface; // for the analyzer
       found = find_index_generic( set->_storage, set->_size, p, hash, &hole_index, callback);
+#ifndef MULLE__CONTAINER_MUTATION_NDEBUG
+      assert( memo_set == set->_n_mutations && "map was changed during is_equal callback");
+#endif
+
       if( found != mulle_not_found_e)
       {
          i = (size_t) found;
@@ -247,9 +277,12 @@ void   *_mulle__pointerset_write_generic( struct mulle__pointerset *set,
             if( p == q)
                return( callback->notakey);
 
-            p = (*callback->retain)( callback, p, allocator);
+            p = _mulle__pointerset_keycallback_retain( set, callback, p, allocator);
             set->_storage[ i] = p;
-            (*callback->release)( callback, q, allocator);
+            _mulle__pointerset_keycallback_release( set, callback, q, allocator);
+#if MULLE__CONTAINER_HAVE_MUTATION_COUNT
+            set->_n_mutations++;
+#endif
             return( q);
 
          case mulle_container_insert_e :
@@ -262,9 +295,12 @@ void   *_mulle__pointerset_write_generic( struct mulle__pointerset *set,
       i = hole_index;
       if( ! _mulle__pointerset_is_full( set))
       {
-         p = (*callback->retain)( callback, p, allocator);
+         p = _mulle__pointerset_keycallback_retain( set, callback, p, allocator);
          set->_storage[ i] = p;
          set->_count++;
+#if MULLE__CONTAINER_HAVE_MUTATION_COUNT
+         set->_n_mutations++;
+#endif
          return( callback->notakey);
       }
    }
@@ -273,9 +309,12 @@ void   *_mulle__pointerset_write_generic( struct mulle__pointerset *set,
       grow_generic( set, callback, allocator);
 
    i = mulle__pointerset_hash_for_size( hash, set->_size);
-   p = (*callback->retain)( callback, p, allocator);
+   p = _mulle__pointerset_keycallback_retain( set, callback, p, allocator);
    store_pointer_generic( set->_storage, set->_size, i, p, callback->notakey);
    set->_count++;
+#if MULLE__CONTAINER_HAVE_MUTATION_COUNT
+   set->_n_mutations++;
+#endif
 
    return( callback->notakey);
 }
@@ -308,20 +347,18 @@ void   *_mulle__pointerset__get_generic( struct mulle__pointerset *set,
                                          void *key,
                                          struct mulle_container_keycallback *callback)
 {
-   int            (*f)( void *, void *, void *);
-   uintptr_t      hash;
-   size_t   i;
-   size_t   mask;
-   size_t   size;
-   void           **storage;
-   void           *found;
-   void           *notakey;
+   uintptr_t   hash;
+   size_t      i;
+   size_t      mask;
+   size_t      size;
+   void        **storage;
+   void        *found;
+   void        *notakey;
 
-   hash    = (*callback->hash)( callback, key);
+   hash    = _mulle__pointerset_keycallback_hash( set, callback, key);
    storage = set->_storage;
    size    = set->_size;
    i       = mulle__pointerset_hash_for_size( hash, size);
-   f       = (int (*)()) callback->is_equal;
    notakey = callback->notakey;
    mask    = size - 1;
 
@@ -332,7 +369,7 @@ void   *_mulle__pointerset__get_generic( struct mulle__pointerset *set,
          break;
       if( key == found)
          break;
-      if( (*f)( callback, found, key))
+      if( _mulle__pointerset_keycallback_equal( set, callback, found, key))
          break;
       i = (i + 1) & mask;
    }
@@ -404,20 +441,25 @@ int   _mulle__pointerset_remove_generic( struct mulle__pointerset *set,
 {
    uintptr_t      found;
    uintptr_t      hash;
-   size_t   dst_index;
-   size_t   hole_index;
-   size_t   i;
-   size_t   mask;
-   size_t   search_start;
-   size_t   size;
+   size_t         dst_index;
+   size_t         hole_index;
+   size_t         i;
+   size_t         mask;
+   size_t         search_start;
+   size_t         size;
    void           *notakey;
    void           *q;
-
+#ifndef MULLE__CONTAINER_MUTATION_NDEBUG
+   uintptr_t      memo_set = set->_n_mutations;
+#endif
    if( ! set->_count)
       return( 0);
 
-   hash  = (*callback->hash)( callback, p);
+   hash  = _mulle__pointerset_keycallback_hash( set, callback, p);
    found = find_index_generic( set->_storage, set->_size, p, hash, &hole_index, callback);
+#ifndef MULLE__CONTAINER_MUTATION_NDEBUG
+   assert( memo_set == set->_n_mutations && "map was changed during is_equal callback");
+#endif
    if( found == mulle_not_found_e)
       return( 0);
 
@@ -452,7 +494,7 @@ int   _mulle__pointerset_remove_generic( struct mulle__pointerset *set,
       // the "hole" in the front we just made
       // but keep going because "wrong" hashes might be behind
       // be sure not to move items that won't be found
-      hash         = (*callback->hash)( callback, q);
+      hash         = _mulle__pointerset_keycallback_hash( set, callback, q);
       search_start = mulle__pointerset_hash_for_size( hash, size);
 
       // object better off where it is ?
@@ -503,7 +545,7 @@ int   _mulle__pointerset_remove_generic( struct mulle__pointerset *set,
       //
       // CASE:
       // [
-      //    0 0x537a40 (0 0xdbfc0000)
+      //    0 0x537a40 (0 0xdbfc0000)  *delete*
       //    1 0x5205a0 (3 0xda000000)  comulleider
       //
       //    3 0x531ae0 (3 0xdbfc0000)  *delete*
@@ -558,4 +600,83 @@ void  _mulle__pointerset_copy_items_generic( struct mulle__pointerset *dst,
       _mulle__pointerset_set_generic( dst, item, callback, allocator);
    }
    mulle__genericpointersetenumerator_done( &rover);
+}
+
+
+void   _mulle__pointerset_intersect_generic( struct mulle__pointerset *dst,
+                                             struct mulle__pointerset *a,
+                                             struct mulle__pointerset *b,
+                                             struct mulle_container_keycallback *callback,
+                                             struct mulle_allocator *allocator)
+{
+   struct mulle__genericpointersetenumerator  rover;
+   struct mulle__pointerset                   tmp = { 0};
+   void                                       *item;
+   void                                       *found;
+
+   // Create temporary set, if any of a or b is NULL, we can skip this
+   // as the intersection is empty
+   if( a && b)
+   {
+      tmp._size    = a->_size;
+      tmp._storage = _mulle__pointerset_allocate_storage_generic( tmp._size,
+                                                                  callback->notakey,
+                                                                  allocator);
+
+      // Build intersection in temporary set
+      rover = _mulle__pointerset_enumerate_generic( a, callback);
+      while( _mulle__genericpointersetenumerator_next( &rover, &item))
+      {
+         found = _mulle__pointerset_get_generic( b, item, callback);
+         if( found != callback->notakey)
+            _mulle__pointerset_set_generic( &tmp, item, callback, allocator);
+      }
+      mulle__genericpointersetenumerator_done( &rover);
+   }
+
+   //
+   // Swap storage between dst and tmp, we do it like this so dst can also
+   // be a or b
+   //
+   _mulle__pointerset_release_all_generic( dst, callback, allocator);
+   _mulle__pointerset_done( dst, allocator);
+
+   *dst = tmp;
+}
+
+
+void   _mulle__pointerset_union_generic( struct mulle__pointerset *dst,
+                                         struct mulle__pointerset *a,
+                                         struct mulle__pointerset *b,
+                                         struct mulle_container_keycallback *callback,
+                                         struct mulle_allocator *allocator)
+{
+   struct mulle__pointerset   tmp = { 0};
+
+   // Create temporary set, if both a and b are NULL, we can skip this
+   // as the union is empty
+   if( a || b)
+   {
+      tmp._size = mulle_pow2round( (a ? a->_count : 0) +
+                                   (b ? b->_count : 0));
+      if( tmp._size)
+      {
+         tmp._storage = _mulle__pointerset_allocate_storage_generic( tmp._size,
+                                                                     callback->notakey,
+                                                                     allocator);
+         if( a)
+            _mulle__pointerset_copy_items_generic( &tmp, a, callback, allocator);
+         if( b)
+            _mulle__pointerset_copy_items_generic( &tmp, b, callback, allocator);
+      }
+   }
+
+   //
+   // Swap storage between dst and tmp, we do it like this so dst can also
+   // be a or b
+   //
+   _mulle__pointerset_release_all_generic( dst, callback, allocator);
+   _mulle__pointerset_done( dst, allocator);
+
+   *dst = tmp;
 }

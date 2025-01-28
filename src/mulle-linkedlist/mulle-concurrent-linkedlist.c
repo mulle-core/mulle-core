@@ -78,7 +78,7 @@ struct _mulle_concurrent_linkedlistentry  *
          // chain together
          if( prev_chain)
          {
-            for( tail = chain; next = tail->_next; tail = next)
+            for( tail = chain; (next = tail->_next); tail = next)
             {
                assert( next != prev_chain);
                MULLE_THREAD_UNPLEASANT_RACE_YIELD();

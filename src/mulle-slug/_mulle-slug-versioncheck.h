@@ -7,31 +7,38 @@
 
 #if defined( MULLE__BUFFER_VERSION)
 # ifndef MULLE__BUFFER_VERSION_MIN
-#  define MULLE__BUFFER_VERSION_MIN  ((4UL << 20) | (0 << 8) | 0)
+#  define MULLE__BUFFER_VERSION_MIN  ((5UL << 20) | (0 << 8) | 0)
 # endif
 # ifndef MULLE__BUFFER_VERSION_MAX
-#  define MULLE__BUFFER_VERSION_MAX  ((5UL << 20) | (0 << 8) | 0)
+#  define MULLE__BUFFER_VERSION_MAX  ((6UL << 20) | (0 << 8) | 0)
 # endif
-# if MULLE__BUFFER_VERSION < MULLE__BUFFER_VERSION_MIN
-#  error "mulle-buffer is too old"
-# endif
-# if MULLE__BUFFER_VERSION >= MULLE__BUFFER_VERSION_MAX
-#  error "mulle-buffer is too new"
+# if MULLE__BUFFER_VERSION < MULLE__BUFFER_VERSION_MIN || MULLE__BUFFER_VERSION >= MULLE__BUFFER_VERSION_MAX
+#  pragma message("MULLE__BUFFER_VERSION     is " MULLE_C_STRINGIFY_MACRO( MULLE__BUFFER_VERSION))
+#  pragma message("MULLE__BUFFER_VERSION_MIN is " MULLE_C_STRINGIFY_MACRO( MULLE__BUFFER_VERSION_MIN))
+#  pragma message("MULLE__BUFFER_VERSION_MAX is " MULLE_C_STRINGIFY_MACRO( MULLE__BUFFER_VERSION_MAX))
+#  if MULLE__BUFFER_VERSION < MULLE__BUFFER_VERSION_MIN
+#   error "mulle-buffer is too old"
+#  else
+#   error "mulle-buffer is too new"
+#  endif
 # endif
 #endif
-
 #if defined( MULLE__UTF_VERSION)
 # ifndef MULLE__UTF_VERSION_MIN
-#  define MULLE__UTF_VERSION_MIN  ((5UL << 20) | (0 << 8) | 0)
+#  define MULLE__UTF_VERSION_MIN  ((5UL << 20) | (0 << 8) | 1)
 # endif
 # ifndef MULLE__UTF_VERSION_MAX
 #  define MULLE__UTF_VERSION_MAX  ((6UL << 20) | (0 << 8) | 0)
 # endif
-# if MULLE__UTF_VERSION < MULLE__UTF_VERSION_MIN
-#  error "mulle-utf is too old"
-# endif
-# if MULLE__UTF_VERSION >= MULLE__UTF_VERSION_MAX
-#  error "mulle-utf is too new"
+# if MULLE__UTF_VERSION < MULLE__UTF_VERSION_MIN || MULLE__UTF_VERSION >= MULLE__UTF_VERSION_MAX
+#  pragma message("MULLE__UTF_VERSION     is " MULLE_C_STRINGIFY_MACRO( MULLE__UTF_VERSION))
+#  pragma message("MULLE__UTF_VERSION_MIN is " MULLE_C_STRINGIFY_MACRO( MULLE__UTF_VERSION_MIN))
+#  pragma message("MULLE__UTF_VERSION_MAX is " MULLE_C_STRINGIFY_MACRO( MULLE__UTF_VERSION_MAX))
+#  if MULLE__UTF_VERSION < MULLE__UTF_VERSION_MIN
+#   error "mulle-utf is too old"
+#  else
+#   error "mulle-utf is too new"
+#  endif
 # endif
 #endif
 

@@ -6,25 +6,26 @@
 #include "mulle-vararg.h"
 
 
-// Sketched out: an idea for a vararg builder.
-// The builder function returns the address to push the next argument unto.
-// It's the callers responsibility to:
-// * remember the start of the vararg buffer
-// * ensure that the buffer is large enough (tricky!)
-// * use the returned value as the first argument next time
-//
-// Intended use:
-//
-// #define size                                                            \
-//     mulle_vararg_builderbuffer_n( mulle_vararg_sizeof_integer( int) +   \
-//                                   mulle_vararg_sizeof_integer( long))
-// mulle_vararg_builderbuffer_t  buf[ size];
-// mulle_vararg_list             varargs = mulle_vararg_list_make( buf);
-// mulle_vararg_list             p = varargs;
-//
-// mulle_vararg_push_integer( p, 18);
-// mulle_vararg_push_integer( p, 48L);
-// mulle_mvsprintf( buffer, "%d %ld", varargs);
+/* Sketched out: an idea for a vararg builder.
+ * The builder function returns the address to push the next argument unto.
+ * It's the callers responsibility to:
+ * * remember the start of the vararg buffer
+ * * ensure that the buffer is large enough (tricky!)
+ * * use the returned value as the first argument next time
+ *
+ * Intended use:
+ *
+ * #define size                                                            \
+ *     mulle_vararg_builderbuffer_n( mulle_vararg_sizeof_integer( int) +   \
+ *                                   mulle_vararg_sizeof_integer( long))
+ * mulle_vararg_builderbuffer_t  buf[ size];
+ * mulle_vararg_list             varargs = mulle_vararg_list_make( buf);
+ * mulle_vararg_list             p = varargs;
+ *
+ * mulle_vararg_push_integer( p, 18);
+ * mulle_vararg_push_integer( p, 48L);
+ * mulle_mvsprintf( buffer, "%d %ld", varargs);
+ */
 
 // use double for alignment
 typedef double   mulle_vararg_builderbuffer_t;

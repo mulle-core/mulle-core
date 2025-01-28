@@ -21,7 +21,7 @@
 //
 // MEMO: the previous incarnation _used lazy coalescing, when deemed
 //       necessary. But in the end the amount of memory moves necessary
-//       done laty was likely the same as doing it immediately.
+//       done late was likely the same as doing them immediately.
 //
 struct mulle__rangeset
 {
@@ -74,7 +74,7 @@ static inline void   _mulle__rangeset_done( struct mulle__rangeset *p,
    if( p->_ranges != p->_initial_storage)
       mulle_allocator_free( allocator, p->_ranges);
 #ifdef DEBUG   
-   memset( p, 0xFD, sizeof( struct mulle__rangeset));
+   mulle_memset_uint32( p, 0xDEADDEAD,sizeof( struct mulle__rangeset));
 #endif    
 }
 
@@ -144,15 +144,15 @@ static inline struct mulle_range  _mulle__rangeset_get_range( struct mulle__rang
 MULLE_C_NONNULL_FIRST
 static inline uintptr_t   _mulle__rangeset_sum_lengths( struct mulle__rangeset *p)
 {
-   struct mulle_range   *_curr;
+   struct mulle_range   *curr;
    struct mulle_range   *sentinel;
    uintptr_t            length;
 
    length = 0;
-   _curr   = p->_ranges;
+   curr   = p->_ranges;
    sentinel = &p->_ranges[ p->_length];
-   for( ; _curr < sentinel; _curr++)
-      length += _curr->length;
+   for( ; curr < sentinel; curr++)
+      length += curr->length;
    return( length);
 }
 

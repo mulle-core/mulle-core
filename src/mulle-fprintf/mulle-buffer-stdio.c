@@ -458,3 +458,79 @@ struct mulle_buffer_stdio_functions   mulle_buffer_functions =
 
    .lseek    = mulle_buffer_lseek
 };
+
+
+
+
+//
+// FILE I/O
+//
+// this has nothing to do with above really
+//
+
+int   mulle_buffer_init_with_filepath( struct mulle_buffer *buffer,
+                                       char *filepath,
+                                       int mode,
+                                       struct mulle_allocator *allocator)
+{
+   FILE     *fp;
+   size_t   rval;
+
+   // lets do this first, if the fopen later fails its not a problem
+   // but buffer will be consistenly inited
+   mulle_buffer_init( buffer, 0, allocator);
+   if( ! filepath)
+      return( (errno = EINVAL));
+
+   fp = fopen( filepath, mode == MULLE_BUFFER_IS_BINARY ? "rb" : "r");
+   if( ! fp)
+      return( errno);
+
+   rval  = mulle_buffer_fread_FILE_all( buffer, fp);
+   fclose( fp);
+
+   return( (rval == 0 && errno != EFBIG) ? errno : 0);
+}
+
+
+size_t   mulle_buffer_fread_FILE( struct mulle_buffer *buffer,
+                                  size_t size,
+                                  size_t nmem,
+                                  FILE *fp)
+{
+   void     *space;
+   size_t   rval;
+
+   if( ! buffer)
+   {
+      errno = EINVAL;
+      return( 0);
+   }
+
+   if( ! size || ! nmem)
+   {
+      errno = EFBIG; // assume overflow ;)
+      return( 0);
+   }
+
+   space = mulle_buffer_guarantee( buffer, nmem * size);
+   rval  = fread( space, 1, nmem * size, fp);
+   mulle_buffer_advance( buffer, rval);
+   return( rval);
+}
+
+
+size_t   mulle_buffer_fread_FILE_all( struct mulle_buffer *buffer,
+                                      FILE *fp)
+{
+   long   current_pos;
+   long   file_size;
+
+   current_pos = ftell( fp);
+   fseek( fp, 0, SEEK_END);
+   file_size = ftell(fp);
+   fseek( fp, current_pos, SEEK_SET);
+
+   return( mulle_buffer_fread_FILE( buffer, 1, file_size, fp));
+}
+

@@ -106,6 +106,10 @@ struct mulle__pointermap   *mulle__pointermap_create( size_t capacity,
 static inline void _mulle__pointermap_free_storage( struct mulle__pointermap *map,
                                                     struct mulle_allocator *allocator)
 {
+   // doesn't hurt, can help
+#if MULLE__CONTAINER_HAVE_MUTATION_COUNT
+   map->_n_mutations++;
+#endif 
    mulle_allocator_free( allocator, map->_storage);
 }
 
@@ -115,7 +119,7 @@ void   _mulle__pointermap_done( struct mulle__pointermap *map,
 {
    _mulle__pointermap_free_storage( map, allocator);
 #ifdef DEBUG   
-   memset( map, 0xFD, sizeof( struct mulle__pointermap));
+   mulle_memset_uint32( map, 0xDEADDEAD,sizeof( struct mulle__pointermap));
 #endif 
 }
 
@@ -145,12 +149,12 @@ void   _mulle__pointermap_reset( struct mulle__pointermap *map,
 void   *_mulle__pointermap_get( struct mulle__pointermap *map,
                                 void *key)
 {
-   size_t   i;
-   size_t   size;
-   size_t   mask;
-   uintptr_t      hash;
-   void           *found;
-   void           **storage;
+   size_t      i;
+   size_t      size;
+   size_t      mask;
+   uintptr_t   hash;
+   void        *found;
+   void        **storage;
 
    // important to not hit a NULL storage later
    // _size must be > 2 for the hash to work, otherwise we could get

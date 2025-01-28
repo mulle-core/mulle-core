@@ -40,7 +40,7 @@
 #include <errno.h>
 
 
-#define MULLE__RBTREE_VERSION   ((0UL << 20) | (0 << 8) | 2)
+#define MULLE__RBTREE_VERSION   ((0UL << 20) | (0 << 8) | 3)
 
 
 //
@@ -235,6 +235,10 @@ static inline void
 
 #define mulle_rbtree_for( a_tree, item)                                                      \
    if( a_tree)                                                                               \
+      for( struct mulle_rbtreeenumerator rover__ ## item = _mulle_rbtree_enumerate( a_tree); \
+           _mulle_rbtreeenumerator_next( &rover__ ## item, (void **) &item);)
+
+#define _mulle_rbtree_for( a_tree, item)                                                     \
       for( struct mulle_rbtreeenumerator rover__ ## item = _mulle_rbtree_enumerate( a_tree); \
            _mulle_rbtreeenumerator_next( &rover__ ## item, (void **) &item);)
 

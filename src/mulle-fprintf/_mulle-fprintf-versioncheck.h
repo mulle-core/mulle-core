@@ -7,16 +7,20 @@
 
 #if defined( MULLE__SPRINTF_VERSION)
 # ifndef MULLE__SPRINTF_VERSION_MIN
-#  define MULLE__SPRINTF_VERSION_MIN  ((3UL << 20) | (2 << 8) | 1)
+#  define MULLE__SPRINTF_VERSION_MIN  ((3UL << 20) | (2 << 8) | 2)
 # endif
 # ifndef MULLE__SPRINTF_VERSION_MAX
 #  define MULLE__SPRINTF_VERSION_MAX  ((4UL << 20) | (0 << 8) | 0)
 # endif
-# if MULLE__SPRINTF_VERSION < MULLE__SPRINTF_VERSION_MIN
-#  error "mulle-sprintf is too old"
-# endif
-# if MULLE__SPRINTF_VERSION >= MULLE__SPRINTF_VERSION_MAX
-#  error "mulle-sprintf is too new"
+# if MULLE__SPRINTF_VERSION < MULLE__SPRINTF_VERSION_MIN || MULLE__SPRINTF_VERSION >= MULLE__SPRINTF_VERSION_MAX
+#  pragma message("MULLE__SPRINTF_VERSION     is " MULLE_C_STRINGIFY_MACRO( MULLE__SPRINTF_VERSION))
+#  pragma message("MULLE__SPRINTF_VERSION_MIN is " MULLE_C_STRINGIFY_MACRO( MULLE__SPRINTF_VERSION_MIN))
+#  pragma message("MULLE__SPRINTF_VERSION_MAX is " MULLE_C_STRINGIFY_MACRO( MULLE__SPRINTF_VERSION_MAX))
+#  if MULLE__SPRINTF_VERSION < MULLE__SPRINTF_VERSION_MIN
+#   error "mulle-sprintf is too old"
+#  else
+#   error "mulle-sprintf is too new"
+#  endif
 # endif
 #endif
 

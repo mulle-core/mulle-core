@@ -1,12 +1,5 @@
 //
-//  mulle-url.h
-//  mulle-url
-//
-//  Created by Nat! on 18.03.16.
-//  Copyright © 2016 Mulle kybernetiK.
-//  Copyright (c) 2016 Codeon GmbH.
-//  All rights reserved.
-//
+//  Copyright (C) 2025 Nat!, Mulle kybernetiK.
 //
 //  Redistribution and use in source and binary forms, with or without
 //  modification, are permitted provided that the following conditions are met:
@@ -34,23 +27,19 @@
 //  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 //  POSSIBILITY OF SUCH DAMAGE.
 //
-#ifndef mulle_url_h__
-#define mulle_url_h__
-
-#define MULLE__URL_VERSION  ((2UL << 20) | (3 << 8) | 10)
+#ifndef mulle_memset_h__
+#define mulle_memset_h__
 
 #include "include.h"
 
 #include <stdint.h>
 
-#include "_mulle-url-provide.h"
 
+//
+// initializes a memory region with a "uint32_t" value instead of just an
+// 8 bit quantity like memset. Chief use is for writing 0xdead into memory
+// regions.
+//
+void   *mulle_memset_uint32( void *dest, uint32_t value, size_t count);
 
-#ifdef __has_include
-# if __has_include( "_mulle-url-versioncheck.h")
-#  include "_mulle-url-versioncheck.h"
-# endif
 #endif
-
-
-#endif /* mulle_url_h */
