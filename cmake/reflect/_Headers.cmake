@@ -11,36 +11,36 @@ endif()
 # contents are derived from the file locations
 
 set( INCLUDE_DIRS
-src
+src/reflect
 src/generic
-src/mulle-aba
-src/mulle-allocator
 src/mulle-buffer
-src/mulle-c11
 src/mulle-concurrent
-src/mulle-container
 src/mulle-container-debug
-src/mulle-data
+src/mulle-container
 src/mulle-dlfcn
 src/mulle-fifo
 src/mulle-fprintf
 src/mulle-http
-src/mulle-linkedlist
 src/mulle-mmap
 src/mulle-multififo
-src/mulle-rbtree
 src/mulle-regex
 src/mulle-slug
 src/mulle-sprintf
 src/mulle-stacktrace
 src/mulle-storage
 src/mulle-thread
-src/mulle-time
 src/mulle-unicode
 src/mulle-url
 src/mulle-utf
+src/mulle-aba
+src/mulle-data
+src/mulle-linkedlist
+src/mulle-rbtree
+src/mulle-allocator
+src/mulle-c11
+src
+src/mulle-time
 src/mulle-vararg
-src/reflect
 )
 
 #
@@ -311,6 +311,8 @@ src/mulle-container/_mulle-container-provide.h
 src/mulle-container/_mulle-container-versioncheck.h
 src/mulle-container/mulle--map.h
 src/mulle-container/mulle-map.h
+src/mulle-container/mulle--maptinyenumerator.h
+src/mulle-container/mulle-maptinyenumerator.h
 src/mulle-container/mulle--pointerarray.h
 src/mulle-container/mulle-pointerarray.h
 src/mulle-container/mulle--pointermap-generic.h
@@ -340,6 +342,7 @@ src/mulle-data/mulle-data.h
 src/mulle-data/_mulle-data-versioncheck.h
 src/mulle-data/mulle-fnv1a.h
 src/mulle-data/mulle-hash.h
+src/mulle-data/mulle-memset.h
 src/mulle-data/mulle-prime.h
 src/mulle-data/mulle-range.h
 src/mulle-dlfcn/mulle-dlfcn.h

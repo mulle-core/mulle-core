@@ -373,78 +373,30 @@ static inline void
 
 MULLE_C_NONNULL_FIRST
 static inline void
-   _mulle_pointerarray_add_array( struct mulle_pointerarray *array,
-                                  struct mulle_pointerarray *other,
-                                  struct mulle_range range)
+   _mulle_pointerarray_add_pointerarray( struct mulle_pointerarray *array,
+                                         struct mulle_pointerarray *other,
+                                         struct mulle_range range)
 {
-   _mulle__pointerarray_add_array( (struct mulle__pointerarray *) array,
-                                   (struct mulle__pointerarray *) other,
-                                   range,
-                                   array->allocator);
+   _mulle__pointerarray_add_pointerarray( (struct mulle__pointerarray *) array,
+                                          (struct mulle__pointerarray *) other,
+                                          range,
+                                          array->allocator);
 }
 
 static inline void
-   mulle_pointerarray_add_array( struct mulle_pointerarray *array,
-                                 struct mulle_pointerarray *other,
-                                 struct mulle_range range)
+   mulle_pointerarray_add_pointerarray( struct mulle_pointerarray *array,
+                                        struct mulle_pointerarray *other,
+                                        struct mulle_range range)
 {
    if( array)
-      _mulle_pointerarray_add_array( array, other, range);
-}
-
-
-MULLE_C_NONNULL_FIRST
-static inline void  *
-	_mulle_pointerarray_pop( struct mulle_pointerarray *array)
-{
-   return( _mulle__pointerarray_pop( (struct mulle__pointerarray *) array));
-}
-
-static inline void *
-   mulle_pointerarray_pop( struct mulle_pointerarray *array)
-{
-   return( mulle__pointerarray_pop( (struct mulle__pointerarray *) array));
-}
-
-
-
-MULLE_C_NONNULL_FIRST
-static inline void  *
-	_mulle_pointerarray_get_last( struct mulle_pointerarray *array)
-{
-   return( _mulle__pointerarray_get_last( (struct mulle__pointerarray *) array));
-}
-
-static inline void  *
-   mulle_pointerarray_get_last( struct mulle_pointerarray *array)
-{
-   return( mulle__pointerarray_get_last( (struct mulle__pointerarray *) array));
-}
-
-
-MULLE_C_NONNULL_FIRST
-static inline
-void   _mulle_pointerarray_remove_in_range( struct mulle_pointerarray *array,
-                                            struct mulle_range range)
-{
-   _mulle__pointerarray_remove_in_range( (struct mulle__pointerarray *) array,
-                                         range);
-}
-
-
-static inline
-void
-   mulle_pointerarray_remove_in_range( struct mulle_pointerarray *array,
-                                       struct mulle_range range)
-{
-   if( array)
-      _mulle_pointerarray_remove_in_range( array, range);
+      _mulle_pointerarray_add_pointerarray( array, other, range);
 }
 
 
 /*
  *  Loop over all items. This works as long as you don't remove
  *  anything from the array. It will not retrieve newly added elements.
+ *  You could loop over them if you don't cache the count in 'n'.
  *
  *  size_t  i, n;
  *  size_t  *item;
@@ -506,6 +458,22 @@ static inline size_t
 }
 
 
+
+MULLE_C_NONNULL_FIRST
+static inline void  *
+   _mulle_pointerarray_get_last( struct mulle_pointerarray *array)
+{
+   return( _mulle__pointerarray_get_last( (struct mulle__pointerarray *) array));
+}
+
+static inline void  *
+   mulle_pointerarray_get_last( struct mulle_pointerarray *array)
+{
+   return( mulle__pointerarray_get_last( (struct mulle__pointerarray *) array));
+}
+
+
+
 MULLE_C_NONNULL_FIRST
 static inline uintptr_t
 	_mulle_pointerarray_find( struct mulle_pointerarray *array, void *p)
@@ -522,6 +490,104 @@ static inline uintptr_t
 }
 
 
+// removal
+
+
+
+MULLE_C_NONNULL_FIRST
+static inline void  *
+   _mulle_pointerarray_pop( struct mulle_pointerarray *array)
+{
+   return( _mulle__pointerarray_pop( (struct mulle__pointerarray *) array));
+}
+
+static inline void *
+   mulle_pointerarray_pop( struct mulle_pointerarray *array)
+{
+   return( mulle__pointerarray_pop( (struct mulle__pointerarray *) array));
+}
+
+
+
+MULLE_C_NONNULL_FIRST
+static inline
+void   _mulle_pointerarray_remove_in_range( struct mulle_pointerarray *array,
+                                            struct mulle_range range)
+{
+   _mulle__pointerarray_remove_in_range( (struct mulle__pointerarray *) array,
+                                         range);
+}
+
+
+static inline
+void   mulle_pointerarray_remove_in_range( struct mulle_pointerarray *array,
+                                           struct mulle_range range)
+{
+   if( array)
+      _mulle_pointerarray_remove_in_range( array, range);
+}
+
+
+
+MULLE_C_NONNULL_FIRST
+static inline
+void   _mulle_pointerarray_remove( struct mulle_pointerarray *array,
+                                   void *p)
+{
+   size_t  i;
+   void    *item;
+
+   //
+   // Removal back to front is cool, as long as we are the only one
+   // modifying the array. We don't use an enumerator here, but an index is
+   // safe...
+   //
+   for( i = _mulle_pointerarray_get_count( array); i;)
+   {
+      item = _mulle_pointerarray_get( array, --i);
+      if( p == item)
+         _mulle_pointerarray_remove_in_range( array,
+                                              mulle_range_make( i, 1));
+   }
+}
+
+
+static inline
+void   mulle_pointerarray_remove( struct mulle_pointerarray *array,
+                                  void *p)
+{
+   if( array)
+      _mulle_pointerarray_remove( array, p);
+}
+
+
+MULLE_C_NONNULL_FIRST
+static inline
+void   * _mulle_pointerarray_remove_unique( struct mulle_pointerarray *array,
+                                            void *p)
+{
+   return( _mulle__pointerarray_remove_unique( (struct mulle__pointerarray *) array,
+                                               p));
+}
+
+
+//
+// mulle_pointerarray_remove_unique returns 'p' if it was actually removed
+// otherwise NULL. mulle_array can't do this, because it may have already
+// released 'p'
+//
+static inline
+void   *mulle_pointerarray_remove_unique( struct mulle_pointerarray *array,
+                                       void *p)
+{
+   if( array)
+      return( _mulle_pointerarray_remove_unique( array, p));
+   return( NULL);
+}
+
+
+
+// sorting
 
 MULLE_C_NONNULL_FIRST
 static inline void
@@ -775,7 +841,8 @@ static inline void
  *  printf( "\n");
  *
  */
-#define MULLE_POINTERARRAYREVERSEENUMERATOR_BASE  MULLE__POINTERARRAYREVERSEENUMERATOR_BASE
+#define MULLE_POINTERARRAYREVERSEENUMERATOR_BASE  \
+   MULLE__POINTERARRAYREVERSEENUMERATOR_BASE
 
 struct mulle_pointerarrayreverseenumerator
 {
@@ -850,8 +917,6 @@ static inline int
 
 
 
-
-
 //
 // we have to keep storage out of the for loop
 //
@@ -866,7 +931,7 @@ static inline int
         ! name ## __i;                                      \
         name ## __i =                                       \
         (                                                   \
-           _mulle_pointerarray_done( &name ## __container), \
+           mulle_pointerarray_done( name),                  \
            (void *) 0x1                                     \
         )                                                   \
       )                                                     \
@@ -884,7 +949,7 @@ static inline int
         ! name ## __i;                                                       \
         name ## __i =                                                        \
         (                                                                    \
-           _mulle_pointerarray_done( &name ## __container),                  \
+           mulle_pointerarray_done( name),                                   \
            (void *) 0x1                                                      \
         )                                                                    \
       )                                                                      \

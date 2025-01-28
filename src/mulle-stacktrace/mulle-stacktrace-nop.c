@@ -1,4 +1,4 @@
-#if defined( _WIN32) || defined( __MULLE_MUSL__)
+#if (defined( _WIN32) || defined( __MULLE_MUSL__) || defined( __COSMOPOLITAN__) || defined( __MULLE_COSMOPOLITAN__) || defined(__emscripten__))
 
 #include "mulle-stacktrace.h"
 

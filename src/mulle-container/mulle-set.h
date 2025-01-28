@@ -45,7 +45,7 @@
 #include <string.h>
 
 //
-// a mulle_set is a mulle_hashtable, with callbacks added
+// a mulle_set is a mulle_hashtable, with callbacks and the allocator embedded
 // this makes a mulle_set more convenient.
 //
 
@@ -154,7 +154,9 @@ static inline int
 static inline int
    mulle_set_member( struct mulle_set *set, void *p)
 {
-   return( mulle__set_member( (struct mulle__set *) set, p, set->callback));
+   if( set)
+      return( _mulle_set_member( set, p));
+   return( 0);
 }
 
 
@@ -245,6 +247,53 @@ static inline struct mulle_set   *mulle_set_copy( struct mulle_set *set)
 void   mulle_set_add_set( struct mulle_set *set, struct mulle_set *other);
 
 
+MULLE_C_NONNULL_FIRST
+static inline void
+   _mulle_set_intersect( struct mulle_set *dst,
+                         struct mulle_set *a,
+                         struct mulle_set *b)
+{
+   _mulle__set_intersect( (struct mulle__set *) dst,
+                          (struct mulle__set *) a,
+                          (struct mulle__set *) b,
+                          dst->callback,
+                          dst->allocator);
+}
+
+
+static inline void
+   mulle_set_intersect( struct mulle_set *dst,
+                        struct mulle_set *a,
+                        struct mulle_set *b)
+{
+   if( dst)
+      _mulle_set_intersect( dst, a, b);
+}
+
+
+
+MULLE_C_NONNULL_FIRST
+static inline void   _mulle_set_union( struct mulle_set *dst,
+                                       struct mulle_set *a,
+                                       struct mulle_set *b)
+{
+   _mulle__set_union( (struct mulle__set *) dst,
+                      (struct mulle__set *) a,
+                      (struct mulle__set *) b,
+                      dst->callback,
+                      dst->allocator);
+}
+
+
+static inline void   mulle_set_union( struct mulle_set *dst,
+                                      struct mulle_set *a,
+                                      struct mulle_set *b)
+{
+   if( dst)
+      _mulle_set_union( dst, a, b);
+}
+
+
 #pragma mark - management
 
 static inline void   _mulle_set_shrink_if_needed( struct mulle_set *set)
@@ -285,19 +334,24 @@ static inline void   *mulle_set_describe( struct mulle_set *set)
  * mulle_setenumerator_done( &rover);
  *
  */
-#define MULLE_SETENUMERATOR_BASE   \
-   MULLE__SETENUMERATOR_BASE
-
-
-struct  mulle_setenumerator
-{
-   MULLE_SETENUMERATOR_BASE;
-};
-
+#define MULLE_SETENUMERATOR_BASE   MULLE__SETENUMERATOR_BASE
 
 #define mulle_setenumerator_empty  \
    ((struct mulle_setenumerator) { 0 })
 
+#if MULLE__CONTAINER_HAVE_MUTATION_COUNT
+struct mulle_setenumerator
+{
+   MULLE_SETENUMERATOR_BASE;
+   struct mulle__set *_set;
+   uintptr_t  _n_mutations;
+};
+#else
+struct mulle_setenumerator
+{
+   MULLE_SETENUMERATOR_BASE;
+};
+#endif
 
 MULLE_C_NONNULL_FIRST
 static inline struct mulle_setenumerator
@@ -307,10 +361,15 @@ static inline struct mulle_setenumerator
    struct mulle__setenumerator   tmp;
 
    tmp = _mulle__set_enumerate( (struct mulle__set *) set, set->callback);
-   memcpy( &rover, &tmp, sizeof( struct mulle__setenumerator));
+   rover._curr    = tmp._curr;
+   rover._left    = tmp._left;
+   rover._notakey = tmp._notakey;
+#if MULLE__CONTAINER_HAVE_MUTATION_COUNT
+   rover._set = (struct mulle__set *) set;
+   rover._n_mutations = tmp._n_mutations;
+#endif
    return( rover);
 }
-
 
 static inline struct mulle_setenumerator
    mulle_set_enumerate( struct mulle_set *set)
@@ -379,4 +438,3 @@ static inline void   mulle_setenumerator_done( struct mulle_setenumerator *rover
       while( _mulle_setenumerator_next( &rover__ ## item, (void **) &item))
 
 #endif
-

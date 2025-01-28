@@ -11,7 +11,7 @@
  *
  *  version:  major, minor, patch
  */
-#define MULLE__STORAGE_VERSION  ((0UL << 20) | (0 << 8) | 2)
+#define MULLE__STORAGE_VERSION  ((0UL << 20) | (0 << 8) | 3)
 
 
 static inline unsigned int   mulle_storage_get_version_major( void)
@@ -139,7 +139,7 @@ static inline void
    _mulle_structqueue_assert_pointer( &alloc->_structs, p);
 
 #if DEBUG
-   memset( p, 0xFD, _mulle_structqueue_get_element_size( &alloc->_structs));
+   mulle_memset_uint32( p, 0xDEADDEAD,_mulle_structqueue_get_element_size( &alloc->_structs));
 #endif
    allocator = mulle_structqueue_get_allocator( &alloc->_structs);
    mulle__pointerarray_add( &alloc->_freed, p, allocator);

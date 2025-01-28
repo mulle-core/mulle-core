@@ -76,6 +76,7 @@ src/mulle-data/farmhash.c
 src/mulle-data/mulle-data.c
 src/mulle-data/mulle-fnv1a.c
 src/mulle-data/mulle-hash.c
+src/mulle-data/mulle-memset.c
 src/mulle-data/mulle-prime.c
 src/mulle-data/mulle-range.c
 src/mulle-dlfcn/mulle-dlfcn.c

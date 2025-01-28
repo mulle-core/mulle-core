@@ -56,7 +56,7 @@ void   _mulle_rbtree_done( struct mulle_rbtree *a_tree)
    struct mulle_allocator   *allocator;
 
    allocator = _mulle_rbtree_get_allocator( a_tree);
-   mulle_rbtree_for( a_tree, payload)
+   _mulle_rbtree_for( a_tree, payload)
    {
       (*a_tree->callback.release)( &a_tree->callback,
                                    payload,

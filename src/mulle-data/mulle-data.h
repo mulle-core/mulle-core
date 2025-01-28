@@ -13,7 +13,7 @@
  *
  *  version:  major, minor, patch
  */
-#define MULLE__DATA_VERSION  ((0UL << 20) | (3 << 8) | 2)
+#define MULLE__DATA_VERSION  ((0UL << 20) | (4 << 8) | 0)
 
 
 static inline unsigned int   mulle_data_get_version_major( void)
@@ -136,6 +136,9 @@ static inline void   mulle_data_assert( struct mulle_data data)
    assert( ! data.length || data.bytes);
 }
 
+
+// only useful if you need to init with != 0
+#include "mulle-memset.h"
 
 // our "standard" hash for bytes, assuming them to be largish
 #include "mulle-hash.h"

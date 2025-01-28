@@ -32,10 +32,145 @@
 
 #include "mulle--pointerset-struct.h"
 
-
+//
+// the "generic" functions are aware of the callback and use it to add and
+// remove stuff from the pointerset. The standard mulle-pointerset user is
+// "unaware" that a callback is used during storage I/O.
+//
 void   **_mulle__pointerset_allocate_storage_generic( size_t n,
                                                       void *notakey,
                                                       struct mulle_allocator *allocator);
+
+MULLE_C_NONNULL_FIRST
+void   _mulle__pointerset_release_all( struct mulle__pointerset *set,
+                                       struct mulle_container_keycallback *callback,
+                                       struct mulle_allocator *allocator);
+
+
+#pragma mark - callback access with mutation check
+
+#if MULLE__CONTAINER_HAVE_MUTATION_COUNT
+
+static inline uintptr_t   _mulle__pointerset_keycallback_hash( struct mulle__pointerset *set,
+                                                               struct mulle_container_keycallback *callback,
+                                                               void *a)
+{
+   uintptr_t   memo_set;
+   uintptr_t   hash;
+
+   memo_set = set->_n_mutations;
+   hash     = (*callback->hash)( callback, a);
+   assert( set->_n_mutations == memo_set && "set was modified during hash callback");
+
+   return( hash);
+}
+
+static inline int   _mulle__pointerset_keycallback_equal( struct mulle__pointerset *set,
+                                                          struct mulle_container_keycallback *callback,
+                                                          void *a,
+                                                          void *b)
+{
+   uintptr_t   memo_set;
+   int         is_equal;
+
+   memo_set = set->_n_mutations;
+   is_equal = (*callback->is_equal)( callback, a, b);
+   assert( set->_n_mutations == memo_set && "set was modified during is_equal callback");
+
+   return( is_equal);
+}
+
+
+static inline void   *_mulle__pointerset_keycallback_retain( struct mulle__pointerset *set,
+                                                             struct mulle_container_keycallback *callback,
+                                                             void *p,
+                                                             struct mulle_allocator *allocator)
+{
+   uintptr_t   memo_set;
+
+   memo_set = set->_n_mutations;
+   p        = (*callback->retain)( callback, p, allocator);
+   assert( set->_n_mutations == memo_set && "set was modified during retain callback");
+   return( p);
+}
+
+
+static inline void   _mulle__pointerset_keycallback_release( struct mulle__pointerset *set,
+                                                             struct mulle_container_keycallback *callback,
+                                                             void *p,
+                                                             struct mulle_allocator *allocator)
+{
+   uintptr_t   memo_set;
+
+   memo_set = set->_n_mutations;
+   (*callback->release)( callback, p, allocator);
+   assert( set->_n_mutations == memo_set && "set was modified during release callback");
+}
+
+
+static inline char   *_mulle__pointerset_keycallback_describe( struct mulle__pointerset *set,
+                                                               struct mulle_container_keycallback *callback,
+                                                               void *p,
+                                                               struct mulle_allocator **allocator)
+{
+   uintptr_t   memo_set;
+   char        *s;
+
+   memo_set = set->_n_mutations;
+   s        = (*callback->describe)( callback, p, allocator);
+   assert( set->_n_mutations == memo_set && "set was modified during describe callback");
+   return( s);
+}
+
+#else
+
+static inline uintptr_t   _mulle__pointerset_keycallback_hash( struct mulle__pointerset *set,
+                                                               struct mulle_container_keycallback *callback,
+                                                               void *a)
+{
+   uintptr_t   hash;
+
+   MULLE_C_UNUSED( set);
+
+   hash = (*callback->hash)( callback, a);
+   return( hash);
+}
+
+
+static inline int   _mulle__pointerset_keycallback_equal( struct mulle__pointerset *set,
+                                                          struct mulle_container_keycallback *callback,
+                                                          void *a,
+                                                          void *b)
+{
+   MULLE_C_UNUSED( set);
+
+   return( (*callback->is_equal)( callback, a, b));
+}
+
+
+static inline void   *_mulle__pointerset_keycallback_retain( struct mulle__pointerset *set,
+                                                             struct mulle_container_keycallback *callback,
+                                                             void *p,
+                                                             struct mulle_allocator *allocator)
+{
+   MULLE_C_UNUSED( set);
+
+   return( (*callback->retain)( callback, p, allocator));
+}
+
+
+static inline void   _mulle__pointerset_keycallback_release( struct mulle__pointerset *set,
+                                                             struct mulle_container_keycallback *callback,
+                                                             void *p,
+                                                             struct mulle_allocator *allocator)
+{
+   MULLE_C_UNUSED( set);
+
+   (*callback->release)( callback, p, allocator);
+}
+
+#endif
+
 
 MULLE_C_NONNULL_FIRST
 void   _mulle__pointerset_reset_generic( struct mulle__pointerset *set,
@@ -125,8 +260,8 @@ static inline int
 
 MULLE_C_NONNULL_FIRST_SECOND
 void   _mulle__pointerset_shrink_generic( struct mulle__pointerset *set,
-                                           struct mulle_container_keycallback *callback,
-                                           struct mulle_allocator *allocator);
+                                          struct mulle_container_keycallback *callback,
+                                          struct mulle_allocator *allocator);
 
 int   _mulle__pointerset_remove_generic( struct mulle__pointerset *set,
                                          void *p,
@@ -138,48 +273,65 @@ void   _mulle__pointerset_copy_items_generic( struct mulle__pointerset *dst,
                                               struct mulle_container_keycallback *callback,
                                               struct mulle_allocator *allocator);
 
+//
+// dst will be clobbered with the intersection of a and b
+// dst can be the same as a,
+//
+MULLE_C_NONNULL_FIRST_FOURTH
+void   _mulle__pointerset_intersect_generic( struct mulle__pointerset *dst,
+                                             struct mulle__pointerset *a,
+                                             struct mulle__pointerset *b,
+                                             struct mulle_container_keycallback *callback,
+                                             struct mulle_allocator *allocator);
+
+MULLE_C_NONNULL_FIRST_FOURTH
+void   _mulle__pointerset_union_generic( struct mulle__pointerset *dst,
+                                         struct mulle__pointerset *a,
+                                         struct mulle__pointerset *b,
+                                         struct mulle_container_keycallback *callback,
+                                         struct mulle_allocator *allocator);
 
 #pragma mark - enumeration
 
 #define MULLE__GENERICPOINTERSETENUMERATOR_BASE \
-   void           **_curr;                      \
-   size_t   _left;                        \
-   void           *_notakey
+   void     **_curr;                            \
+   size_t   _left;                              \
+   void     *_notakey
 
+#if MULLE__CONTAINER_HAVE_MUTATION_COUNT
+struct mulle__genericpointersetenumerator
+{
+   MULLE__GENERICPOINTERSETENUMERATOR_BASE;
+   struct mulle__pointerset *_set;
+   uintptr_t  _n_mutations;
+};
+#else
 struct mulle__genericpointersetenumerator
 {
    MULLE__GENERICPOINTERSETENUMERATOR_BASE;
 };
-
+#endif
 
 #define mulle__genericpointersetenumerator_empty  \
    ((struct mulle__genericpointersetenumerator) { 0 })
-
 
 MULLE_C_NONNULL_FIRST_SECOND
 static inline struct mulle__genericpointersetenumerator
    _mulle__pointerset_enumerate_generic( struct mulle__pointerset *set,
                                          struct mulle_container_keycallback *callback)
 {
-   return( (struct mulle__genericpointersetenumerator)
-           {
-              ._curr    = set->_storage,
-              ._left    = set->_count,
-              ._notakey = callback->notakey
-           });
+   struct mulle__genericpointersetenumerator   rover;
+
+   rover._curr    = set->_storage;
+   rover._left    = set->_count;
+   rover._notakey = callback->notakey;
+#if MULLE__CONTAINER_HAVE_MUTATION_COUNT
+   rover._set = set;
+   rover._n_mutations = set->_n_mutations;
+#endif
+
+   return( rover);
 }
-
-
-static inline struct mulle__genericpointersetenumerator
-   mulle__pointerset_enumerate_generic( struct mulle__pointerset *set,
-                                        struct mulle_container_keycallback *callback)
-{
-   if( ! set)
-      return( mulle__genericpointersetenumerator_empty);
-
-   return( _mulle__pointerset_enumerate_generic( set, callback));
-}
-
 
 MULLE_C_NONNULL_FIRST_SECOND
 static inline int
@@ -194,6 +346,11 @@ static inline int
       return( 0);
    }
 
+#if MULLE__CONTAINER_HAVE_MUTATION_COUNT
+   assert( rover->_set->_n_mutations == rover->_n_mutations &&
+          "set was modified during enumeration");
+#endif
+
    for(;;)
    {
       p = *rover->_curr++;
@@ -205,7 +362,6 @@ static inline int
       }
    }
 }
-
 
 static inline int
    mulle__genericpointersetenumerator_next( struct mulle__genericpointersetenumerator *rover,
@@ -242,8 +398,14 @@ static inline void   mulle__genericpointersetenumerator_done( struct mulle__gene
 }
 
 
-#define mulle__genericpointerset_for( set, item)                                                               \
-   for( struct mulle__genericpointersetenumerator rover__ ## item = mulle__pointerset_enumerate_generic( set); \
-        _mulle__genericpointersetenumerator_next( &rover__ ## item, (void **) &item);)
+#define mulle__genericpointerset_for( set, callback, item)                                                                                            \
+   assert( sizeof( item) == sizeof( void *));                                                                                                         \
+   for( struct mulle__genericpointersetenumerator rover__ ## item = mulle__pointerset_enumerate_generic( (struct mulle__pointerset *) set, callback); \
+        *rover__  ## item ## __i = (void *) 0;                                                                                                        \
+        ! rover__  ## item ## __i;                                                                                                                    \
+        rover__ ## item ## __i   = (_mulle__genericpointersetenumerator_done( &rover__ ## item), (void *) 1))                                         \
+                                                                                                                                                      \
+      while( _mulle__genericpointersetenumerator_next( &rover__ ## item, (void **) &item))
+
 
 #endif

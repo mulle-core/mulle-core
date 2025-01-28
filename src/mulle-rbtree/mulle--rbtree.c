@@ -85,7 +85,7 @@ void   _mulle__rbtree_done( struct mulle__rbtree *a_tree)
    assert( a_tree);
    _mulle_storage_done( &a_tree->_nodes);
 #ifdef DEBUG
-   memset( a_tree, 0xFD, sizeof( struct mulle__rbtree));
+   mulle_memset_uint32( a_tree, 0xDEADDEAD,sizeof( struct mulle__rbtree));
 #endif
 }
 

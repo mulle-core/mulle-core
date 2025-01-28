@@ -227,7 +227,7 @@ static size_t   _mulle_utf32_strspn( mulle_utf32_t *s1, mulle_utf32_t *s2, int f
    mulle_alloca_do( buf, mulle_utf32_t, s2_len)
    {
       --s2;
-      while( d = *++s2)
+      while( (d = *++s2))
          buf[ i++] = d;
 
       qsort( buf, i, sizeof( mulle_utf32_t), compare_mulle_utf32_t);

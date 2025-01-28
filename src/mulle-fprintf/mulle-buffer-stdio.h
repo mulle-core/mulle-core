@@ -132,4 +132,85 @@ struct mulle_buffer_stdio_functions   mulle_buffer_functions;
 MULLE__FPRINTF_GLOBAL
 struct mulle_buffer_stdio_functions   mulle_stdio_functions;
 
+
+// TODO:
+//
+// How about ?
+//
+// struct mulle_FILE
+// {
+//   void                          *buffer;
+//   mulle_buffer_stdio_functions  *functions;
+// }
+//
+// static int mulle_FILE_getc( struct mulle_FILE *fp)
+// {
+//    return( (*fp->functions)( fgetc, fp->buffer)
+// }
+//
+// But what about mulle_buffer_fprintf and mulle_fprintf ?
+
+
+
+// convenience:
+// static char   *read_text( char *filepath)
+// {
+//    char   *s;
+//
+//    mulle_buffer_do_filepath( buffer, filepath, MULLE_BUFFER_IS_TEXT)
+//    {
+//       s = mulle_buffer_extract_string( buffer);
+//    }
+//    return( s);
+// }
+
+
+// TODO: this has nothing to do with mulle_buffer_stdio_functions
+//       move to own file ?
+
+#pragma mark - read from FILE into buffer
+
+/**
+ * Initializes a buffer with the contents of a file. This uses FILE for I/O.
+ * Memory mapping might be available through mulle-mmap.
+ *
+ * @param buffer The buffer to initialize.
+ * @param filepath Name of the file to read from
+ * @param binary use MULLE_BUFFER_IS_BINARY for "rb" MULLE_BUFFER_IS_TEXT for "r"
+ * @param allocator The allocator to use for the buffer's storage.
+ */
+int   mulle_buffer_init_with_filepath( struct mulle_buffer *buffer,
+                                       char *filepath,
+                                       int mode,
+                                       struct mulle_allocator *allocator);
+
+
+
+
+// read specified amount of bytes from FILE
+size_t   mulle_buffer_fread_FILE( struct mulle_buffer *buffer,
+                                  size_t size,
+                                  size_t nmem,
+                                  FILE *fp);
+
+// read remaining bytes from FILE
+size_t   mulle_buffer_fread_FILE_all( struct mulle_buffer *buffer,
+                                      FILE *fp);
+
+
+#define mulle_buffer_do_filepath( name, filepath, mode)                       \
+   for( struct mulle_buffer                                                   \
+          name ## __storage,                                                  \
+          *name = &name ## __storage,                                         \
+          *name ## __i = (mulle_buffer_init_with_filepath( name,              \
+                                                           filepath,          \
+                                                           mode,              \
+                                                           NULL), NULL);      \
+        ! name ## __i;                                                        \
+        name ## __i = ( mulle_buffer_done( &name ## __storage), (void *) 0x1) \
+      )                                                                       \
+                                                                              \
+      for( int  name ## __j = 0;    /* break protection */                    \
+           name ## __j < 1;                                                   \
+           name ## __j++)
 #endif
