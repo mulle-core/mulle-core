@@ -218,98 +218,85 @@ static inline uintptr_t   mulle_long_long_hash( long long value)
 /**
  * Calculates a chained 32-bit hash value for the given bytes.
  *
- * This function takes a pointer to a byte array, the length of the array, and an
- * initial hash value. It then applies the farmhash algorithm to the bytes and
- * returns the resulting 32-bit hash value.
+ * This function takes a pointer to a byte array, the length of the array, and
+ * a pointer, that on the first call points to void pointer that is NULL.
+ * On subsequent calls you need to pass the contents of this void pointer
+ * unchanged to mulle_hash_chained_32.
  *
- * Note that the chained hash and the regular hash are not compatible. Also, this
- * function is little-endian/big-endian agnostic. Length of -1 is not supported;
- * use _mulle_hash_string for C strings.
+ * Example:
+ * void        *state = NULL; // important!
+ * uint32_t    hash;
+ *
+ * (void) mulle_hash_chained_32( "VfL", 3, &state);
+ * (void) mulle_hash_chained_32( "Bochum", 6, &state);
+ * hash = mulle_hash_chained_32( NULL, 0, &state);
  *
  * @param bytes The byte array to hash.
- * @param length The length of the byte array.
- * @param hash The initial hash value.
- * @return The 32-bit chained hash value.
+ * @param length The length of the byte array. Call with 0 for last chunk.
+ * @param state_p The opaque hash state
+ * @return The 32-bit chained hash value once length is zero
  */
-//
-// the chained hash and the regular hash are not compatible!
-//
-// is the hash littleendian/bigendian agnostic ?
-//
-// length == -1 is not supported here. Use _mulle_hash_string for C
-// strings.
-//
 MULLE__DATA_GLOBAL
-uint32_t   _mulle_hash_chained_32( void *bytes, size_t length, uint32_t hash);
+uint32_t   mulle_hash_chained_32( void *bytes, size_t length, void **state_p);
 
 /**
  * Calculates a chained 64-bit hash value for the given bytes.
  *
- * This function takes a pointer to a byte array, the length of the array, and an
- * initial hash value. It then applies the farmhash algorithm to the bytes and
- * returns the resulting 64-bit hash value.
+ * This function takes a pointer to a byte array, the length of the array, and
+ * a pointer, that on the first call points to void pointer that is NULL.
+ * On subsequent calls you need to pass the contents of this void pointer
+ * unchanged to mulle_hash_chained_64.
  *
- * Note that the chained hash and the regular hash are not compatible. Also, this
- * function is little-endian/big-endian agnostic. Length of -1 is not supported;
- * use _mulle_hash_string for C strings.
+ * Example:
+ * void        *state = NULL; // important!
+ * uint64_t    hash;
+ *
+ * (void) mulle_hash_chained_64( "VfL", 3, &state);
+ * (void) mulle_hash_chained_64( "Bochum", 6, &state);
+ * hash = mulle_hash_chained_64( NULL, 0, &state);
  *
  * @param bytes The byte array to hash.
- * @param length The length of the byte array.
- * @param hash The initial hash value.
- * @return The 64-bit chained hash value.
+ * @param length The length of the byte array. Call with 0 for last chunk.
+ * @param state_p The opaque hash state
+ * @return The 64-bit chained hash value once length is zero
  */
 MULLE__DATA_GLOBAL
-uint64_t   _mulle_hash_chained_64( void *bytes, size_t length, uint64_t hash);
+uint64_t   mulle_hash_chained_64( void *bytes, size_t length, void **state_p);
+
 
 
 /**
  * Calculates a chained hash value for the given bytes, using either a 32-bit or
  * 64-bit hash algorithm depending on the size of `uintptr_t`.
  *
- * This function takes a pointer to a byte array, the length of the array, and an
- * initial hash value. It then applies the farmhash algorithm to the bytes and
- * returns the resulting hash value.
+ * This function takes a pointer to a byte array, the length of the array, and
+ * an initial hash value. It then applies the farmhash algorithm to the bytes
+ * and returns the resulting hash value. mulle_hash_chained does not provide
+ * intermediate results. Reset the state to NULL after you retrieved
+ * the hash, before hashing the next chain.
  *
- * Note that the chained hash and the regular hash are not compatible. Also, this
- * function is little-endian/big-endian agnostic. Length of -1 is not supported;
- * use _mulle_hash_string for C strings.
+ * Example:
+ * void        *state = NULL; // important!
+ * uintptr_t   hash;
+ *
+ * (void) mulle_hash_chained( "VfL", 3, &state);
+ * (void) mulle_hash_chained( "Bochum", 6, &state);
+ * hash = mulle_hash_chained( NULL, 0, &state);
  *
  * @param bytes The byte array to hash.
- * @param length The length of the byte array.
- * @param hash The initial hash value.
- * @return The chained hash value.
+ * @param length The length of the byte array. Call with 0 for hash retrieval.
+ * @param state_p The opaque hash state
+ * @return The chained hash value. Only valid of length was 0.
  */
-static inline uintptr_t   _mulle_hash_chained( void *bytes, size_t length, uintptr_t hash)
+static inline uintptr_t   mulle_hash_chained( void *bytes,
+                                               size_t length,
+                                               void **state_p)
 {
    if( sizeof( uintptr_t) == sizeof( uint32_t))
-      return( (uintptr_t) _mulle_hash_chained_32( bytes, length, hash));
-   return( (uintptr_t) _mulle_hash_chained_64( bytes, length, hash));
+      return( (uintptr_t) mulle_hash_chained_32( bytes, length, state_p));
+   return( (uintptr_t) mulle_hash_chained_64( bytes, length, state_p));
 }
 
-
-/**
- * Calculates a chained hash value for the given bytes, using either a 32-bit or
- * 64-bit hash algorithm depending on the size of `uintptr_t`.
- *
- * This function takes a pointer to a byte array, the length of the array, and an
- * initial hash value. It then applies the farmhash algorithm to the bytes and
- * returns the resulting hash value.
- *
- * Note that the chained hash and the regular hash are not compatible. Also, this
- * function is little-endian/big-endian agnostic. Length of -1 is not supported;
- * use _mulle_hash_string for C strings.
- *
- * @param bytes The byte array to hash.
- * @param length The length of the byte array.
- * @param hash The initial hash value.
- * @return The chained hash value.
- */
-static inline uintptr_t   mulle_hash_chained( void *bytes, size_t length, uintptr_t hash)
-{
-   if( ! bytes)
-      return( 0);
-   return( _mulle_hash_chained( bytes, length, hash));
-}
 
 
 /**

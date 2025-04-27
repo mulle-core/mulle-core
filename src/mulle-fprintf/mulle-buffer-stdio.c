@@ -153,6 +153,11 @@ size_t    mulle_buffer_fread( void *dst, size_t size, size_t nmemb, void *buffer
       return( 0);
    }
 
+   // on older darwin, if we read 4 with "xx\0x" we get 2 bytes back. but this seems
+   // to have been fixes.
+   // on linux we get 4 bytes back (not sure what subsequent bytes are)
+   // we do the linux thing 
+
    bytes_to_read   = size * nmemb;
    bytes_available = mulle_buffer_remaining_length( buffer);
    bytes_to_copy   = (bytes_to_read > bytes_available) ? bytes_available : bytes_to_read;
