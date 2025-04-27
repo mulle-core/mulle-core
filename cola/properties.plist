@@ -3,6 +3,8 @@
    {
       description="🌋 Almagamated library of mulle-core + mulle-concurrent + mulle-c";
       domain="github";
+      language="c";
+      dialect="c";
       name="mulle-core";
       user="mulle-core";
       repo="mulle-core";
@@ -28,7 +30,7 @@
          user="mulle-c";
       },
       {
-         description="↗️ A growable C char array and also a stream";
+         description="↗️ A growable C char array and also a stream - on stack and heap";
          domain="clib";
          name="src/mulle-buffer";
          repo="mulle-buffer@*";
@@ -71,8 +73,8 @@
          description="📣 Unicode regex library";
          domain="clib";
          name="src/mulle-regex";
-         repo="mulle-regex@";
-         url="https://github.com/mulle-c/mulle-regex@";
+         repo="mulle-regex@*";
+         url="https://github.com/mulle-c/mulle-regex@*";
          user="mulle-c";
       },
       {

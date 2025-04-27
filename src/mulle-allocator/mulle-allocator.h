@@ -50,6 +50,7 @@
 #endif
 
 #include "mulle-allocator-struct.h"
+#include "mulle-memset.h"
 #include <stddef.h>
 #include <assert.h>
 

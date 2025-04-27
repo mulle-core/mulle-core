@@ -288,7 +288,7 @@
 <!-- mulle&#45;regex -->
 <g id="node20" class="node">
 <title>mulle&#45;regex</title>
-<g id="a_node20"><a xlink:href="https://github.com/mulle-c/mulle-regex@" xlink:title="mulle&#45;regex">
+<g id="a_node20"><a xlink:href="https://github.com/mulle-c/mulle-regex@*" xlink:title="mulle&#45;regex">
 <polygon fill="lightgrey" stroke="black" points="267,-576 166,-576 166,-540 267,-540 267,-576"/>
 <text text-anchor="middle" x="216.5" y="-554.3" font-family="Times,serif" font-size="14.00">mulle&#45;regex</text>
 </a>

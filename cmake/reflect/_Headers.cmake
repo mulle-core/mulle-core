@@ -248,6 +248,7 @@ src/mulle-allocator/mulle-alloca.h
 src/mulle-allocator/mulle-allocator.h
 src/mulle-allocator/mulle-allocator-struct.h
 src/mulle-allocator/_mulle-allocator-versioncheck.h
+src/mulle-allocator/mulle-memset.h
 src/mulle-buffer/mulle--buffer.h
 src/mulle-buffer/mulle-buffer.h
 src/mulle-buffer/_mulle-buffer-include.h
@@ -336,15 +337,13 @@ src/mulle-container/mulle-structarray.h
 src/mulle-container/mulle--structqueue.h
 src/mulle-container/mulle-structqueue.h
 src/mulle-core.h
-src/mulle-data/farmhash.h
-src/mulle-data/largeint.h
 src/mulle-data/mulle-data.h
 src/mulle-data/_mulle-data-versioncheck.h
 src/mulle-data/mulle-fnv1a.h
 src/mulle-data/mulle-hash.h
-src/mulle-data/mulle-memset.h
 src/mulle-data/mulle-prime.h
 src/mulle-data/mulle-range.h
+src/mulle-data/xxhash.h
 src/mulle-dlfcn/mulle-dlfcn.h
 src/mulle-dlfcn/_mulle-dlfcn-include.h
 src/mulle-dlfcn/_mulle-dlfcn-versioncheck.h

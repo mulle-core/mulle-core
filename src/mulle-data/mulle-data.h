@@ -137,9 +137,6 @@ static inline void   mulle_data_assert( struct mulle_data data)
 }
 
 
-// only useful if you need to init with != 0
-#include "mulle-memset.h"
-
 // our "standard" hash for bytes, assuming them to be largish
 #include "mulle-hash.h"
 
@@ -164,9 +161,7 @@ static inline uintptr_t   mulle_data_hash( struct mulle_data data)
 {
    mulle_data_assert( data);
 
-   if( sizeof( uintptr_t) == sizeof( uint32_t))
-      return( (uintptr_t) _mulle_hash_32( data.bytes, data.length));
-   return( (uintptr_t) _mulle_hash_64( data.bytes, data.length));
+   return( (uintptr_t) mulle_hash( data.bytes, data.length));
 }
 
 
@@ -179,13 +174,11 @@ static inline uintptr_t   mulle_data_hash( struct mulle_data data)
  * @param hash The initial hash value to chain with.
  * @return The computed chained hash value.
  */
-static inline uintptr_t   mulle_data_hash_chained( struct mulle_data data, uintptr_t hash)
+static inline uintptr_t   mulle_data_hash_chained( struct mulle_data data, void **state_p)
 {
    mulle_data_assert( data);
 
-   if( sizeof( uintptr_t) == sizeof( uint32_t))
-      return( (uintptr_t) _mulle_hash_chained_32( data.bytes, data.length, (uint32_t) hash));
-   return( (uintptr_t) _mulle_hash_chained_64( data.bytes, data.length, (uint64_t) hash));
+   return( mulle_hash_chained( data.bytes, data.length, state_p));
 }
 
 

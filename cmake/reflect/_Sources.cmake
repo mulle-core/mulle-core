@@ -14,6 +14,7 @@ set( SOURCES
 src/mulle-aba/mulle-aba.c
 src/mulle-aba/mulle-aba-storage.c
 src/mulle-allocator/mulle-allocator.c
+src/mulle-allocator/mulle-memset.c
 src/mulle-buffer/mulle--buffer.c
 src/mulle-buffer/mulle-buffer.c
 src/mulle-buffer/mulle-flushablebuffer.c
@@ -72,11 +73,9 @@ src/mulle-container/mulle-structarray.c
 src/mulle-container/mulle--structqueue.c
 src/mulle-container/mulle-structqueue.c
 src/mulle-core.c
-src/mulle-data/farmhash.c
 src/mulle-data/mulle-data.c
 src/mulle-data/mulle-fnv1a.c
 src/mulle-data/mulle-hash.c
-src/mulle-data/mulle-memset.c
 src/mulle-data/mulle-prime.c
 src/mulle-data/mulle-range.c
 src/mulle-dlfcn/mulle-dlfcn.c

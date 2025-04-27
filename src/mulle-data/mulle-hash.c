@@ -29,32 +29,103 @@
 //
 #include "mulle-hash.h"
 
-#include "farmhash.h"
+#define XXH_STATIC_LINKING_ONLY /* access advanced declarations */
+#define XXH_IMPLEMENTATION      /* access definitions */
+
+#include "xxhash.h"
 
 #include <string.h>
 // lots of other code snipped
 
 uint32_t   _mulle_hash_32( void *bytes, size_t length)
 {
-   return( (uint32_t) farmhash32( bytes, length));
+   return( XXH32( bytes, length, 0));
 }
 
 
 uint64_t   _mulle_hash_64( void *bytes, size_t length)
 {
-   return( (uint64_t) farmhash64( bytes, length));
+   return( XXH64( bytes, length, 0));
 }
 
 
-uint32_t   _mulle_hash_chained_32( void *bytes, size_t length, uint32_t hash)
+uint32_t   mulle_hash_chained_32( void *bytes, size_t length, void **state_p)
 {
-   return( (uint32_t) farmhash32_with_seed( bytes, length, hash));
+   XXH32_state_t  *state;
+   XXH32_hash_t   hash;
+
+   if( ! state_p)
+      return( (uint32_t) -1);
+
+   state = *state_p;
+   if( ! state)
+   {
+      state = XXH32_createState();
+      assert( state);
+
+      XXH32_reset( state, 0);
+
+      *state_p = state;
+   }
+
+   if( length)
+   {
+      assert( bytes);
+
+      XXH32_update( state, bytes, length);
+      return( (uint32_t) -1);
+   }
+
+   hash = XXH32_digest( state);
+
+   XXH32_freeState( state);
+#ifdef DEBUG
+   *state_p = (void *) (uintptr_t) 0xDEADFACEDEADFACEULL;
+#else
+   *state_p = NULL;
+#endif
+
+   return( hash);
 }
 
 
-uint64_t   _mulle_hash_chained_64( void *bytes, size_t length, uint64_t hash)
+uint64_t   mulle_hash_chained_64( void *bytes, size_t length, void **state_p)
 {
-   return( (uint64_t) farmhash64_with_seed( bytes, length, hash));
+   XXH64_state_t  *state;
+   XXH64_hash_t   hash;
+
+   if( ! state_p)
+      return( (uint64_t) -1);
+
+   state = *state_p;
+   if( ! state)
+   {
+      state = XXH64_createState();
+      assert( state);
+
+      XXH64_reset( state, 0);
+
+      *state_p = state;
+   }
+
+   if( length)
+   {
+      assert( bytes);
+
+      XXH64_update( state, bytes, length);
+      return( (uint64_t) -1);
+   }
+
+   hash = XXH64_digest( state);
+
+   XXH64_freeState( state);
+#ifdef DEBUG
+   *state_p = (void *) (uintptr_t) 0xDEADFACEDEADFACEULL;
+#else
+   *state_p = NULL;
+#endif
+
+   return( hash);
 }
 
 
@@ -88,4 +159,3 @@ int   main( int argc, char * argv[])
 }
 
 #endif
-

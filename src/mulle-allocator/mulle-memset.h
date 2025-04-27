@@ -30,8 +30,6 @@
 #ifndef mulle_memset_h__
 #define mulle_memset_h__
 
-#include "include.h"
-
 #include <stdint.h>
 
 
