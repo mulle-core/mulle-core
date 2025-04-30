@@ -4,9 +4,24 @@ This is an almagamation of the [mulle-core](//github.com/mulle-core),
 the [constituting projects](#Constituents) for documentation, bug reports,
 pull requests.
 
-The advantages of using **mulle-core** are:
+mulle-core is tested to build on the following platforms and compiler 
+matrix:
+
+| OS       | Compiler   | Flags  | Note
+|----------|------------|--------|--------------------
+| Ubuntu   | GCC        | &nbsp; | 
+| Ubuntu   | GCC        | &nbsp; | Out of source build
+| Ubuntu   | GCC        | -O3    | 
+| Ubuntu   | Clang      | &nbsp; | 
+| Ubuntu   | Clang      | Debug  | 
+| Windows  | MSVC Win32 | &nbsp; |       
+| Windows  | MSVC Win64 | &nbsp; |       
+| Windows  | GCC        | &nbsp; | 
+| macOS    | Clang      | &nbsp; | 
+| macOS    | GCC        | &nbsp; | 
+
+The advantages of using **mulle-core** over the individual projects are:
 
 * compiles faster than two dozens of individual projects
 * you only need to link against one library file
 * `#include` statements may remain unchanged or simplify to `#include <mulle-core/mulle-core.h>`
-
