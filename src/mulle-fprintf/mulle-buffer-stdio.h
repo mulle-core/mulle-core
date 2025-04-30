@@ -4,6 +4,11 @@
 #include "include.h"
 
 
+// only needed for windows (for off_t)
+#ifdef _WIN32
+# include <sys/types.h>
+#endif
+
 //
 // STDIO LIKE INTERFACE
 //
@@ -68,13 +73,25 @@ int    mulle_buffer_fgetc( void *buffer);
  */
 
 MULLE__FPRINTF_GLOBAL
-size_t   mulle_buffer_fread( void *dst, size_t size, size_t nmemb, void *buffer);
+size_t  mulle_buffer_fread( void *dst, size_t size, size_t nmemb, void *buffer);
 
 MULLE__FPRINTF_GLOBAL
-int      mulle_buffer_fputc( int c, void *buffer);
+int     mulle_buffer_fputc( int c, void *buffer);
 
 MULLE__FPRINTF_GLOBAL
-int      mulle_buffer_fputs( const char *s, void *buffer);
+int     mulle_buffer_fputs( const char *s, void *buffer);
+
+///* Windows lacks off_t */
+//#ifndef MULLE_BUFFER_OFF_T_NO_DEFINE
+//# if defined(  _WIN32) && ! defined( __GNUC__)
+//#  ifdef _WIN64
+////typedef long   off_t; // seems to be long too, weird
+//#  else
+//typedef long   off_t;
+//#  endif
+//# endif
+//#endif
+//
 
 /**
  * This function is a fake for use in code that accepts fseek as callback
@@ -86,13 +103,13 @@ int      mulle_buffer_fputs( const char *s, void *buffer);
  * @return The new seek position, or 0 if the buffer is invalid.
  */
 MULLE__FPRINTF_GLOBAL
-int      mulle_buffer_fseek( void *buffer, long seek, int mode);
+int     mulle_buffer_fseek( void *buffer, long seek, int mode);
 
 MULLE__FPRINTF_GLOBAL
-off_t    mulle_buffer_lseek( void *buffer, off_t seek, int mode);
+off_t   mulle_buffer_lseek( void *buffer, off_t seek, int mode);
 
 MULLE__FPRINTF_GLOBAL
-long     mulle_buffer_ftell( void *buffer);
+long    mulle_buffer_ftell( void *buffer);
 
 MULLE__FPRINTF_GLOBAL
 size_t  mulle_buffer_fwrite( void *src, size_t size, size_t nmemb, void *buffer);

@@ -56,7 +56,7 @@ mulle_utf16_t   *_mulle_ascii_convert_to_utf16( char *src,
    while( src < sentinel)
    {
       _c = *src++;
-      assert( _c <= 0x7F);
+      assert( _c >= 0);
       *dst++ = _c;
    }
    return( dst);
@@ -77,7 +77,7 @@ mulle_utf32_t   *_mulle_ascii_convert_to_utf32( char *src,
    while( src < sentinel)
    {
       _c = *src++;
-      assert( _c <= 0x7F);
+      assert( _c >= 0);
       *dst++ = _c;
    }
    return( dst);
@@ -105,7 +105,7 @@ void   mulle_ascii_bufferconvert_to_utf16( char *src,
    while( src < sentinel)
    {
       _c = *src++;
-      assert( _c <= 0x7F);
+      assert( _c >= 0);
 
       x = _c;
       (*addbytes)( buffer, &x, sizeof( x));
@@ -133,7 +133,7 @@ void  mulle_ascii_bufferconvert_to_utf32( char *src,
    while( src < sentinel)
    {
       _c = *src++;
-      assert( _c <= 0x7F);
+      assert( _c >= 0);
 
       x = _c;
       (*addbytes)( buffer, &x, sizeof( x));

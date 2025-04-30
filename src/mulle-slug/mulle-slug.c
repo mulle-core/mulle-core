@@ -16,8 +16,8 @@ uint32_t   mulle_slug_get_version( void)
 
 static struct map_entry
 {
-   uint32_t   utf32;
-   char       *ascii;
+   mulle_utf32_t   utf32;
+   char            *ascii;
 } map[] =
 {
 #include "map.inc"

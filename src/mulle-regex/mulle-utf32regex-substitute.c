@@ -48,14 +48,14 @@ static int  octal( mulle_utf32_t **src_p)
 int   mulle_utf32regex_substitute( struct mulle_utf32regex *rp,
                                    mulle_utf32_t *src,
                                    mulle_utf32_t *dst,
-                                   unsigned int dst_len,
+                                   size_t dst_len,
                                    int zero)
 {
    regexp          *prog = (regexp *) rp;
    mulle_utf32_t   c;
    mulle_utf32_t   d;
    int             no;
-   unsigned int    len;
+   size_t          len;
    mulle_utf32_t   *dst_sentinel;
 
    assert( prog);
@@ -123,7 +123,7 @@ int   mulle_utf32regex_substitute( struct mulle_utf32regex *rp,
 
       assert( prog->endp[ no]);
 
-      len = prog->endp[ no] - prog->startp[ no];
+      len = (unsigned int) (prog->endp[ no] - prog->startp[ no]);
       if( ! len)
          continue;
 
@@ -150,8 +150,8 @@ int   mulle_utf32regex_substitute( struct mulle_utf32regex *rp,
 }
 
 
-unsigned int   mulle_utf32regex_substitution_length( struct mulle_utf32regex *rp,
-                                                     mulle_utf32_t *src)
+size_t   mulle_utf32regex_substitution_length( struct mulle_utf32regex *rp,
+                                               mulle_utf32_t *src)
 {
    regexp          *prog = (regexp *) rp;
    mulle_utf32_t   c;

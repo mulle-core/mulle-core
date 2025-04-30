@@ -1,3 +1,11 @@
+## 0.6.0
+
+
+
+* new workflow test more compilers and platforms (stolen from zlib)
+* asset generation now improved and also does aarch64 now
+
+
 ## 0.5.0
 
 * incorporate changes from subprojects

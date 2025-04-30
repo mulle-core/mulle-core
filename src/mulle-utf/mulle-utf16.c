@@ -99,7 +99,8 @@ mulle_utf32_t  *_mulle_utf16_convert_to_utf32( mulle_utf16_t *src,
       if( mulle_utf32_is_highsurrogatecharacter( x))  // hi surrogate
       {
          // decode surrogate
-         assert( src < sentinel);
+         if( src >= sentinel)
+            break;
          x = mulle_utf16_decode_surrogatepair( (mulle_utf16_t) x, *src++);
       }
 
@@ -127,7 +128,7 @@ char  *_mulle_utf16_convert_to_utf8( mulle_utf16_t *src, size_t len, char *_dst)
    {
       x = *src++;
 
-      assert( x >= 0 && x <= mulle_utf32_max);
+      assert( /* x >= 0 && */ x <= mulle_utf32_max);
 
       // 4 cases
       // < 0x80, < 0x800 < 0x10000, > 0x10000
@@ -150,7 +151,8 @@ recheck:
          if( mulle_utf32_is_highsurrogatecharacter( x))  // hi surrogate
          {
             // decode surrogate
-            assert( src < sentinel);
+            if( src >= sentinel)
+               break;
             x = mulle_utf16_decode_surrogatepair( (mulle_utf16_t) x, *src++);
             goto recheck;
          }
@@ -211,7 +213,7 @@ void  mulle_utf16_bufferconvert_to_utf8( mulle_utf16_t *src,
       x = *src++;
 
 recheck:
-      assert( x >= 0 && x <= mulle_utf32_max);
+      assert( /* x >= 0 && */ x <= mulle_utf32_max);
       if( x < 0x80)
       {
          *s++ = (unsigned char) x;
@@ -234,7 +236,8 @@ recheck:
          if( mulle_utf32_is_highsurrogatecharacter( x))  // hi surrogate
          {
             // decode surrogate
-            assert( src < sentinel);
+            if( src >= sentinel)
+               break;
             x = mulle_utf16_decode_surrogatepair( (mulle_utf16_t) x, *src++);
             goto recheck;
          }
@@ -287,7 +290,8 @@ void  mulle_utf16_bufferconvert_to_utf32( mulle_utf16_t *src,
       if( mulle_utf32_is_highsurrogatecharacter( x))  // hi surrogate
       {
          // decode surrogate
-         assert( src < sentinel);
+         if( src >= sentinel)
+            break;
          x = mulle_utf16_decode_surrogatepair( (mulle_utf16_t) x, *src++);
       }
 

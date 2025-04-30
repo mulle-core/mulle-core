@@ -76,6 +76,8 @@ static inline void
    _mulle_concurrent_linkedlist_done( struct _mulle_concurrent_linkedlist *p)
 {
    assert( ! _mulle_atomic_pointer_nonatomic_read( &p->_head.pointer));
+
+   MULLE_C_UNUSED( p);
 }
 
 

@@ -64,7 +64,7 @@ static mulle_utf32_t   mulle_utf8_extracharactersvalue( char *_src,
    mulle_utf32_t   x;
 
    assert( src);
-   assert( extra_len >=0 && extra_len <= 3);
+   assert( /* extra_len >=0 && */ extra_len <= 3);
 
    _c = *src++;
    x  = _c;
@@ -405,7 +405,8 @@ mulle_utf16_t   *_mulle_utf8_convert_to_utf16( char *_src,
 
       extra_len = mulle_utf8_get_extracharacterslength( _c);
       next      = &src[ extra_len];
-      assert( next <= sentinel);
+      if( next > sentinel)
+         break;
 
       x   = mulle_utf8_extracharactersvalue( (char *) src - 1, extra_len);
       src = next;
@@ -423,6 +424,7 @@ mulle_utf16_t   *_mulle_utf8_convert_to_utf16( char *_src,
 //
 // this also does not do any error checking, the UTF8 string must be perfect
 // the destination buffer must be large enough.
+//
 mulle_utf32_t   *_mulle_utf8_convert_to_utf32( char *_src,
                                                size_t len,
                                                mulle_utf32_t *dst)
@@ -450,7 +452,8 @@ mulle_utf32_t   *_mulle_utf8_convert_to_utf32( char *_src,
 
       extra_len = mulle_utf8_get_extracharacterslength( _c);
       next      = &src[ extra_len];
-      assert( next <= sentinel);
+      if( next > sentinel)
+         break;
 
       *dst++ = mulle_utf8_extracharactersvalue( (char *) src - 1, extra_len);
       src    = next;
@@ -506,7 +509,8 @@ void   mulle_utf8_bufferconvert_to_utf16( char *_src,
 
       extra_len = mulle_utf8_get_extracharacterslength( _c);
       next      = &src[ extra_len];
-      assert( next <= sentinel);
+      if( next > sentinel)
+         break;
 
       x   = mulle_utf8_extracharactersvalue( (char *) src - 1, extra_len);
       src = next;
@@ -561,7 +565,8 @@ void  mulle_utf8_bufferconvert_to_utf32( char *_src,
       {
          extra_len = mulle_utf8_get_extracharacterslength( _c);
          next      = &src[ extra_len];
-         assert( next <= sentinel);
+         if( next > sentinel)
+            break;
 
          *s++ = mulle_utf8_extracharactersvalue( (char *) src - 1, extra_len);
          src  = next;
@@ -614,7 +619,7 @@ char  *mulle_utf8_validate( char *_src, size_t len)
 
       extra_len = mulle_utf8_get_extracharacterslength( _c);
       end       = &src[ extra_len];
-      if( end >= sentinel)
+      if( end > sentinel)
          return( (char *) src);
 
       if( ! mulle_utf8_are_valid_extracharacters( (char *) src, extra_len, &_x))
@@ -737,7 +742,7 @@ int  mulle_utf8_information( char *_src, size_t len, struct mulle_utf_informatio
       dst_len  -= extra_len;  // reduce character count
 
       end = &src[ extra_len];
-      if( end >= sentinel)
+      if( end > sentinel) // extra 0!
          goto fail;
 
       if( ! mulle_utf8_are_valid_extracharacters( src, extra_len, &_x))
@@ -775,7 +780,7 @@ int  mulle_utf8_information( char *_src, size_t len, struct mulle_utf_informatio
       dst_len  -= extra_len;  // reduce character count
 
       end = &src[ extra_len];
-      if( end >= sentinel)
+      if( end > sentinel)
          goto fail;
 
       if( ! mulle_utf8_are_valid_extracharacters( (char *) src, extra_len, &_x))
@@ -797,8 +802,8 @@ int  mulle_utf8_information( char *_src, size_t len, struct mulle_utf_informatio
 
 //done:
    info->utf8len   = (char *) src - (char *) info->start; // actual UTF8 strlen
-   info->utf32len  = dst_len - (len - info->utf8len);    // number of characters
-   info->utf16len += info->utf32len;                     // size in utf16 with escapes
+   info->utf32len  = dst_len - (len - info->utf8len);     // number of characters
+   info->utf16len += info->utf32len;                      // size in utf16 with escapes
    info->is_char5 &= info->is_ascii;
 
    return( 0);
@@ -861,7 +866,7 @@ size_t   mulle_utf8_utf16length( char *src, size_t len)
       extra_len = mulle_utf8_get_extracharacterslength( _c);
       dst_len  -= extra_len == 3 ? 2 : extra_len; // ==3 : 32 bit
       end       = &src[ extra_len];
-      if( end >= sentinel)
+      if( end > sentinel)
          return( 0);
 #ifndef NDEBUG
       do
@@ -910,7 +915,7 @@ size_t  mulle_utf8_utf32length( char *src, size_t len)
       dst_len  -= extra_len;
 
       end       = &src[ extra_len];
-      if( end >= sentinel)
+      if( end >  sentinel)
          return( -1);
 #ifndef NDEBUG
       do

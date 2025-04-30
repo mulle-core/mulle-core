@@ -70,7 +70,7 @@ static inline struct mulle_utf16data   mulle_utf16data_make( mulle_utf16_t *s,
                                                              size_t length)
 {
    struct mulle_utf16data      data;
-   const static mulle_utf16_t  zero = { 0 };
+   static const mulle_utf16_t  zero = { 0 };
 
    data.length     = (length == (size_t) -1) ? mulle_utf16_strlen( s) : length;
    data.characters = data.length ? s : (mulle_utf16_t *) &zero;

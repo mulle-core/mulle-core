@@ -426,6 +426,19 @@ static off_t   mulle_FILE_lseek( void *buffer, off_t offset, int mode)
    return( (off_t) ftell( fp));
 }
 
+// what can I do ? Seem this is only used with Windows gcc matrix ?
+#if defined( _WIN32)
+static void   *fmemopen( void *string, size_t size, const char *mode)
+{
+   fprintf( stderr, "Sorry but there is no fmemopen on windows. Use mulle_buffer_fmemopen instead\n");
+   abort();
+
+   MULLE_C_UNUSED( string);
+   MULLE_C_UNUSED( size);
+   MULLE_C_UNUSED( mode);
+}
+#endif
+
 
 struct mulle_buffer_stdio_functions   mulle_stdio_functions =
 {
@@ -491,7 +504,7 @@ int   mulle_buffer_init_with_filepath( struct mulle_buffer *buffer,
    if( ! fp)
       return( errno);
 
-   rval  = mulle_buffer_fread_FILE_all( buffer, fp);
+   rval = mulle_buffer_fread_FILE_all( buffer, fp);
    fclose( fp);
 
    return( (rval == 0 && errno != EFBIG) ? errno : 0);
@@ -532,9 +545,29 @@ size_t   mulle_buffer_fread_FILE_all( struct mulle_buffer *buffer,
    long   file_size;
 
    current_pos = ftell( fp);
-   fseek( fp, 0, SEEK_END);
-   file_size = ftell(fp);
-   fseek( fp, current_pos, SEEK_SET);
+   if( current_pos == -1)
+      return( 0);
+
+   if( fseek( fp, 0, SEEK_END) == -1)
+      return( 0);
+   file_size = ftell( fp);
+   if( file_size == -1)
+      return( 0);
+
+   // LONG_MAX actually observed value, when opening a directory
+   // Starting tests...
+   // current_pos=0
+   // file_size=9223372036854775807
+   // size=9223372036854775807 nmem=1
+   // memory allocation:: Cannot allocate memory
+   if( file_size == LONG_MAX)
+   {
+      errno = EISDIR;   // only observed then
+      return( 0);
+   }
+
+   if( fseek( fp, current_pos, SEEK_SET) == -1)
+      return( 0);
 
    return( mulle_buffer_fread_FILE( buffer, 1, file_size, fp));
 }

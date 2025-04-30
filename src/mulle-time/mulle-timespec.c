@@ -27,7 +27,7 @@ mulle_timeinterval_t   mulle_timeinterval_now( void)
 	__int64   wintime; 
 
 	GetSystemTimeAsFileTime((FILETIME*)&wintime);
-   wintime -=116444736000000000i64;  //1jan1601 to 1jan1970
+   wintime -= (__int64) 116444736000000000LL;  //1jan1601 to 1jan1970
    return( (mulle_timeinterval_t) wintime / 10000000.0);
 }
 
