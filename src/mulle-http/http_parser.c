@@ -1814,7 +1814,7 @@ reexecute:
 
             case 2:
               parser->upgrade = 1;
-
+              MULLE_C_FALLTHROUGH; // (nat) assume ?
             case 1:
               parser->flags |= F_SKIPBODY;
               break;
@@ -2384,6 +2384,7 @@ http_parser_parse_url(const char *buf, size_t buflen, int mode,
 
       case s_req_server_with_at:
         found_at = 1;
+        MULLE_C_FALLTHROUGH;
 
       /* FALLTROUGH */
       case s_req_server:

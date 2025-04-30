@@ -69,6 +69,7 @@ static inline void   _mulle__pointerfifo1024_init( struct mulle__pointerfifo1024
 
 static inline void   _mulle__pointerfifo1024_done( struct mulle__pointerfifo1024 *p)
 {
+   MULLE_C_UNUSED( p);
 }
 
 

@@ -176,6 +176,8 @@ static inline void
    _mulle_linkedlist_done( struct _mulle_linkedlist *p)
 {
    assert( ! p->_head._next);
+
+   MULLE_C_UNUSED( p);
 }
 
 

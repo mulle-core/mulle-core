@@ -141,6 +141,12 @@ static int   _trim_arse_fat( char *s)
 
 static char  *_symbolize_nothing( void *adresse, size_t max, char *buf, size_t len, void **userinfo)
 {
+   MULLE_C_UNUSED( adresse);
+   MULLE_C_UNUSED( max);
+   MULLE_C_UNUSED( buf);
+   MULLE_C_UNUSED( len);
+   MULLE_C_UNUSED( userinfo);
+
    return( NULL);
 }
 
@@ -192,6 +198,9 @@ static int   _trim_boring_functions( char *s, int size)
 
 static int   keep_boring_functions( char *s, int size)
 {
+   MULLE_C_UNUSED( s);
+   MULLE_C_UNUSED( size);
+
    return( 0);
 }
 
@@ -330,7 +339,7 @@ static void   mulle_stacktrace_dump( struct mulle_stacktrace *stacktrace,
          {
             symbol_address = info.dli_saddr;
             symbol_offset  = (intptr_t) address - (intptr_t) symbol_address;
-            max            = symbol_offset < max ? symbol_offset : max;
+            max            = (size_t) symbol_offset < max ? (size_t) symbol_offset : max;
          }
          segment_name    = info.dli_fname ? (char *) info.dli_fname : "";
          segment_address = info.dli_fbase;
@@ -373,10 +382,10 @@ static void   mulle_stacktrace_dump( struct mulle_stacktrace *stacktrace,
       // address,segment_offset,symbol_offset,symbol_address,symbol_name,segment_address,segment_name
       if( format == mulle_stacktrace_csv)
       {
-         fprintf( fp, "%p,0x%tx,0x%td,",
+         fprintf( fp, "%p,%p,%p,",
                         address,
-                        segment_offset,
-                        symbol_offset);
+                        (void *) (intptr_t) segment_offset,
+                        (void *) (intptr_t) symbol_offset);
          if( symbol_address)
             fprintf( fp, "%p,\"%s\",",
                         symbol_address,
@@ -384,8 +393,8 @@ static void   mulle_stacktrace_dump( struct mulle_stacktrace *stacktrace,
          else
             fprintf( fp, ",\"%s\",", symbol_name);
 
-         fprintf( fp, "0x%tx,\"%s\"\n",
-                      (intptr_t) segment_address,
+         fprintf( fp, "%p,\"%s\"\n",
+                      (void *) (intptr_t) segment_address,
                       segment_name);
 
          continue;

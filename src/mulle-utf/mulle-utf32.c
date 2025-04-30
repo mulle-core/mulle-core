@@ -232,7 +232,7 @@ void   mulle_utf32_bufferconvert_to_utf16( mulle_utf32_t *src,
       }
 
       x = *src++;
-      assert( x >= 0 && x <= mulle_utf32_max);
+      assert( /* x >= 0 && */ x <= mulle_utf32_max);
 
       if( x < 0x10000)
       {
@@ -274,7 +274,7 @@ size_t   mulle_utf32_utf8length( mulle_utf32_t *src,
    {
       x = *src++;
 
-      assert( x >= 0 && x <= mulle_utf32_max);
+      assert( /* x >= 0 && */ x <= mulle_utf32_max);
 
       if( x < 0x800)
       {
@@ -323,7 +323,7 @@ size_t   mulle_utf32_utf16length( mulle_utf32_t *src,
    {
       x = *src++;
 
-      assert( x >= 0 && x <= mulle_utf32_max);
+      assert( /* x >= 0 && */ x <= mulle_utf32_max);
 
       if( x >= 0xFFFF)
          len++;
@@ -435,7 +435,7 @@ fail:
 char   *_mulle_utf32_as_utf8_not_ascii( mulle_utf32_t x, char *_dst)
 {
    unsigned char  *dst = (unsigned char *) _dst;
-   assert( x >= 0 && x <= mulle_utf32_max);
+   assert( /* x >= 0 && */ x <= mulle_utf32_max);
 
    if( x < 0x800)
    {

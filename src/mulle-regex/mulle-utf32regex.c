@@ -1303,13 +1303,14 @@ void   mulle_utf32regex_dump( regexp *r)
    while( op != END)    /* While that wasn't END last time... */
    {
       op = OPCODE( p);
-         fprintf( stderr, "%2td%s", (char *) p - r->program, regex_string_from_opcode( p, buf)); /* Where, what. */
+         fprintf( stderr, "%2ld%s", (long) ((char *) p - r->program),
+                                    regex_string_from_opcode( p, buf)); /* Where, what. */
       next = regex_next_node( p);
 
       if( ! next)    /* Next ptr. */
          fprintf( stderr, "(0)");
       else
-         fprintf( stderr, "(%td)", ((char *) p - r->program) + ((char *) next - (char *) p));
+         fprintf( stderr, "(%ld)", (long) (((char *) p - r->program) + ((char *) next - (char *) p)));
 
       p = _NEXT( p);
 

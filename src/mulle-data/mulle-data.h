@@ -134,6 +134,8 @@ static inline int   mulle_data_is_invalid( struct mulle_data data)
 static inline void   mulle_data_assert( struct mulle_data data)
 {
    assert( ! data.length || data.bytes);
+
+   MULLE_C_UNUSED( data);
 }
 
 

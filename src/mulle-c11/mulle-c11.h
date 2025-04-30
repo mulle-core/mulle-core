@@ -163,6 +163,7 @@
 //
 #if defined( __clang__) || defined( __GNUC__)
 
+# define MULLE_C_STATIC_ALWAYS_INLINE  static inline  __attribute__(( always_inline))
 # define MULLE_C_ALWAYS_INLINE         __attribute__(( always_inline))
 # define MULLE_C_NEVER_INLINE          __attribute__(( noinline))
 
@@ -170,6 +171,8 @@
 # define MULLE_C_NO_RETURN             __attribute__(( noreturn))
 
 # define MULLE_C_DEPRECATED            __attribute__(( deprecated))
+
+# define MULLE_C_FALLTHROUGH           __attribute__(( fallthrough))
 
 // use these for function pointer modifiers (because win...)
 # define _MULLE_C_NO_RETURN            MULLE_C_NO_RETURN
@@ -184,7 +187,9 @@
 
 #  define _MULLE_C_NO_RETURN
 #  define _MULLE_C_NEVER_INLINE
+#  define MULLE_C_STATIC_ALWAYS_INLINE static __forceinline
 #  define MULLE_C_ALWAYS_INLINE        __forceinline
+#  define MULLE_C_FALLTHROUGH          __fallthrough
 
 // check this https://stackoverflow.com/questions/1113409/attribute-constructor-equivalent-in-vc
 // for MULLE_C_CONSTRUCTOR
@@ -195,7 +200,9 @@
 #  define MULLE_C_NEVER_INLINE
 #  define _MULLE_C_NO_RETURN
 #  define _MULLE_C_NEVER_INLINE
-#  define MULLE_C_ALWAYS_INLINE         inline
+#  define MULLE_C_ALWAYS_INLINE
+#  define MULLE_C_STATIC_ALWAYS_INLINE static inline
+#  define MULLE_C_FALLTHROUGH
 # endif
 
 # define MULLE_C_CONST_RETURN
@@ -229,7 +236,7 @@
 #endif
 
 
-// some composites
+// some composites (soon to be deprecated)
 
 #define MULLE_C_CONST_NONNULL_RETURN                 MULLE_C_NONNULL_RETURN \
                                                      MULLE_C_CONST_RETURN
@@ -513,10 +520,10 @@ static inline int   mulle_c_popcountll( unsigned long long bits)
 //
 #define mulle_c_pointer_postincrement( p, type) \
    (p = (void *) &((char *) p)[ sizeof( type)], \
-    (type *) &((char *) p)[- sizeof( type)])
+    (type *) &((char *) p)[ - (int) sizeof( type)])
 
 #define mulle_c_pointer_predecrement( p, type) \
-   ((type *) (p = (void *) &((char *) p)[ - sizeof( type)]))
+   ((type *) (p = (void *) &((char *) p)[ - (int) sizeof( type)]))
 
 
 #endif

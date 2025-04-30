@@ -117,9 +117,9 @@ char   *mulle_utf8_strnstr( char *s, size_t len, char *search)
 
 char   *mulle_utf8_strnchr( char *s, size_t len, mulle_utf32_t c)
 {
-   char   buf[ 16];
-   char   *end;
-   char   n;
+   char     buf[ 16];
+   char     *end;
+   size_t   n;
 
    if( ! s)
       return( NULL);

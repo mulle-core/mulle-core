@@ -53,9 +53,9 @@ void   mulle__pointerarray_describe_buffer_callback( struct mulle__pointerarray 
                                                      mulle_container_item_printer_t *callback,
                                                      void *userinfo)
 {
-   char           *sep;
-   unsigned int   n;
-   void           *item;
+   char     *sep;
+   size_t   n;
+   void     *item;
 
    if( ! array)
    {

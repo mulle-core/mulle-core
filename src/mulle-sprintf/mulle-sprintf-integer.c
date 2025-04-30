@@ -60,6 +60,11 @@ static int   set_decimal_prefix( char *s,
                                  int length,
                                  int precision)
 {
+   MULLE_C_UNUSED( s);
+   MULLE_C_UNUSED( value_is_zero);
+   MULLE_C_UNUSED( length);
+   MULLE_C_UNUSED( precision);
+
    return( 0);
 }
 
@@ -92,11 +97,12 @@ static char  *convert_decimal_unsigned_long_long( unsigned long long value,
 
 static integer_converters  decimal_converters =
 {
-   convert_decimal_unsigned_int,
-   convert_decimal_unsigned_int,
-   convert_decimal_unsigned_long_long,
-   convert_decimal_unsigned_long_long,
-   set_decimal_prefix
+
+   .convert_unsigned_int              = convert_decimal_unsigned_int,
+   .convert_locale_unsigned_int       = convert_decimal_unsigned_int,
+   .convert_unsigned_long_long        = convert_decimal_unsigned_long_long,
+   .convert_locale_unsigned_long_long = convert_decimal_unsigned_long_long,
+   .set_prefix                        = set_decimal_prefix
 };
 
 
@@ -354,6 +360,9 @@ static char  *convert_octal_unsigned_long_long( unsigned long long value,
 
 static int   set_octal_prefix( char *s, int value_is_zero, int length, int precision)
 {
+   MULLE_C_UNUSED( s);
+   MULLE_C_UNUSED( value_is_zero);
+
    if( length && precision <= length)
       return( -1);      // increase precision
    return( 0);
@@ -363,11 +372,12 @@ static int   set_octal_prefix( char *s, int value_is_zero, int length, int preci
 
 static integer_converters  octal_converters =
 {
-   convert_octal_unsigned_int,
-   convert_octal_unsigned_int,
-   convert_octal_unsigned_long_long,
-   convert_octal_unsigned_long_long,
-   set_octal_prefix
+
+   .convert_unsigned_int              = convert_octal_unsigned_int,
+   .convert_locale_unsigned_int       = convert_octal_unsigned_int,
+   .convert_unsigned_long_long        = convert_octal_unsigned_long_long,
+   .convert_locale_unsigned_long_long = convert_octal_unsigned_long_long,
+   .set_prefix                        = set_octal_prefix
 };
 
 
@@ -418,6 +428,9 @@ static char   *convert_hex_unsigned_long_long( unsigned long long value,
 
 static int   set_hex_prefix( char *s, int value_is_zero, int length, int precision)
 {
+   MULLE_C_UNUSED( value_is_zero);
+   MULLE_C_UNUSED( precision);
+
    // For x and X conversions, a nonzero result has the string "0x" (or "0X"
    // for X conversions) prepended to it.
    // why not for 0 ? Stay compatible ? nah
@@ -433,11 +446,12 @@ static int   set_hex_prefix( char *s, int value_is_zero, int length, int precisi
 
 static integer_converters  hex_converters =
 {
-   convert_hex_unsigned_int,
-   convert_hex_unsigned_int,
-   convert_hex_unsigned_long_long,
-   convert_hex_unsigned_long_long,
-   set_hex_prefix
+
+   .convert_unsigned_int              = convert_hex_unsigned_int,
+   .convert_locale_unsigned_int       = convert_hex_unsigned_int,
+   .convert_unsigned_long_long        = convert_hex_unsigned_long_long,
+   .convert_locale_unsigned_long_long = convert_hex_unsigned_long_long,
+   .set_prefix                        = set_hex_prefix
 };
 
 
@@ -473,14 +487,14 @@ static char   *convert_hex_upper_unsigned_long_long( unsigned long long value,
 }
 
 
-
 static integer_converters  hex_upper_converters =
 {
-   convert_hex_upper_unsigned_int,
-   convert_hex_upper_unsigned_int,
-   convert_hex_upper_unsigned_long_long,
-   convert_hex_upper_unsigned_long_long,
-   set_hex_prefix
+
+   .convert_unsigned_int              = convert_hex_upper_unsigned_int,
+   .convert_locale_unsigned_int       = convert_hex_upper_unsigned_int,
+   .convert_unsigned_long_long        = convert_hex_upper_unsigned_long_long,
+   .convert_locale_unsigned_long_long = convert_hex_upper_unsigned_long_long,
+   .set_prefix                        = set_hex_prefix
 };
 
 

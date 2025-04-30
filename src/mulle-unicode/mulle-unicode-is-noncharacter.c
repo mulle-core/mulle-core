@@ -28,7 +28,7 @@ int   mulle_unicode16_is_noncharacter( uint16_t c)
    if( c >= 0xFDD0 && c <= 0xFDEF)
       return( 1);
 
-   if( c >= 0xfffe && c <= 0xffff)
+   if( c >= 0xfffe /*&& c <= 0xffff*/)
       return( 1);
    return( 0);
 }
@@ -64,5 +64,7 @@ int   mulle_unicode_is_noncharacter( int32_t c)
 
 int   mulle_unicode_is_noncharacterplane( unsigned int plane)
 {
+   MULLE_C_UNUSED( plane);
+
    return( 1);
 }

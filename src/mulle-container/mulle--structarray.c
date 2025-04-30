@@ -94,8 +94,8 @@ void *  _mulle__structarray_guarantee( struct mulle__structarray *array,
 
 
 size_t  _mulle__structarray_set_count( struct mulle__structarray *array,
-                                             size_t count,
-                                             struct mulle_allocator *allocator)
+                                       size_t count,
+                                       struct mulle_allocator *allocator)
 {
    long   diff;
 
@@ -117,10 +117,12 @@ void   _mulle__structarray_zero_to_count( struct mulle__structarray *array,
                                           size_t count,
                                           struct mulle_allocator *allocator)
 {
-   long   diff;
+   size_t   diff; // _mulle__structarray_set_count won't return negative
 
    diff = _mulle__structarray_set_count( array, count, allocator);
-   memset( &((char *) array->_curr)[ -diff * array->_sizeof_struct], 0, (size_t) diff * array->_sizeof_struct);
+   memset( &((char *) array->_curr)[ - (long) diff * array->_sizeof_struct],
+           0,
+           diff * array->_sizeof_struct);
 }
 
 
@@ -131,7 +133,7 @@ void
                                        struct mulle_allocator *allocator)
 {
    size_t   count;
-   void           *buf;
+   void     *buf;
 
    if( ! array)
       return;
@@ -151,4 +153,36 @@ void
            &((char *) other->_storage)[ range.location * array->_sizeof_struct], 
            range.length * array->_sizeof_struct);
 
+}
+
+
+struct mulle_data
+   _mulle__structarray_extract_data( struct mulle__structarray *array,
+                                     struct mulle_allocator *allocator)
+{
+   struct mulle_data   data;
+
+//#if MULLE__CONTAINER_HAVE_MUTATION_COUNT
+//   array->_n_mutations++;
+//#endif
+
+   data = mulle_data_make( array->_storage,
+                           _mulle__structarray_get_size( array));
+
+   if( data.bytes && data.bytes == array->_initial_storage)
+   {
+      data.bytes = mulle_allocator_malloc( allocator, data.length);
+      memcpy( data.bytes, array->_storage, data.length);
+
+      array->_curr    =
+      array->_storage = array->_initial_storage;
+      return( data);
+   }
+
+   array->_storage         =
+   array->_curr            =
+   array->_sentinel        =
+   array->_initial_storage = NULL;
+
+   return( data);
 }

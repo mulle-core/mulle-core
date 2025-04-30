@@ -230,6 +230,7 @@ MULLE_C_NONNULL_FIRST
 static inline void
    _mulle_rbtreeenumerator_done( struct mulle_rbtreeenumerator *rover)
 {
+   MULLE_C_UNUSED( rover);
 }
 
 

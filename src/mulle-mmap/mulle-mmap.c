@@ -139,17 +139,18 @@ static mulle_mmap_file_t   mulle_mmap_file_open( char *path,
 static inline int64_t   mulle_mmap_file_query_size( mulle_mmap_file_t handle)
 {
 #ifdef _WIN32
-    LARGE_INTEGER   file_size;
+   LARGE_INTEGER   file_size;
 
-    if( GetFileSizeEx( handle, &file_size) == 0)
-        return ( -1);
+   if( GetFileSizeEx( handle, &file_size) == 0)
+      return ( -1);
+
 	return( (int64_t) file_size.QuadPart);
 #else // POSIX
-    struct stat sbuf;
+   struct stat sbuf;
 
-    if( fstat( handle, &sbuf) == -1)
+   if( fstat( handle, &sbuf) == -1)
       return( -1);
-    return( sbuf.st_size);
+   return( sbuf.st_size);
 #endif
 }
 
@@ -210,7 +211,7 @@ static int   memory_map( mulle_mmap_file_t handle,
                mode == mulle_mmap_read ? FILE_MAP_READ : FILE_MAP_WRITE,
                (SIZE_T) mulle_mmap_int64_high( aligned_offset),
                (SIZE_T) mulle_mmap_int64_low( aligned_offset),
-               length_to_map);
+               (SIZE_T) length_to_map);
        if( mapping_start == NULL)
          return( 1);
        ctx->file_mapping_handle = file_mapping_handle;
@@ -271,7 +272,7 @@ int    _mulle_mmap_map_range( struct mulle_mmap *p,
                               size_t length)
 {
    int64_t                    file_size;
-   struct memory_map_result   ctx;
+   struct memory_map_result   ctx = { 0 };  // for windows..
    int                        rval;
 
    file_size = mulle_mmap_file_query_size( handle);
@@ -283,7 +284,7 @@ int    _mulle_mmap_map_range( struct mulle_mmap *p,
      * already again
      */
 
-    if( length != (size_t) -1 && offset + length > file_size)
+    if( length != (size_t) -1 && (offset + length) > (size_t) file_size)
     {
 #ifdef _WIN32
 #else
@@ -294,7 +295,7 @@ int    _mulle_mmap_map_range( struct mulle_mmap *p,
 
     rval = memory_map( handle,
                        offset,
-                       length == -1 ? (file_size - offset) : length,
+                       length == (size_t) -1 ? (file_size - offset) : length,
                        p->accessmode_,
                        &ctx);
     if( ! rval)
@@ -433,6 +434,8 @@ void   *mulle_mmap_alloc_shared_pages( size_t size)
 // https://devblogs.microsoft.com/oldnewthing/20150130-00/?p=44793
 #ifdef _WIN32
    abort();
+   p = NULL;
+   MULLE_C_UNUSED( size);
 #else
    p = mmap( 0, size, PROT_READ|PROT_WRITE, MAP_SHARED|MAP_ANONYMOUS, -1, 0);
    if( p == MAP_FAILED)

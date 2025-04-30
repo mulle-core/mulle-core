@@ -40,7 +40,7 @@ int   mulle_utf32regex_execute( struct mulle_utf32regex *regex,
 int   mulle_utf32regex_substitute( struct mulle_utf32regex *regex,
                                    mulle_utf32_t *replacement,
                                    mulle_utf32_t *dst,
-                                   unsigned int dst_len,
+                                   size_t dst_len,
                                    int zero);
 
 
@@ -63,15 +63,15 @@ mulle_utf32_t   *mulle_utf32_substitute( mulle_utf32_t *pattern,
 // for the space you should malloc. Will return (unsigned int) -1 on error.
 //
 // You need to add the front and back part yourself.
-unsigned int   mulle_utf32regex_substitution_length( struct mulle_utf32regex *regex,
-                                                     mulle_utf32_t *replacement);
+size_t   mulle_utf32regex_substitution_length( struct mulle_utf32regex *regex,
+                                               mulle_utf32_t *replacement);
 
 // number of bytes(!) needed for the substitution buffer
 static inline size_t
    mulle_utf32regex_substitution_buffer_size( struct mulle_utf32regex *regex,
                                               mulle_utf32_t *replacement)
 {
-   unsigned int   length;
+   size_t   length;
 
    length = mulle_utf32regex_substitution_length( regex, replacement);
    return( (length + 1) * sizeof( mulle_utf32_t));

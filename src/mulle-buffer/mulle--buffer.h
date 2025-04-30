@@ -45,9 +45,10 @@ struct mulle_allocator;
 
 enum
 {
-  MULLE_BUFFER_IS_FLEXIBLE   = 0,
-  MULLE_BUFFER_IS_INFLEXIBLE = 1,
-  MULLE_BUFFER_IS_FLUSHABLE  = 2
+  MULLE_BUFFER_IS_FLEXIBLE           = 0,
+  MULLE_BUFFER_IS_INFLEXIBLE         = 1,
+  MULLE_BUFFER_IS_FLUSHABLE          = 2,
+  MULLE_BUFFER_IS_SPRINTF_INFLEXIBLE = 3  // sentinel is not trustworthy
 };
 
 
@@ -345,8 +346,8 @@ static inline int   _mulle__buffer_is_void( struct mulle__buffer *buffer)
 static inline size_t   _mulle__buffer_get_length( struct mulle__buffer *buffer)
 {
    return( _mulle__buffer_has_overflown( buffer)
-          ? buffer->_size
-          : buffer->_curr - buffer->_storage);
+           ? buffer->_size
+           : (size_t) (buffer->_curr - buffer->_storage));
 }
 
 
@@ -554,7 +555,11 @@ static inline int   _mulle__buffer_intersects_bytes( struct mulle__buffer *buffe
    unsigned char   *start;
    unsigned char   *end;
 
-   if( ! length)
+   // so if the buffer is MULLE_BUFFER_IS_SPRINTF_INFLEXIBLE (which it NEVER
+   // should be except when we are doing actually a sprintf implementation)
+   // the concept of intersection becomes meaningless, as the sentinel is
+   // way off
+   if( ! length || (buffer->_type & MULLE_BUFFER_IS_SPRINTF_INFLEXIBLE) == MULLE_BUFFER_IS_SPRINTF_INFLEXIBLE)
       return( 0);
 
    start = bytes;

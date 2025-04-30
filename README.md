@@ -117,8 +117,6 @@ target_link_libraries( ${PROJECT_NAME} PRIVATE mulle-core)
 
 ## Install
 
-### Install with mulle-sde
-
 Use [mulle-sde](//github.com/mulle-sde) to build and install mulle-core and all dependencies:
 
 ``` sh
@@ -126,15 +124,17 @@ mulle-sde install --prefix /usr/local \
    https://github.com/mulle-core/mulle-core/archive/latest.tar.gz
 ```
 
-### Manual Installation
+### Legacy Installation
 
-Download the latest [tar](https://github.com/mulle-core/mulle-core/archive/refs/tags/latest.tar.gz) or [zip](https://github.com/mulle-core/mulle-core/archive/refs/tags/latest.zip) archive and unpack it. Then install
-**mulle-core** into `/usr/local` with [cmake](https://cmake.org):
+Download the latest [tar](https://github.com/mulle-core/mulle-core/archive/refs/tags/latest.tar.gz) or [zip](https://github.com/mulle-core/mulle-core/archive/refs/tags/latest.zip) archive and unpack it.
+
+Install **mulle-core** into `/usr/local` with [cmake](https://cmake.org):
 
 ``` sh
+export MULLE_SDK_PATH="/usr/local"
 cmake -B build \
-      -DCMAKE_INSTALL_PREFIX=/usr/local \
-      -DCMAKE_PREFIX_PATH=/usr/local \
+      -DCMAKE_INSTALL_PREFIX="${MULLE_SDK_PATH}" \
+      -DCMAKE_PREFIX_PATH="${MULLE_SDK_PATH}" \
       -DCMAKE_BUILD_TYPE=Release &&
 cmake --build build --config Release &&
 cmake --install build --config Release

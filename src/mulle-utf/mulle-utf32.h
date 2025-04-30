@@ -69,7 +69,7 @@ static inline struct mulle_utf32data   mulle_utf32data_make( mulle_utf32_t *s,
                                                              size_t length)
 {
    struct mulle_utf32data       data;
-   const static mulle_utf32_t   zero = { 0 };
+   static const mulle_utf32_t   zero = { 0 };
 
    data.length     = (length == (size_t) -1) ? mulle_utf32_strlen( s) : length;
    data.characters = data.length ? s : (mulle_utf32_t *) &zero;

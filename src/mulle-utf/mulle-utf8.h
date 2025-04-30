@@ -302,6 +302,8 @@ static inline int   mulle_utf8data_is_invalid( struct mulle_utf8data data)
 static inline void   mulle_utf8data_assert( struct mulle_utf8data data)
 {
    assert( ! data.length || data.characters);
+
+   MULLE_C_UNUSED( data);
 }
 
 

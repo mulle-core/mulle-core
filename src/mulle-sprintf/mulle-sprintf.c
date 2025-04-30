@@ -489,6 +489,9 @@ static inline int
    char     buf[ 63 + 1];
    size_t   len;
 
+
+   MULLE_C_UNUSED( info);
+
    len = parser->curr - parser->memo;
    if( ! len)
       return( 0);  // it's OK!
@@ -657,7 +660,7 @@ state_width_entry:
          }
          parser.state = state_precision;
          parser.memo  = NULL;
-
+         MULLE_C_FALLTHROUGH;
          // after a precision, dot all digits belong to precision
       case state_precision :
          if( ! parser.memo)
