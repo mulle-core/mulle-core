@@ -8,7 +8,23 @@ This is an almagamation of the [mulle-core](//github.com/mulle-core),
 the [constituting projects](#Constituents) for documentation, bug reports,
 pull requests.
 
-The advantages of using **mulle-core** are:
+mulle-core is tested to build on the following platforms and compiler 
+matrix:
+
+| OS       | Compiler   | Flags  | Note
+|----------|------------|--------|--------------------
+| Ubuntu   | GCC        | &nbsp; | 
+| Ubuntu   | GCC        | &nbsp; | Out of source build
+| Ubuntu   | GCC        | -O3    | 
+| Ubuntu   | Clang      | &nbsp; | 
+| Ubuntu   | Clang      | Debug  | 
+| Windows  | MSVC Win32 | &nbsp; |       
+| Windows  | MSVC Win64 | &nbsp; |       
+| Windows  | GCC        | &nbsp; | 
+| macOS    | Clang      | &nbsp; | 
+| macOS    | GCC        | &nbsp; | 
+
+The advantages of using **mulle-core** over the individual projects are:
 
 * compiles faster than two dozens of individual projects
 * you only need to link against one library file
@@ -20,11 +36,6 @@ The advantages of using **mulle-core** are:
 
 
 
-
-
-### You are here
-
-![Overview](overview.dot.svg)
 
 
 
@@ -131,15 +142,15 @@ Download the latest [tar](https://github.com/mulle-core/mulle-core/archive/refs/
 Install **mulle-core** into `/usr/local` with [cmake](https://cmake.org):
 
 ``` sh
-export MULLE_SDK_PATH="/usr/local"
-cmake -B build \
-      -DCMAKE_INSTALL_PREFIX="${MULLE_SDK_PATH}" \
-      -DCMAKE_PREFIX_PATH="${MULLE_SDK_PATH}" \
+PREFIX_DIR="/usr/local"
+cmake -B build                               \
+      -DMULLE_SDK_PATH="${PREFIX_DIR}"       \
+      -DCMAKE_INSTALL_PREFIX="${PREFIX_DIR}" \
+      -DCMAKE_PREFIX_PATH="${PREFIX_DIR}"    \
       -DCMAKE_BUILD_TYPE=Release &&
 cmake --build build --config Release &&
 cmake --install build --config Release
 ```
-
 
 ## Author
 
