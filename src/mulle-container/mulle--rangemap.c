@@ -106,12 +106,12 @@ int   _mulle__rangemap_insert( struct mulle__rangemap *map,
       ranges = _mulle__rangemap_get_ranges( map);
    }
 
-   index  = _mulle_range_hole_bsearch( ranges, map->_length, range.location);
+   index  = _mulle_range_hole_bsearch( ranges, (unsigned int) map->_length, range.location);
 
    // Move everything up to make space for the new range
    memmove( &ranges[ index + 1],
             &ranges[ index],
-            (size_t) (map->_length - index) * sizeof( struct mulle_range));
+            (map->_length - index) * sizeof( struct mulle_range));
 
    values = _mulle__rangemap_get_values( map);
    memmove( &values[ index + 1],
