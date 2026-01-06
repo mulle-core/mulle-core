@@ -36,13 +36,11 @@ project(submodule-test)
 add_subdirectory(mulle-core)
 add_executable(test main.c)
 target_link_libraries(test PRIVATE mulle-core)
-target_include_directories(test PRIVATE ${CMAKE_BINARY_DIR}/include)
 EOF
 
 # Create main.c
 cat > main.c << 'EOF'
 #include <mulle-core/mulle-core.h>
-#include <dlfcn.h>
 
 int main() {
     // Test mulle_fprintf

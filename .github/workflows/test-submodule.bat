@@ -42,7 +42,6 @@ echo target_link_libraries^(test PRIVATE mulle-core^)
 REM Create main.c
 (
 echo #include ^<mulle-core/mulle-core.h^>
-echo #include ^<windows.h^>
 echo.
 echo int main^(^) {
 echo     // Test mulle_fprintf
