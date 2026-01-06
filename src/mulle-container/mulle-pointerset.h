@@ -47,6 +47,16 @@ struct mulle_pointerset
       .allocator = xallocator              \
    })
 
+// MEMO: not possible because its a hashtable, duh!
+/* #define MULLE_POINTERSET_FLEXIBLE_DATA( pointers, count, xallocator)
+ *   ((struct mulle_pointerset)
+ *   {
+ *      ._storage         = pointers,
+ *      ._initial_storage = pointers,
+ *      ._size            = count,
+ *      ._allocator       = .xallocator
+ *   })
+ */
 
 static inline struct mulle_pointerset  *
    mulle_pointerset_alloc( struct mulle_allocator *allocator)
@@ -56,6 +66,7 @@ static inline struct mulle_pointerset  *
    set = mulle_allocator_malloc( allocator, sizeof( struct mulle_pointerset));
    return( set);
 }
+
 
 // if capacity is 0, this just does a memset 0
 MULLE_C_NONNULL_FIRST
@@ -73,8 +84,24 @@ static inline void    mulle_pointerset_init( struct mulle_pointerset *set,
                                              size_t capacity,
                                              struct mulle_allocator *allocator)
 {
-   if( set)
-      _mulle_pointerset_init( set, capacity, allocator);
+    if( set)
+       _mulle_pointerset_init( set, capacity, allocator);
+}
+
+
+static inline void    
+   mulle_pointerset_init_with_static_pointers( struct mulle_pointerset *set,
+                                               void **storage,
+                                               size_t capacity,
+                                               struct mulle_allocator *allocator)
+{
+    if( set)
+    {
+       _mulle__pointerset_init_with_static_pointers( (struct mulle__pointerset *) set,
+                                                     storage,
+                                                     capacity);
+      set->allocator = allocator;
+    }
 }
 
 
@@ -170,6 +197,7 @@ void    mulle_pointerset_set( struct mulle_pointerset *set, void *p)
 }
 
 
+// returns 1 if insert succeeded
 static inline int
    mulle_pointerset_insert( struct mulle_pointerset *set, void *p)
 {
@@ -246,6 +274,7 @@ struct mulle_pointerset  *mulle_pointerset_copy( struct mulle_pointerset *set);
       for( int  name ## __j = 0;    /* break protection */  \
            name ## __j < 1;                                 \
            name ## __j++)
+
 
 //
 // API still incomplete, borrow from inferior data structure.

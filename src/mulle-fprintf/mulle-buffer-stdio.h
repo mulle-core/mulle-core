@@ -190,6 +190,7 @@ struct mulle_buffer_stdio_functions   mulle_stdio_functions;
 /**
  * Initializes a buffer with the contents of a file. This uses FILE for I/O.
  * Memory mapping might be available through mulle-mmap.
+ * This does not write!
  *
  * @param buffer The buffer to initialize.
  * @param filepath Name of the file to read from

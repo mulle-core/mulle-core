@@ -64,7 +64,7 @@ src/mulle-container/mulle-pointerqueue.c
 src/mulle-container/mulle-pointerset.c
 src/mulle-container/mulle--pointerset-generic.c
 src/mulle-container/mulle--pointerset-struct.c
-src/mulle-container/mulle-qsort.c
+src/mulle-container/mulle--rangemap.c
 src/mulle-container/mulle--rangeset.c
 src/mulle-container/mulle--set.c
 src/mulle-container/mulle-set.c
@@ -77,8 +77,10 @@ src/mulle-data/mulle-data.c
 src/mulle-data/mulle-fnv1a.c
 src/mulle-data/mulle-hash.c
 src/mulle-data/mulle-prime.c
+src/mulle-data/mulle-qsort.c
 src/mulle-data/mulle-range.c
 src/mulle-dlfcn/mulle-dlfcn.c
+src/mulle-dtostr/mulle-dtostr.c
 src/mulle-fifo/mulle-fifo.c
 src/mulle-fprintf/mulle-buffer-stdio.c
 src/mulle-fprintf/mulle-fprintf.c
@@ -86,8 +88,11 @@ src/mulle-http/http_parser.c
 src/mulle-linkedlist/mulle-concurrent-linkedlist.c
 src/mulle-linkedlist/mulle-linkedlist.c
 src/mulle-mmap/mulle-mmap.c
+src/mulle-mmap/mulle-mmap-posix.c
+src/mulle-mmap/mulle-mmap-windows.c
 src/mulle-multififo/mulle-lockingpointermultififo.c
 src/mulle-multififo/mulle-pointermultififo.c
+src/mulle-rbtree-debug/mulle--rbtree-debug.c
 src/mulle-rbtree/mulle--rbtree.c
 src/mulle-rbtree/mulle-rbtree.c
 src/mulle-regex/mulle-utf32regex.c
@@ -102,9 +107,6 @@ src/mulle-sprintf/mulle-sprintf-integer.c
 src/mulle-sprintf/mulle-sprintf-pointer.c
 src/mulle-sprintf/mulle-sprintf-return.c
 src/mulle-sprintf/mulle-sprintf-string.c
-src/mulle-stacktrace/mulle-stacktrace.c
-src/mulle-stacktrace/mulle-stacktrace-execinfo.c
-src/mulle-stacktrace/mulle-stacktrace-nop.c
 src/mulle-storage/mulle-storage.c
 src/mulle-thread/mintomic-empty.c
 src/mulle-thread/mulle-thread-linkage.c
@@ -165,7 +167,6 @@ src/mulle-concurrent/mulle-concurrent-standalone.c
 src/mulle-dlfcn/mulle-dlfcn-standalone.c
 src/mulle-regex/mulle-regex-standalone.c
 src/mulle-sprintf/mulle-sprintf-standalone.c
-src/mulle-stacktrace/mulle-stacktrace-standalone.c
 src/mulle-thread/mulle-thread-standalone.c
 src/mulle-unicode/mulle-unicode-standalone.c
 src/mulle-utf/mulle-utf-standalone.c

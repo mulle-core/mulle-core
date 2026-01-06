@@ -1,11 +1,8 @@
 //
-//  mulle-stacktrace.c
-//  mulle-core
+//  mulle-c11-align.h
+//  mulle-c11
 //
-//  Created by Nat! on 28.10.18
-//  Copyright (c) 2018 Nat! - Mulle kybernetiK.
-//  Copyright (c) 2018 Codeon GmbH.
-//  All rights reserved.
+//  Copyright © 2025 Nat!, Mulle kybernetiK. All rights reserved.
 //
 //  Redistribution and use in source and binary forms, with or without
 //  modification, are permitted provided that the following conditions are met:
@@ -33,15 +30,19 @@
 //  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 //  POSSIBILITY OF SUCH DAMAGE.
 //
-#include "include-private.h"
+#ifndef mulle_c11_align_h__
+#define mulle_c11_align_h__
 
-#include "mulle-stacktrace.h"
+#ifdef MULLE_C11_NO_STDALIGN
+# if MULLE_C11_NO_STDALIGN == 1
+#  define alignof( x)    _Alignof( x)
+#  define alignas( x)    _Alignas( x)
+# else
+#  define alignof( x)    __alignof( x)
+#  define alignas( x)    __alignas( x)
+# endif
+#else
+# include <stdalign.h>
+#endif
 
-
-int   __MULLE_STACKTRACE_ranlib__;
-
-
-uint32_t   mulle_stacktrace_get_version( void)
-{
-   return( MULLE__STACKTRACE_VERSION);
-}
+#endif

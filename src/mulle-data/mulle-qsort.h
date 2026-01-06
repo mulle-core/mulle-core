@@ -39,7 +39,8 @@
 
 
 
-typedef int   mulle_qsort_cmp_t( void *a, void *b, void *thunk);
+typedef int   mulle_qsort_r_cmp_t( void *a, void *b, void *thunk);
+typedef int   mulle_qsort_cmp_t( void *a, void *b);
 
 #define MULLE_QSORT_MIN( a, b)   ((a) < (b) ? a : b)
 
@@ -66,7 +67,7 @@ static inline void   mulle_qsort_vecswap(char *a, char *b, size_t es)
 
 
 static inline char *
-_mulle_qsort_med3( char *a, char *b, char *c, mulle_qsort_cmp_t *cmp, void *thunk)
+_mulle_qsort_med3( char *a, char *b, char *c, mulle_qsort_r_cmp_t *cmp, void *thunk)
 {
    return (*cmp)( a, b, thunk) < 0
           ? ((*cmp)( b, c, thunk) < 0 ? b : ((*cmp)( a, c, thunk) < 0 ? c : a ))
@@ -77,7 +78,7 @@ _mulle_qsort_med3( char *a, char *b, char *c, mulle_qsort_cmp_t *cmp, void *thun
 static inline void   _mulle_qsort_r_inline( void *a,
                                             size_t n,
                                             size_t es,
-                                            mulle_qsort_cmp_t *cmp,
+                                            mulle_qsort_r_cmp_t *cmp,
                                             void *thunk)
 {
    char *pa, *pb, *pc, *pd, *pl, *pm, *pn;
@@ -202,15 +203,51 @@ loop:
    }
 }
 
-
+MULLE__DATA_GLOBAL
 MULLE_C_NONNULL_FOURTH
-void   mulle_qsort_r( void *a, size_t n, size_t es, mulle_qsort_cmp_t *cmp, void *thunk);
+void   mulle_qsort_r( void *a, size_t n, size_t es, mulle_qsort_r_cmp_t *cmp, void *thunk);
+
+// 
+// So if you are lazy doing mulle_qsort you may suffer 
+// a penalty. Because void * is not necessarily enough room
+// for a function pointer (though dlsym thinks othewise)
+// we do two kinds of implementations
+struct  mulle_qsort_no_thunk
+{
+   mulle_qsort_cmp_t   *compare;
+};
+
+
+static inline int   mulle_qsort_no_thunk_compare( void *a, void *b, void *thunk)
+{
+   struct  mulle_qsort_no_thunk  *info = thunk;
+
+   return( (*info->compare)( a, b));
+}
+
+
+static inline int   mulle_qsort_thunk_compare( void *a, void *b, void *thunk)
+{
+   mulle_qsort_cmp_t  *compare = (mulle_qsort_cmp_t *) thunk;
+
+   return( (*compare)( a, b));
+}
 
 
 MULLE_C_NONNULL_FOURTH
 static inline void   mulle_qsort( void *a, size_t n, size_t es, mulle_qsort_cmp_t *cmp)
 {
-   mulle_qsort_r( a, n, es, cmp, NULL);
+   if( sizeof( void *) < sizeof( void (*)( void)) )
+   {
+      struct mulle_qsort_no_thunk   bounce;
+
+      bounce.compare = cmp;
+
+      mulle_qsort_r( a, n, es, mulle_qsort_no_thunk_compare, &bounce);
+      return;
+   }
+
+   mulle_qsort_r( a, n, es, mulle_qsort_thunk_compare, (void *) cmp);
 }
 
 #endif

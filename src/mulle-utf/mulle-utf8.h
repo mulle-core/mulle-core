@@ -399,6 +399,16 @@ void   mulle_utf8_bufferconvert_to_utf32( char *src,
                                           mulle_utf_add_bytes_function_t *addbytes);
 
 
+static inline char *   mulle_utf8data_characters_in_range( struct mulle_utf8data data,
+                                                           struct mulle_range range)
+{
+   range = mulle_range_validate_against_length( range, data.length);
+   assert( mulle_range_is_valid( range));
+
+   return( &data.characters[ range.location]);
+}
+
+
 //
 // dst should be 2 * len
 // These routines do not add a trailing zero. (untested)

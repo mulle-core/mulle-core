@@ -619,7 +619,7 @@ char  *mulle_utf8_validate( char *_src, size_t len)
 
       extra_len = mulle_utf8_get_extracharacterslength( _c);
       end       = &src[ extra_len];
-      if( end > sentinel)
+      if( end >= sentinel)
          return( (char *) src);
 
       if( ! mulle_utf8_are_valid_extracharacters( (char *) src, extra_len, &_x))
@@ -742,7 +742,7 @@ int  mulle_utf8_information( char *_src, size_t len, struct mulle_utf_informatio
       dst_len  -= extra_len;  // reduce character count
 
       end = &src[ extra_len];
-      if( end > sentinel) // extra 0!
+      if( end >= sentinel)
          goto fail;
 
       if( ! mulle_utf8_are_valid_extracharacters( src, extra_len, &_x))
@@ -780,7 +780,7 @@ int  mulle_utf8_information( char *_src, size_t len, struct mulle_utf_informatio
       dst_len  -= extra_len;  // reduce character count
 
       end = &src[ extra_len];
-      if( end > sentinel)
+      if( end >= sentinel)
          goto fail;
 
       if( ! mulle_utf8_are_valid_extracharacters( (char *) src, extra_len, &_x))

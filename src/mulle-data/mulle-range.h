@@ -27,9 +27,8 @@
  * A constant representing a "not found" value for an `intptr_t` type.
  * This value is set to the maximum possible value of an `intptr_t` type,
  * which is a convenient way to represent a "not found" or error condition.
+ * MEMO: It's convenient this to be different to "notakey"
  */
-#define mulle_not_found_e     ((uintptr_t) INTPTR_MAX)
-// Convenient to be different to "notakey"
 #define mulle_not_found_e     ((uintptr_t) INTPTR_MAX)
 
 
@@ -104,9 +103,13 @@ static inline struct mulle_range
 /**
  * Creates a `mulle_range` struct that represents a range of locations.
  *
- * The range is defined by the starting location (`location`) and the ending location (`location2`). The length of the range is calculated as `location2 - location + 1`.
+ * The range is defined by the starting location (`location`) and the ending
+ * location (`location2`). The length of the range is calculated as
+ * `location2 - location + 1`.
  *
- * If `location` is less than `location2`, the range will start at `location` and end at `location2`. If `location` is greater than `location2`, the range will start at `location2` and end at `location`.
+ * If `location` is less than `location2`, the range will start at `location`
+ * and end at `location2`. If `location` is greater than `location2`, the range
+ * will start at `location2` and end at `location`.
  *
  * @param location The starting location of the range.
  * @param location2 The ending location of the range.
@@ -163,6 +166,18 @@ static inline struct mulle_range    mulle_range_make_invalid( void)
     range.length   = 0;
     return( range);
 }
+
+
+/**
+ * Checks if two ranges are equal
+ *
+ * @return 1 if both `mulle_range` are identical, 0 otherwise.
+ */
+static inline int  mulle_range_equals( struct mulle_range range, struct mulle_range other)
+{
+   return( range.location == other.location && range.length == other.length);
+}
+
 
 
 /**
@@ -356,8 +371,6 @@ static inline int   mulle_range_contains_location( struct mulle_range range,
 /**
  * Returns whether the given location is less than or equal to the last location of the specified `mulle_range` struct.
  *
- * This function is an implementation detail and is not part of the public API.
- *
  * @param range The `mulle_range` struct to check.
  * @param location The location to compare against the last location of the range.
  * @return 1 if the given location is less than or equal to the last location of the range, 0 otherwise.
@@ -374,8 +387,6 @@ static inline int   mulle_range_less_than_or_equal_to_location( struct mulle_ran
 
 /**
  * Returns whether the given location is less than the last location of the specified `mulle_range` struct.
- *
- * This function is an implementation detail and is not part of the public API.
  *
  * @param range The `mulle_range` struct to check.
  * @param location The location to compare against the last location of the range.
@@ -396,9 +407,6 @@ static inline int   mulle_range_less_than_location( struct mulle_range range,
  * Returns whether the given location is greater than or equal to the start
  * location of the specified `mulle_range` struct.
  *
- * This function is an implementation detail and is not part of the public
- * API.
- *
  * @param range The `mulle_range` struct to check.
  * @param location The location to compare against the start location of the
  *        range.
@@ -418,8 +426,6 @@ static inline int   mulle_range_greater_than_or_equal_to_location( struct mulle_
 /**
  * Returns whether the given location is greater than the start location of the specified `mulle_range` struct.
  *
- * This function is an implementation detail and is not part of the public API.
- *
  * @param range The `mulle_range` struct to check.
  * @param location The location to compare against the start location of the range.
  * @return 1 if the given location is greater than the start location of the range, 0 otherwise.
@@ -436,9 +442,26 @@ static inline int   mulle_range_greater_than_location( struct mulle_range range,
 
 
 /**
- * Returns the absolute distance between the specified `mulle_range` and a given location.
+ * Returns whether the given location is same as the start location of the
+ * specified `mulle_range` struct.
  *
- * This function is an implementation detail and is not part of the public API.
+ * @param range The `mulle_range` struct to check.
+ * @param location The location to compare against the start location of the range.
+ * @return 1 if the given location is greater than the start location of the range, 0 otherwise.
+ */
+//  location  |..........|
+static inline int   mulle_range_equal_to_location( struct mulle_range range,
+                                                   uintptr_t location)
+{
+   if( ! range.length)
+      return( 0);
+
+   return( range.location == location);
+}
+
+
+/**
+ * Returns the absolute distance between the specified `mulle_range` and a given location.
  *
  * @param range The `mulle_range` struct to calculate the distance from.
  * @param location The location to calculate the distance to.
@@ -459,7 +482,6 @@ static inline uintptr_t   mulle_range_distance_to_location( struct mulle_range r
    }
    return( range.location - location);
 }
-
 
 
 /**
@@ -535,6 +557,16 @@ static inline int  mulle_range_contains( struct mulle_range big, struct mulle_ra
 
 
 /**
+ * Checks if two `mulle_range`s intersect`.
+ *
+ * @param a The one `mulle_range` to check.
+ * @param b The other `mulle_range` to check
+ * @return 1 (true) if the `mulle_range`s intersect, 0 (false) otherwise.
+ *///
+int   mulle_range_intersects( struct mulle_range range,
+                              struct mulle_range other);
+
+/**
  * Computes the intersection of two `mulle_range` values.
  *
  * This function takes two `mulle_range` values and returns a new `mulle_range`
@@ -547,8 +579,18 @@ static inline int  mulle_range_contains( struct mulle_range big, struct mulle_ra
  * @return The intersection of the two input `mulle_range` values.
  */
 MULLE__DATA_GLOBAL
+struct mulle_range   mulle_range_intersection( struct mulle_range range,
+                                               struct mulle_range other);
+
+
+// old name
+static inline
 struct mulle_range   mulle_range_intersect( struct mulle_range range,
-                                            struct mulle_range other);
+                                            struct mulle_range other)
+{
+   return( mulle_range_intersection( range, other));
+}
+
 
 /**
  * Computes the union of two `mulle_range` values.

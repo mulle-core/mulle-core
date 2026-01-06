@@ -11,4 +11,36 @@ if( MULLE_TRACE_INCLUDE)
    message( STATUS "# Include \"${CMAKE_CURRENT_LIST_FILE}\"" )
 endif()
 
-# there are no libraries in the sourcetree
+#
+# Generated from sourcetree: 83C05F89-8620-4720-BFBC-A30A957D56B2;dl;no-build,no-cmake-inherit,no-delete,no-dependency,no-fs,no-header,no-import,no-platform-webassembly,no-platform-windows,no-share,no-update;
+# Disable with : `mulle-sourcetree mark dl `
+# Disable for this platform: `mulle-sourcetree mark dl no-cmake-platform-${MULLE_UNAME}`
+# Disable for a sdk: `mulle-sourcetree mark dl no-cmake-sdk-<name>`
+#
+if( NOT (${CMAKE_SYSTEM_NAME} MATCHES "Emscripten" OR ${CMAKE_SYSTEM_NAME} MATCHES "Windows"))
+   if( COLLECT_ALL_LOAD_OS_SPECIFIC_LIBRARIES_AS_NAMES)
+      list( APPEND ALL_LOAD_OS_SPECIFIC_LIBRARIES "dl")
+   else()
+      if( NOT DL_LIBRARY)
+         find_library( DL_LIBRARY NAMES
+            dl
+         )
+         message( STATUS "DL_LIBRARY is ${DL_LIBRARY}")
+         #
+         # The order looks ascending, but due to the way this file is read
+         # it ends up being descending, which is what we need.
+         #
+         if( DL_LIBRARY)
+            #
+            # Add DL_LIBRARY to ALL_LOAD_OS_SPECIFIC_LIBRARIES list.
+            # Disable with: `mulle-sourcetree mark dl no-cmake-add`
+            #
+            list( APPEND ALL_LOAD_OS_SPECIFIC_LIBRARIES ${DL_LIBRARY})
+            # intentionally left blank
+         else()
+            # Disable with: `mulle-sourcetree mark dl no-require-link`
+            message( SEND_ERROR "DL_LIBRARY was not found in dl")
+         endif()
+      endif()
+   endif()
+endif()
