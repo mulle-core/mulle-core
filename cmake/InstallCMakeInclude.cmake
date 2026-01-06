@@ -24,11 +24,8 @@ if( NOT __INSTALL_CMAKE_INCLUDE__CMAKE__)
       # we did in the code below)
       #
       if( INSTALL_TMP_HEADERS)
-         add_custom_target( ${LIBRARY_NAME}-headers ALL
-             WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-             SOURCES ${INSTALL_TMP_HEADERS}
-         )
-
+         unset( HEADER_OUTPUTS)
+         
          foreach( HEADER ${INSTALL_TMP_HEADERS})
              # Get the relative path of the header file
              string( REGEX REPLACE "^[^/]+/(.*)" "\\1" HEADER_REL_PATH ${HEADER})
@@ -46,16 +43,21 @@ if( NOT __INSTALL_CMAKE_INCLUDE__CMAKE__)
                  set( DEST_DIR "${CMAKE_BINARY_DIR}/include/${LIBRARY_NAME}")
              endif()
 
-             # Add a custom command for each header
+             set( OUTPUT_FILE "${DEST_DIR}/${HEADER_FILENAME}")
+             list( APPEND HEADER_OUTPUTS ${OUTPUT_FILE})
+
+             # Add a custom command for each header with proper OUTPUT
              add_custom_command(
-                 TARGET ${LIBRARY_NAME}-headers
+                 OUTPUT ${OUTPUT_FILE}
                  COMMAND ${CMAKE_COMMAND} -E make_directory "${DEST_DIR}"
-                 COMMAND ${CMAKE_COMMAND} -E copy_if_different ${HEADER} "${DEST_DIR}/${HEADER_FILENAME}"
-                 WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+                 COMMAND ${CMAKE_COMMAND} -E copy_if_different ${HEADER} "${OUTPUT_FILE}"
                  DEPENDS ${HEADER}
+                 WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+                 COMMENT "Copying ${HEADER} to ${OUTPUT_FILE}"
              )
          endforeach()
 
+         add_custom_target( ${LIBRARY_NAME}-headers ALL DEPENDS ${HEADER_OUTPUTS})
          add_dependencies( ${LIBRARY_NAME} ${LIBRARY_NAME}-headers)
 
          target_include_directories(${LIBRARY_NAME} INTERFACE
