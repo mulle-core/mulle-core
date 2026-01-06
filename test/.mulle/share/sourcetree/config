@@ -1,1 +1,1 @@
-mulle-core;${MULLE__CORE_NODETYPE:-tar};;E097277C-4328-452C-8BCE-63FA83CECECC;${MULLE__CORE_URL:-https://github.com/mulle-nat/mulle-core/archive/${MULLE_TAG}.tar.gz};${MULLE__CORE_BRANCH};${MULLE__CORE_TAG:-latest};;
+mulle-core;${MULLE__CORE_NODETYPE:-tar};;ABDE6001-DEBC-4736-BA0D-6B0457AB177F;${MULLE__CORE_URL:-https://github.com/nat/mulle-core/archive/${MULLE_TAG}.tar.gz};${MULLE__CORE_BRANCH};${MULLE__CORE_TAG:-latest};;
