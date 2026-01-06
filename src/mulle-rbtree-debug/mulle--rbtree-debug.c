@@ -41,40 +41,43 @@
 // Helper function to validate black-height property from a node to leaves
 // Returns NULL if the black-height property is satisfied, otherwise an error message.
 // Sets *black_height to the computed black height if valid.
-static char *_mulle__rbtree_validate_black_height(struct mulle__rbtree *a_tree,
-                                                  struct mulle_rbnode *node,
-                                                  int *black_height)
+static char   *_mulle__rbtree_validate_black_height( struct mulle__rbtree *a_tree,
+                                                     struct mulle_rbnode *node,
+                                                     int *black_height)
 {
+   char                *left_err;
+   char                *right_err;
+   int                 left_height;
+   int                 right_height;
    struct mulle_rbnode *nil;
-   char *left_err, *right_err;
-   int left_height, right_height;
 
-   nil = _mulle__rbtree_get_nil_node(a_tree);
+   nil = _mulle__rbtree_get_nil_node( a_tree);
 
    // NIL nodes are black and have height 1
-   if (node == nil)
+   if( node == nil)
    {
       *black_height = 1;
-      return NULL;
+      return( NULL);
    }
 
    // Recursively validate and compute black heights of left and right subtrees
    left_err = _mulle__rbtree_validate_black_height( a_tree, node->_left, &left_height);
    if( left_err != NULL)
-      return left_err;
+      return( left_err);
 
    right_err = _mulle__rbtree_validate_black_height( a_tree, node->_right, &right_height);
    if( right_err != NULL)
-      return right_err;
+      return( right_err);
 
    // Both subtrees must have the same black height
-   if (left_height != right_height) {
-      return "Black heights do not match between left and right subtrees";
+   if( left_height != right_height)
+   {
+      return( "Black heights do not match between left and right subtrees");
    }
 
    // Add 1 if current node is black
-   *black_height = left_height + (_mulle_rbnode_is_black(node) ? 1 : 0);
-   return NULL;
+   *black_height = left_height + (_mulle_rbnode_is_black( node) ? 1 : 0);
+   return( NULL);
 }
 
 
@@ -83,51 +86,59 @@ static char *_mulle__rbtree_validate_black_height(struct mulle__rbtree *a_tree,
 static char   *_mulle__rbtree_validate_node( struct mulle__rbtree *a_tree,
                                              struct mulle_rbnode *node)
 {
+   char                *err;
    struct mulle_rbnode *nil;
-   char *err;
 
-   nil = _mulle__rbtree_get_nil_node(a_tree);
+   nil = _mulle__rbtree_get_nil_node( a_tree);
 
    // NIL nodes are always valid
-   if (node == nil) {
-      return NULL;
+   if( node == nil)
+   {
+      return( NULL);
    }
 
    // Rule 4: Red nodes can't have red children
-   if (_mulle_rbnode_is_red(node)) {
-      if (node->_left != nil && _mulle_rbnode_is_red(node->_left)) {
-         return "Red-red violation: Red node has red left child";
+   if( _mulle_rbnode_is_red( node))
+   {
+      if( node->_left != nil && _mulle_rbnode_is_red( node->_left))
+      {
+         return( "Red-red violation: Red node has red left child");
       }
-      if (node->_right != nil && _mulle_rbnode_is_red(node->_right)) {
-         return "Red-red violation: Red node has red right child";
+      if( node->_right != nil && _mulle_rbnode_is_red( node->_right))
+      {
+         return( "Red-red violation: Red node has red right child");
       }
    }
 
    // Validate parent-child consistency
-   if (node->_left != nil && node->_left->_parent != node) {
-      return "Parent-child inconsistency: Left child's parent pointer is incorrect";
+   if( node->_left != nil && node->_left->_parent != node)
+   {
+      return( "Parent-child inconsistency: Left child's parent pointer is incorrect");
    }
-   if (node->_right != nil && node->_right->_parent != node) {
-      return "Parent-child inconsistency: Right child's parent pointer is incorrect";
+   if( node->_right != nil && node->_right->_parent != node)
+   {
+      return( "Parent-child inconsistency: Right child's parent pointer is incorrect");
    }
 
    if( _mulle_rbnode_is_dirty( node) && ! _mulle_rbnode_is_dirty( node->_parent))
    {
       if( _mulle__rbtree_get_root_node( a_tree) != node)
-         return "Dirty flag inconsistency: Parent is not marked dirty but child is";
+         return( "Dirty flag inconsistency: Parent is not marked dirty but child is");
    }
 
    // Recursively validate left and right subtrees
    err = _mulle__rbtree_validate_node( a_tree, node->_left);
-   if (err != NULL) {
-      return err;
+   if( err != NULL)
+   {
+      return( err);
    }
    err = _mulle__rbtree_validate_node( a_tree, node->_right);
-   if (err != NULL) {
-      return err;
+   if( err != NULL)
+   {
+      return( err);
    }
 
-   return NULL;
+   return( NULL);
 }
 
 
@@ -144,47 +155,52 @@ static char   *_mulle__rbtree_validate_node( struct mulle__rbtree *a_tree,
  *   NULL - Tree is valid
  *   error message string - Tree violates red-black properties (describes the violation)
  */
-char   *mulle__rbtree_validate(struct mulle__rbtree *a_tree)
+char   *mulle__rbtree_validate( struct mulle__rbtree *a_tree)
 {
-   struct mulle_rbnode   *root;
-   struct mulle_rbnode   *nil;
-   char                  *err;
    int                   black_height;  // Unused, but needed for validation call
+   char                  *err;
+   struct mulle_rbnode   *nil;
+   struct mulle_rbnode   *root;
 
    if( ! a_tree)
       return( NULL);
 
-   nil = _mulle__rbtree_get_nil_node(a_tree);
-   root = _mulle__rbtree_get_root_node(a_tree);
+   nil = _mulle__rbtree_get_nil_node( a_tree);
+   root = _mulle__rbtree_get_root_node( a_tree);
 
    // Rule 3: NIL node must be black (sanity check)
-   if (!_mulle_rbnode_is_black(nil)) {
-      return "NIL node is not black";
+   if( ! _mulle_rbnode_is_black( nil))
+   {
+      return( "NIL node is not black");
    }
 
    // Empty tree is valid
-   if (root == nil) {
-      return NULL;
+   if( root == nil)
+   {
+      return( NULL);
    }
 
    // Rule 2: Root must be black
-   if (!_mulle_rbnode_is_black(root)) {
-      return "Root node is not black";
+   if( ! _mulle_rbnode_is_black( root))
+   {
+      return( "Root node is not black");
    }
 
    // Validate node properties and red-red violations (Rule 4)
-   err = _mulle__rbtree_validate_node(a_tree, root);
-   if (err != NULL) {
-      return err;
+   err = _mulle__rbtree_validate_node( a_tree, root);
+   if( err != NULL)
+   {
+      return( err);
    }
 
    // Rule 5: Validate black-height consistency
-   err = _mulle__rbtree_validate_black_height(a_tree, root, &black_height);
-   if (err != NULL) {
-      return err;
+   err = _mulle__rbtree_validate_black_height( a_tree, root, &black_height);
+   if( err != NULL)
+   {
+      return( err);
    }
 
-   return NULL;  // Tree is valid
+   return( NULL);  // Tree is valid
 }
 
 
@@ -195,12 +211,12 @@ _mulle__rbtree_node_dot_fprintf( FILE *fp,
                                  struct mulle__rbtree *a_tree,
                                  void (*print_value_fn)( FILE *fp, void *))
 {
-   struct mulle_rbnode *nil;
-   unsigned long       left_id;
-   unsigned long       right_id;
-   char                *fillstyle;
    char                *fillcolor;
+   char                *fillstyle;
    char                *fontcolor;
+   unsigned long       left_id;
+   struct mulle_rbnode *nil;
+   unsigned long       right_id;
 
    nil = _mulle__rbtree_get_nil_node( a_tree);
 
@@ -236,7 +252,7 @@ _mulle__rbtree_node_dot_fprintf( FILE *fp,
       }
    }
 
-    mulle_fprintf(fp, "\", style=\"%s,bold\", fillcolor=%s, fontcolor=%s];\n",
+    mulle_fprintf( fp, "\", style=\"%s,bold\", fillcolor=%s, fontcolor=%s];\n",
                fillstyle, fillcolor, fontcolor);
 
 
@@ -310,8 +326,8 @@ struct tree_node_info
 static int   _tree_height( struct mulle_rbnode *node,
                            struct mulle__rbtree *a_tree)
 {
-   struct mulle_rbnode *nil;
    int                  left_height;
+   struct mulle_rbnode *nil;
    int                  right_height;
 
    nil = _mulle__rbtree_get_nil_node( a_tree);
@@ -330,11 +346,10 @@ static char *   _node_label( struct mulle__rbtree *a_tree,
                              struct mulle_rbnode *node,
                              char *(*print_value_fn)( void *))
 {
-   void     *value;
+   char     *result;
    char     *s;
-   size_t   len;
-   char     *str;
    char     status_char;
+   void     *value;
 
    if( _mulle_rbnode_is_red( node))
    {
@@ -351,20 +366,29 @@ static char *   _node_label( struct mulle__rbtree *a_tree,
          status_char = 'b';
    }
 
-   value = _mulle__rbtree_get_node_value( a_tree, node);
-   if( ! value)
-      s = mulle_strdup( "NULL");
-   else
-      s = (*print_value_fn)( value);
-
-   s = s ? s : mulle_strdup( "???");
-
-   len   = snprintf( NULL, 0, "%s(%c)", s, status_char);
-   str   = mulle_malloc( len + 1);
-   snprintf( str, len + 1, "%s(%c)", s, status_char);
-   mulle_free( s);
-
-   return( str);
+   mulle_buffer_do( label_buffer)
+   {
+      value = _mulle__rbtree_get_node_value( a_tree, node);
+      if( ! value)
+      {
+         mulle_buffer_add_string( label_buffer, "NULL");
+      }
+      else
+      {
+         s = (*print_value_fn)( value);
+         mulle_buffer_add_string( label_buffer, s ? s : "???");
+         mulle_free( s);
+      }
+      
+      mulle_buffer_add_char( label_buffer, '(');
+      mulle_buffer_add_char( label_buffer, status_char);
+      mulle_buffer_add_char( label_buffer, ')');
+      mulle_buffer_make_string( label_buffer);
+      
+      result = mulle_buffer_extract_string( label_buffer);
+   }
+   
+   return( result);
 }
 
 
@@ -377,8 +401,8 @@ static int   _node_width( struct mulle__rbtree *a_tree,
    size_t   len;
    char     *s;
 
-   s     = _node_label( a_tree, node, print_value_fn);
-   len   = strlen( s);
+   s   = _node_label( a_tree, node, print_value_fn);
+   len = strlen( s);
    mulle_free( s);
    return( len);
 }
@@ -393,11 +417,11 @@ static void   _build_tree_positions( struct mulle_rbnode *node,
                                      int level,
                                      int *x_offset)
 {
-   struct mulle_rbnode *nil;
 //   int                  left_width = 0;
-//   int                  right_width = 0;
-   int                  node_width;
    int                  my_index;
+   struct mulle_rbnode *nil;
+   int                  node_width;
+//   int                  right_width = 0;
 
    nil = _mulle__rbtree_get_nil_node( a_tree);
    if( node == nil)
@@ -460,13 +484,11 @@ static void   _build_tree_positions( struct mulle_rbnode *node,
    *x_offset += node_width + 2;
 }
 
-// Print tree using bottom-up approach with malloced buffers
+// Print tree using mulle_array and mulle_buffer
 static void   _print_bottom_up_tree( FILE *fp,
                                      struct mulle__rbtree *a_tree,
                                      char *(*print_value_fn)( void *))
 {
-   char                    **connector_lines;
-   char                    **lines;
    char                    *node_str;
    int                     height;
    int                     i;
@@ -479,7 +501,6 @@ static void   _print_bottom_up_tree( FILE *fp,
    struct mulle_rbnode     *nil;
    struct mulle_rbnode     *root;
    struct tree_node_info   *nodes;
-
 
    nil  = _mulle__rbtree_get_nil_node( a_tree);
    root = _mulle__rbtree_get_root_node( a_tree);
@@ -505,108 +526,130 @@ static void   _print_bottom_up_tree( FILE *fp,
    }
    max_width += 2;
 
-   // Allocate lines for output
-   lines           = mulle_calloc( height, sizeof( char *));
-   connector_lines = mulle_calloc( height - 1, sizeof( char *));
-   
-   for( i = 0; i < height; i++)
+   // Use mulle_array to store lines
+   mulle_array_do( lines, &mulle_container_keycallback_copied_cstring)
    {
-      lines[ i] = mulle_calloc( max_width + 1, 1);
-      memset( lines[ i], ' ', max_width);
-      lines[ i][ max_width] = '\0';
-      
-      if( i < height - 1)
+      mulle_array_do( connectors, &mulle_container_keycallback_copied_cstring)
       {
-         connector_lines[ i] = mulle_calloc( max_width + 1, 1);
-         memset( connector_lines[ i], ' ', max_width);
-         connector_lines[ i][ max_width] = '\0';
-      }
-   }
-
-   // Fill lines with node strings
-   for( i = 0; i < node_count; i++)
-   {
-      node_str = _node_label( a_tree, nodes[ i].node, print_value_fn);
-      int start_pos = nodes[ i].x - strlen( node_str) / 2;
-      
-      if( start_pos >= 0 && start_pos + strlen( node_str) <= max_width)
-      {
-         memcpy( lines[ nodes[ i].level] + start_pos, node_str, strlen( node_str));
-      }
-      mulle_free( node_str);
-
-      // Add connectors to parent
-      if( nodes[ i].level > 0)
-      {
-         struct mulle_rbnode *parent = nodes[ i].node->_parent;
-         int parent_idx = -1;
-         
-         for( j = 0; j < node_count; j++)
+         // Build lines for each level
+         for( i = 0; i < height; i++)
          {
-            if( nodes[ j].node == parent)
+            mulle_buffer_do( line_buffer)
             {
-               parent_idx = j;
-               break;
+               // Fill with spaces
+               mulle_buffer_memset( line_buffer, ' ', max_width);
+               mulle_buffer_make_string( line_buffer);
+               
+               mulle_array_add( lines, mulle_buffer_get_string( line_buffer));
             }
-         }
-         
-         if( parent_idx != -1)
-         {
-            parent_pos = nodes[ parent_idx].x;
             
-            if( nodes[ i].node == parent->_left)
+            if( i < height - 1)
             {
-               // Left child - draw '/'
-               for( j = nodes[ i].x + 1; j < parent_pos; j++)
+               mulle_buffer_do( connector_buffer)
                {
-                  if( j >= 0 && (size_t) j < max_width)
-                     connector_lines[ nodes[ i].level - 1][ j] = '/';
+                  // Fill with spaces
+                  mulle_buffer_memset( connector_buffer, ' ', max_width);
+                  mulle_buffer_make_string( connector_buffer);
+                  
+                  mulle_array_add( connectors, mulle_buffer_get_string( connector_buffer));
                }
             }
-            else
+         }
+
+         // Fill lines with node strings
+         for( i = 0; i < node_count; i++)
+         {
+            char  *line;
+            int   start_pos;
+            
+            node_str = _node_label( a_tree, nodes[ i].node, print_value_fn);
+            start_pos = nodes[ i].x - strlen( node_str) / 2;
+            
+            if( start_pos >= 0 && start_pos + strlen( node_str) <= max_width)
             {
-               // Right child - draw '\'
-               for( j = parent_pos + 1; j < nodes[ i].x; j++)
+               line = (char *) mulle_array_get( lines, nodes[ i].level);
+               memcpy( line + start_pos, node_str, strlen( node_str));
+            }
+            mulle_free( node_str);
+
+            // Add connectors to parent
+            if( nodes[ i].level > 0)
+            {
+               struct mulle_rbnode *parent = nodes[ i].node->_parent;
+               int parent_idx = -1;
+               
+               for( j = 0; j < node_count; j++)
                {
-                  if( j >= 0 && (size_t) j < max_width)
-                     connector_lines[ nodes[ i].level - 1][ j] = '\\';
+                  if( nodes[ j].node == parent)
+                  {
+                     parent_idx = j;
+                     break;
+                  }
                }
+               
+               if( parent_idx != -1)
+               {
+                  char *connector_line;
+                  
+                  parent_pos = nodes[ parent_idx].x;
+                  connector_line = (char *) mulle_array_get( connectors, nodes[ i].level - 1);
+                  
+                  if( nodes[ i].node == parent->_left)
+                  {
+                     // Left child - draw '/'
+                     for( j = nodes[ i].x + 1; j < parent_pos; j++)
+                     {
+                        if( j >= 0 && (size_t) j < max_width)
+                           connector_line[ j] = '/';
+                     }
+                  }
+                  else
+                  {
+                     // Right child - draw '\'
+                     for( j = parent_pos + 1; j < nodes[ i].x; j++)
+                     {
+                        if( j >= 0 && (size_t) j < max_width)
+                           connector_line[ j] = '\\';
+                     }
+                  }
+               }
+            }
+         }
+
+         // Print the tree
+         for( i = 0; i < height; i++)
+         {
+            char  *line;
+            int   len;
+            
+            line = (char *) mulle_array_get( lines, i);
+            
+            // Trim trailing spaces
+            len = strlen( line);
+            while( len > 0 && line[ len - 1] == ' ')
+               len--;
+            line[ len] = '\0';
+            
+            if( len > 0)
+               mulle_fprintf( fp, "%s\n", line);
+
+            if( i < height - 1)
+            {
+               char *connector_line;
+               
+               connector_line = (char *) mulle_array_get( connectors, i);
+               len = strlen( connector_line);
+               while( len > 0 && connector_line[ len - 1] == ' ')
+                  len--;
+               connector_line[ len] = '\0';
+               
+               if( len > 0)
+                  mulle_fprintf( fp, "%s\n", connector_line);
             }
          }
       }
    }
 
-   // Print the tree
-   for( i = 0; i < height; i++)
-   {
-      // Trim trailing spaces
-      int len = strlen( lines[ i]);
-      while( len > 0 && lines[ i][ len - 1] == ' ')
-         len--;
-      lines[ i][ len] = '\0';
-      
-      if( len > 0)
-         mulle_fprintf( fp, "%s\n", lines[ i]);
-
-      if( i < height - 1)
-      {
-         len = strlen( connector_lines[ i]);
-         while( len > 0 && connector_lines[ i][ len - 1] == ' ')
-            len--;
-         connector_lines[ i][ len] = '\0';
-         
-         if( len > 0)
-            mulle_fprintf( fp, "%s\n", connector_lines[ i]);
-      }
-   }
-
-   // Clean up
-   for( i = 0; i < height; i++)
-      mulle_free( lines[ i]);
-   for( i = 0; i < height - 1; i++)
-      mulle_free( connector_lines[ i]);
-   mulle_free( lines);
-   mulle_free( connector_lines);
    mulle_free( nodes);
 }
 
@@ -615,8 +658,8 @@ void   mulle__rbtree_node_ascii_fprintf( FILE *fp,
                                          struct mulle__rbtree *a_tree,
                                          char *(*print_value_fn)( void *))
 {
-   struct mulle_rbnode *root;
    struct mulle_rbnode *nil;
+   struct mulle_rbnode *root;
 
    if( ! a_tree)
    {
