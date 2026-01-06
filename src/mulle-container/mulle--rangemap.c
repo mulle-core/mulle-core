@@ -111,12 +111,12 @@ int   _mulle__rangemap_insert( struct mulle__rangemap *map,
    // Move everything up to make space for the new range
    memmove( &ranges[ index + 1],
             &ranges[ index],
-            (map->_length - index) * sizeof( struct mulle_range));
+            (size_t) (map->_length - index) * sizeof( struct mulle_range));
 
    values = _mulle__rangemap_get_values( map);
    memmove( &values[ index + 1],
             &values[ index],
-            (map->_length - index) * sizeof( void *));
+            (size_t) (map->_length - index) * sizeof( void *));
 
    // Insert new range and value
    ranges[ index] = range;
@@ -164,9 +164,9 @@ int   _mulle__rangemap_remove( struct mulle__rangemap *map,
    if( n)
    {
       memmove( &ranges[ index], &ranges[ index + 1],
-               (map->_length - index) * sizeof( struct mulle_range));
+               (size_t) (map->_length - index) * sizeof( struct mulle_range));
       memmove( &values[ index], &values[ index + 1],
-               (map->_length - index) * sizeof( void *));
+               (size_t) (map->_length - index) * sizeof( void *));
    }
 
 #if MULLE__CONTAINER_HAVE_MUTATION_COUNT

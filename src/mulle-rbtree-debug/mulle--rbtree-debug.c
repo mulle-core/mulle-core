@@ -305,20 +305,12 @@ void  mulle__rbtree_node_dot_fprintf( FILE *fp,
 
 
 
-// Structure for tree printing
-struct tree_line
-{
-   char *buffer;
-   int   length;
-};
-
-
 struct tree_node_info
 {
    struct mulle_rbnode   *node;
    int                   level;
    int                   x;
-   int                   width;
+   size_t                width;
 };
 
 
@@ -394,9 +386,9 @@ static char *   _node_label( struct mulle__rbtree *a_tree,
 
 
 // Calculate width needed for a node's string representation
-static int   _node_width( struct mulle__rbtree *a_tree,
-                          struct mulle_rbnode *node,
-                          char *(*print_value_fn)( void *))
+static size_t   _node_width( struct mulle__rbtree *a_tree,
+                             struct mulle_rbnode *node,
+                             char *(*print_value_fn)( void *))
 {
    size_t   len;
    char     *s;
@@ -420,7 +412,7 @@ static void   _build_tree_positions( struct mulle_rbnode *node,
 //   int                  left_width = 0;
    int                  my_index;
    struct mulle_rbnode *nil;
-   int                  node_width;
+   size_t               node_width;
 //   int                  right_width = 0;
 
    nil = _mulle__rbtree_get_nil_node( a_tree);
@@ -453,7 +445,7 @@ static void   _build_tree_positions( struct mulle_rbnode *node,
    if( node->_left == nil && node->_right == nil)
    {
       // Leaf node
-      nodes[ my_index].x = *x_offset + node_width / 2;
+      nodes[ my_index].x = *x_offset + (int) node_width / 2;
    }
    else if( node->_left != nil && node->_right != nil)
    {
@@ -465,23 +457,23 @@ static void   _build_tree_positions( struct mulle_rbnode *node,
    else if( node->_left != nil)
    {
       // Only left child
-      nodes[ my_index].x = nodes[ my_index + 1].x + node_width / 2;
+      nodes[ my_index].x = nodes[ my_index + 1].x + (int) node_width / 2;
    }
    else
    {
       // Only right child
-      nodes[ my_index].x = nodes[ *index - 1].x - node_width / 2;
+      nodes[ my_index].x = nodes[ *index - 1].x - (int) node_width / 2;
    }
 
    // Ensure minimum spacing
-   if( *x_offset < nodes[ my_index].x - node_width / 2)
-      *x_offset = nodes[ my_index].x - node_width / 2;
+   if( *x_offset < nodes[ my_index].x - (int) node_width / 2)
+      *x_offset = nodes[ my_index].x - (int) node_width / 2;
 
    nodes[ my_index].node = node;
    nodes[ my_index].level = level;
    nodes[ my_index].width = node_width;
 
-   *x_offset += node_width + 2;
+   *x_offset += (int) node_width + 2;
 }
 
 // Print tree using mulle_array and mulle_buffer
@@ -521,8 +513,8 @@ static void   _print_bottom_up_tree( FILE *fp,
    // Find maximum width
    for( i = 0; i < node_count; i++)
    {
-      if( (size_t) (nodes[ i].x + nodes[ i].width / 2) > max_width)
-         max_width = nodes[ i].x + nodes[ i].width / 2;
+      if( (size_t) (nodes[ i].x + (int) nodes[ i].width / 2) > max_width)
+         max_width = nodes[ i].x + (int) nodes[ i].width / 2;
    }
    max_width += 2;
 
@@ -563,7 +555,7 @@ static void   _print_bottom_up_tree( FILE *fp,
             int   start_pos;
             
             node_str = _node_label( a_tree, nodes[ i].node, print_value_fn);
-            start_pos = nodes[ i].x - strlen( node_str) / 2;
+            start_pos = nodes[ i].x - (int) strlen( node_str) / 2;
             
             if( start_pos >= 0 && start_pos + strlen( node_str) <= max_width)
             {
@@ -619,8 +611,8 @@ static void   _print_bottom_up_tree( FILE *fp,
          // Print the tree
          for( i = 0; i < height; i++)
          {
-            char  *line;
-            int   len;
+            char   *line;
+            size_t len;
             
             line = (char *) mulle_array_get( lines, i);
             
