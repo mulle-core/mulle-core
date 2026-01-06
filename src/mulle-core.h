@@ -45,8 +45,10 @@ uint32_t   mulle_core_get_version( void);
 # include <mulle-buffer/mulle-buffer.h>
 # include <mulle-container/mulle-container.h>
 # include <mulle-http/mulle-http.h>
+# include <mulle-rbtree/mulle-rbtree.h>
 # include <mulle-regex/mulle-regex.h>
 # include <mulle-slug/mulle-slug.h>
+# include <mulle-storage/mulle-storage.h>
 # include <mulle-unicode/mulle-unicode.h>
 # include <mulle-url/mulle-url.h>
 # include <mulle-utf/mulle-utf.h>
@@ -61,12 +63,16 @@ uint32_t   mulle_core_get_version( void);
 
 # include <mulle-dlfcn/mulle-dlfcn.h>
 # include <mulle-mmap/mulle-mmap.h>
-# include <mulle-stacktrace/mulle-stacktrace.h>
+# include <mulle-dtostr/mulle-dtostr.h>
 # include <mulle-fprintf/mulle-fprintf.h>
 # include <mulle-sprintf/mulle-sprintf.h>
+
+// no longer part of mulle-core amalgamation
+//# include <mulle-stacktrace/mulle-stacktrace.h>
 # include <mulle-time/mulle-time.h>
 
 # include <mulle-container-debug/mulle-container-debug.h>
+# include <mulle-rbtree-debug/mulle-rbtree-debug.h>
 //#endif
 
 

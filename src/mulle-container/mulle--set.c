@@ -152,7 +152,7 @@ char   *_mulle__set_describe( struct mulle__set *set,
    rover = _mulle__set_enumerate( set, callback);
    while( _mulle__setenumerator_next( &rover, &item))
    {
-      value_allocator = allocator ? allocator : &mulle_default_allocator;
+      value_allocator = allocator ? allocator : &mulle_stdlib_allocator;
 
       s      = (*callback->describe)( callback, item, &value_allocator);
       s_len  = strlen( s);
@@ -169,8 +169,9 @@ char   *_mulle__set_describe( struct mulle__set *set,
       memcpy( &result[ len], s, s_len);
       len += s_len;
 
+      // else it static
       if( value_allocator)
-         mulle_allocator_free( value_allocator, s);
+         _mulle_allocator_free( value_allocator, s);
    }
    mulle__setenumerator_done( &rover);
 

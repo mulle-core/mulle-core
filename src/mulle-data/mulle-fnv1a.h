@@ -135,7 +135,6 @@ static inline uintptr_t   _mulle_fnv1a_step( uintptr_t hash, unsigned char value
  * @param len The length of the buffer.
  * @return The updated 32-bit hash value.
  */
-uint32_t _mulle_fnv1a_chained_32(void *buf, size_t len, uint32_t hash);
 MULLE__DATA_GLOBAL
 uint32_t   _mulle_fnv1a_chained_32( void *buf, size_t len, uint32_t hash);
 
@@ -337,6 +336,7 @@ static inline uintptr_t   _mulle_fnv1a_chained_inline( void *buf,
  * @param s The string to hash.
  * @return The hash value as a 32-bit unsigned integer.
  */
+MULLE__DATA_GLOBAL
 uint32_t _mulle_string_hash_32(char *s);
 
 /**
@@ -345,6 +345,7 @@ uint32_t _mulle_string_hash_32(char *s);
  * @param s The string to hash.
  * @return The hash value as a 64-bit unsigned integer.
  */
+MULLE__DATA_GLOBAL
 uint64_t _mulle_string_hash_64(char *s);
 
 
@@ -370,6 +371,7 @@ static inline uintptr_t   _mulle_string_hash( char *s)
  * @param hash The initial hash value to use.
  * @return The hash value as a 32-bit unsigned integer.
  */
+MULLE__DATA_GLOBAL
 uint32_t _mulle_string_hash_chained_32(char *s, uint32_t hash);
 
 /**
@@ -379,6 +381,7 @@ uint32_t _mulle_string_hash_chained_32(char *s, uint32_t hash);
  * @param hash The initial hash value to use.
  * @return The hash value as a 64-bit unsigned integer.
  */
+MULLE__DATA_GLOBAL
 uint64_t _mulle_string_hash_chained_64(char *s, uint64_t hash);
 
 

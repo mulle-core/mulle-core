@@ -215,6 +215,120 @@ static inline unsigned int
 }
 
 
+/**
+ * Get the allocator associated with the storage.
+ *
+ * @param alloc The storage allocator.
+ * @return The allocator associated with the storage.
+ */
+MULLE_C_NONNULL_FIRST
+static inline size_t
+   _mulle_storage_get_element_size( struct mulle_storage *alloc)
+{
+   return( _mulle_structqueue_get_element_size( &alloc->_structs));
+}
+
+/**
+ * Initialize the storage with the given parameters.
+ *
+ * @param alloc The storage allocator.
+ * @param sizeof_struct The size of the structure to be stored.
+ * @param alignof_struct The alignment of the structure to be stored.
+ * @param capacity The initial capacity of the storage.
+ * @param allocator The allocator to be used for memory management.
+ */
+static inline void
+   mulle_storage_init( struct mulle_storage *alloc,
+                        size_t sizeof_struct,
+                        unsigned int alignof_struct,
+                        unsigned int capacity,
+                        struct mulle_allocator *allocator)
+{
+   if( ! alloc)
+      return;
+
+   _mulle_storage_init( alloc, sizeof_struct, alignof_struct, capacity, allocator);
+}
+
+/**
+ * Finalize the storage, freeing any allocated resources.
+ *
+ * @param alloc The storage allocator.
+ */
+static inline void
+   mulle_storage_done( struct mulle_storage *alloc)
+{
+   if( ! alloc)
+      return;
+
+   _mulle_storage_done( alloc);
+}
+
+/**
+ * Allocate memory for a new element from the storage.
+ * If there are freed elements, reuse one of them.
+ *
+ * @param alloc The storage allocator.
+ * @return A pointer to the allocated memory.
+ */
+static inline void  *
+   mulle_storage_malloc( struct mulle_storage *alloc)
+{
+   if( ! alloc)
+      return NULL;
+
+   return _mulle_storage_malloc( alloc);
+}
+
+/**
+ * Allocate and zero-initialize memory for a new element from the storage.
+ * If there are freed elements, reuse one of them.
+ *
+ * @param alloc The storage allocator.
+ * @return A pointer to the allocated and zero-initialized memory.
+ */
+static inline void  *
+   mulle_storage_calloc( struct mulle_storage *alloc)
+{
+   if( ! alloc)
+      return NULL;
+
+   return _mulle_storage_calloc( alloc);
+}
+
+/**
+ * Free an element and add it to the list of freed elements for reuse.
+ *
+ * @param alloc The storage allocator.
+ * @param p The pointer to the element to be freed.
+ */
+static inline void
+   mulle_storage_free( struct mulle_storage *alloc, void *p)
+{
+   if( ! alloc || ! p)
+      return;
+
+   _mulle_storage_free( alloc, p);
+}
+
+/**
+ * Allocate memory for a new element and copy the contents of an existing element into it.
+ *
+ * @param alloc The storage allocator.
+ * @param q The pointer to the existing element to be copied.
+ * @return A pointer to the newly allocated and copied element.
+ */
+static inline void *
+   mulle_storage_copy( struct mulle_storage *alloc, void *q)
+{
+   if( ! alloc || ! q)
+      return NULL;
+
+   return _mulle_storage_copy( alloc, q);
+}
+
+
+
 #include "mulle-indexedstorage.h"
 
 /*

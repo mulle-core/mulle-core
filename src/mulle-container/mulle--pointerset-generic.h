@@ -37,6 +37,10 @@
 // remove stuff from the pointerset. The standard mulle-pointerset user is
 // "unaware" that a callback is used during storage I/O.
 //
+void   _mulle__pointerset_init_storage_generic( void **buf,
+                                                size_t n,
+                                                void *notakey);
+
 void   **_mulle__pointerset_allocate_storage_generic( size_t n,
                                                       void *notakey,
                                                       struct mulle_allocator *allocator);
@@ -214,7 +218,7 @@ static inline int
                                              p,
                                              mulle_container_insert_e,
                                              callback,
-                                             allocator) == NULL);
+                                             allocator) == callback->notakey);
 }
 
 

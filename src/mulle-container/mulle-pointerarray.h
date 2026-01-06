@@ -531,6 +531,28 @@ void   mulle_pointerarray_remove_in_range( struct mulle_pointerarray *array,
 
 MULLE_C_NONNULL_FIRST
 static inline
+void   _mulle_pointerarray_remove_at_index( struct mulle_pointerarray *array,
+                                            uintptr_t location)
+{
+   _mulle__pointerarray_remove_in_range( (struct mulle__pointerarray *) array,
+                                         mulle_range_make( location, 1));
+}
+
+
+static inline
+void   mulle_pointerarray_remove_at_index( struct mulle_pointerarray *array,
+                                           uintptr_t location)
+{
+   if( array)
+      _mulle__pointerarray_remove_in_range( (struct mulle__pointerarray *) array,
+                                            mulle_range_make( location, 1));
+}
+
+
+
+
+MULLE_C_NONNULL_FIRST
+static inline
 void   _mulle_pointerarray_remove( struct mulle_pointerarray *array,
                                    void *p)
 {
@@ -563,6 +585,53 @@ void   mulle_pointerarray_remove( struct mulle_pointerarray *array,
 
 MULLE_C_NONNULL_FIRST
 static inline
+void   _mulle_pointerarray_insert_in_range( struct mulle_pointerarray *array,
+                                            struct mulle_range range,
+                                            void **pointers)
+{
+   _mulle__pointerarray_insert_in_range( (struct mulle__pointerarray *) array,
+                                         range,
+                                         pointers,
+                                         array->allocator);
+}
+
+
+static inline
+void   mulle_pointerarray_insert_in_range( struct mulle_pointerarray *array,
+                                           struct mulle_range range,
+                                           void **pointers)
+{
+   if( array)
+      _mulle_pointerarray_insert_in_range( array, range, pointers);
+}
+
+
+MULLE_C_NONNULL_FIRST_THIRD
+static inline void
+   _mulle_pointerarray_insert( struct mulle_pointerarray *array,
+                               uintptr_t location,
+                               void *p)
+{
+   _mulle__pointerarray_insert( (struct mulle__pointerarray *) array,
+                                location,
+                                p,
+                                array->allocator);
+}
+
+
+MULLE_C_NONNULL_THIRD
+static inline void
+   mulle_pointerarray_insert( struct mulle_pointerarray *array,
+                              uintptr_t location,
+                              void *p)
+{
+   if( array)
+      _mulle_pointerarray_insert( array, location, p);
+}
+
+
+MULLE_C_NONNULL_FIRST
+static inline
 void   * _mulle_pointerarray_remove_unique( struct mulle_pointerarray *array,
                                             void *p)
 {
@@ -578,7 +647,7 @@ void   * _mulle_pointerarray_remove_unique( struct mulle_pointerarray *array,
 //
 static inline
 void   *mulle_pointerarray_remove_unique( struct mulle_pointerarray *array,
-                                       void *p)
+                                          void *p)
 {
    if( array)
       return( _mulle_pointerarray_remove_unique( array, p));

@@ -10,6 +10,7 @@
 #define mulle_align_h__
 
 #include <mulle-c11/mulle-c11.h>
+#include <mulle-c11/mulle-c11-align.h>
 
 #include <stdint.h>
 #include <stddef.h>

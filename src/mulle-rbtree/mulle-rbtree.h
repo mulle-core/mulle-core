@@ -40,7 +40,7 @@
 #include <errno.h>
 
 
-#define MULLE__RBTREE_VERSION   ((0UL << 20) | (0 << 8) | 3)
+#define MULLE__RBTREE_VERSION   ((0UL << 20) | (1 << 8) | 0)
 
 
 //
@@ -55,10 +55,12 @@ struct mulle_rbtree
 {
    MULLE__RBTREE_BASE;
    int                                     (*comparison)( void *a, void *b);
+   void                                    (*dirty)( void *a, void *b, void *c);
    struct mulle_container_valuecallback    callback;
 };
 
-
+MULLE_C_NONNULL_FIRST
+MULLE__RBTREE_GLOBAL
 void   _mulle_rbtree_init( struct mulle_rbtree *a_tree,
                            int (*a_comp)( void *, void *),
                            struct mulle_container_valuecallback *callback,
@@ -74,6 +76,35 @@ static inline void
       return;
    _mulle_rbtree_init( a_tree, a_comp, callback, allocator);
 }
+
+
+struct mulle_rbtree_config
+{
+   int                                     (*comparison)( void *a, void *b);
+   void                                    (*dirty)( void *a, void *b, void *c);
+   struct mulle_container_valuecallback    *callback;
+   size_t                                  node_extra;
+   unsigned int                            options;
+};
+
+
+MULLE_C_NONNULL_FIRST_SECOND
+MULLE__RBTREE_GLOBAL
+void   _mulle_rbtree_init_with_config( struct mulle_rbtree *a_tree,
+                                       struct mulle_rbtree_config *config,
+                                       struct mulle_allocator *allocator);
+
+MULLE_C_NONNULL_SECOND
+static inline void
+   mulle_rbtree_init_with_config( struct mulle_rbtree *a_tree,
+                                  struct mulle_rbtree_config *config,
+                                  struct mulle_allocator *allocator)
+{
+   if( ! a_tree)
+      return;
+   _mulle_rbtree_init_with_config( a_tree, config, allocator);
+}
+
 
 
 MULLE_C_NONNULL_FIRST
@@ -102,32 +133,65 @@ static inline struct mulle_allocator    *
 }
 
 
-// 0: success
-MULLE_C_NONNULL_FIRST
-int   _mulle_rbtree_add( struct mulle_rbtree *a_tree, void *payload);
 
-
-// returns 0 on success
-static inline int
-   mulle_rbtree_add( struct mulle_rbtree *a_tree, void *payload)
+static inline void   _mulle_rbtree_walk_dirty( struct mulle_rbtree *a_tree)
 {
-   if( ! a_tree)
-      return( EINVAL);
-   return( _mulle_rbtree_add( a_tree, payload));
+   _mulle__rbtree_walk_dirty( (struct mulle__rbtree *) a_tree,
+                              a_tree->dirty);
+
 }
 
 
-// return 0 on succesful removal
-MULLE_C_NONNULL_FIRST
-int   _mulle_rbtree_remove( struct mulle_rbtree *a_tree, void *payload);
+
+// 0: success
+MULLE__RBTREE_GLOBAL
+MULLE_C_NONNULL_FIRST_SECOND
+int   _mulle_rbtree_add( struct mulle_rbtree *a_tree, void *value);
 
 
+// returns 0 on success
+MULLE_C_NONNULL_SECOND
 static inline int
-   mulle_rbtree_remove( struct mulle_rbtree *a_tree, void *payload)
+   mulle_rbtree_add( struct mulle_rbtree *a_tree, void *value)
 {
    if( ! a_tree)
       return( EINVAL);
-   return( _mulle_rbtree_remove( a_tree, payload));
+   return( _mulle_rbtree_add( a_tree, value));
+}
+
+
+
+MULLE__RBTREE_GLOBAL
+MULLE_C_NONNULL_FIRST_SECOND
+void   _mulle_rbtree_remove_node( struct mulle_rbtree *a_tree,
+                                  struct mulle_rbnode *node);
+
+
+MULLE_C_NONNULL_SECOND
+static inline void
+   mulle_rbtree_remove_node( struct mulle_rbtree *a_tree,
+                             struct mulle_rbnode *node)
+{
+   if( ! a_tree)
+      return;
+   _mulle_rbtree_remove_node( a_tree, node);
+}
+
+
+
+// return 0 on succesful removal
+MULLE__RBTREE_GLOBAL
+MULLE_C_NONNULL_FIRST_SECOND
+int   _mulle_rbtree_remove( struct mulle_rbtree *a_tree, void *value);
+
+
+MULLE_C_NONNULL_SECOND
+static inline int
+   mulle_rbtree_remove( struct mulle_rbtree *a_tree, void *value)
+{
+   if( ! a_tree)
+      return( EINVAL);
+   return( _mulle_rbtree_remove( a_tree, value));
 }
 
 
@@ -140,10 +204,10 @@ static inline void    *
    if( ! a_tree)
       return( NULL);
 
-   node = _mulle__rbtree_find_node_with_payload( (struct mulle__rbtree *) a_tree,
-                                                  a_key,
-                                                  a_tree->comparison);
-   return( mulle_rbnode_get_payload( node));
+   node = _mulle__rbtree_find_node( (struct mulle__rbtree *) a_tree,
+                                    a_key,
+                                    a_tree->comparison);
+   return( _mulle__rbtree_get_node_value( (struct mulle__rbtree *) a_tree, node));
 }
 
 
@@ -151,7 +215,7 @@ static inline void    *
  * Find a match if it exists.  Otherwise, find the next greater node, if one
  * exists.
  */
-struct mulle_rbnode    *
+static inline void *
    mulle_rbtree_find_equal_or_greater( struct mulle_rbtree *a_tree, void *a_key)
 {
    struct mulle_rbnode   *node;
@@ -159,21 +223,22 @@ struct mulle_rbnode    *
    if( ! a_tree)
       return( NULL);
 
-   node = _mulle__rbtree_find_node_with_equal_or_greater_payload( (struct mulle__rbtree *) a_tree,
-                                                                  a_key,
-                                                                  a_tree->comparison);
-   return( mulle_rbnode_get_payload( node));
+   node = _mulle__rbtree_find_node_equal_or_greater( (struct mulle__rbtree *) a_tree,
+                                                     a_key,
+                                                     a_tree->comparison);
+   return( _mulle__rbtree_get_node_value( (struct mulle__rbtree *) a_tree, node));
 }
 
 
 MULLE_C_NONNULL_SECOND
 static inline
 void   mulle_rbtree_walk( struct mulle_rbtree *a_tree,
-                          int (*callback)( void *payload, void *userinfo),
+                          int (*callback)( void *value, void *userinfo),
                           void *userinfo)
 {
-   struct mulle_rbnode  *a_node;
-   struct mulle__rbtree *a__tree;
+   struct mulle_rbnode    *a_node;
+   struct mulle__rbtree   *a__tree;
+   void                   *value;
 
    if( ! a_tree)
       return;
@@ -183,16 +248,17 @@ void   mulle_rbtree_walk( struct mulle_rbtree *a_tree,
                                               _mulle__rbtree_get_root_node( a__tree));
    while( a_node != _mulle__rbtree_get_nil_node( a__tree))
    {
-      if( ! (*callback)( mulle_rbnode_get_payload( a_node), userinfo))
+      value = _mulle__rbtree_get_node_value( (struct mulle__rbtree *) a_tree, a_node);
+      if( ! (*callback)( value, userinfo))
          break;
-      a_node = _mulle__rbtree_find_next_node( a__tree, a_node);
+      a_node = _mulle__rbtree_next_node( a__tree, a_node);
    }
 }
 
 
-#pragma mark - enumerator
+#pragma mark - value enumerator
 
-
+// these enumerators return node *values*
 struct mulle_rbtreeenumerator
 {
    struct mulle__rbtree   *_tree;
@@ -200,11 +266,13 @@ struct mulle_rbtreeenumerator
 };
 
 
-MULLE_C_NONNULL_FIRST
 static inline struct mulle_rbtreeenumerator
-   _mulle_rbtree_enumerate( struct mulle_rbtree *a_tree)
+   mulle_rbtree_enumerate( struct mulle_rbtree *a_tree)
 {
-   struct mulle_rbtreeenumerator   rover;
+   struct mulle_rbtreeenumerator   rover = { 0 };
+
+   if( ! a_tree)
+      return( rover);
 
    rover._tree = (struct mulle__rbtree *) a_tree;
    rover._node = _mulle__rbtree_find_leftmost_node( rover._tree,
@@ -217,11 +285,13 @@ MULLE_C_NONNULL_FIRST
 static inline int
    _mulle_rbtreeenumerator_next( struct mulle_rbtreeenumerator *rover, void **item)
 {
+   if( ! rover->_node)
+      return( 0);
    if( rover->_node == _mulle__rbtree_get_nil_node( rover->_tree))
       return( 0);
    if( item)
-      *item = _mulle_rbnode_get_payload( rover->_node);
-   rover->_node = _mulle__rbtree_find_next_node( rover->_tree, rover->_node);
+      *item = _mulle__rbtree_get_node_value( (struct mulle__rbtree *) rover->_tree, rover->_node);
+   rover->_node = _mulle__rbtree_next_node( rover->_tree, rover->_node);
    return( 1);
 }
 
@@ -234,13 +304,78 @@ static inline void
 }
 
 
+static inline void
+   mulle_rbtreeenumerator_done( struct mulle_rbtreeenumerator *rover)
+{
+   MULLE_C_UNUSED( rover);
+}
+
+
+// these enumerators return node *values*
 #define mulle_rbtree_for( a_tree, item)                                                      \
-   if( a_tree)                                                                               \
-      for( struct mulle_rbtreeenumerator rover__ ## item = _mulle_rbtree_enumerate( a_tree); \
+      for( struct mulle_rbtreeenumerator rover__ ## item = mulle_rbtree_enumerate( a_tree);  \
            _mulle_rbtreeenumerator_next( &rover__ ## item, (void **) &item);)
 
-#define _mulle_rbtree_for( a_tree, item)                                                     \
-      for( struct mulle_rbtreeenumerator rover__ ## item = _mulle_rbtree_enumerate( a_tree); \
-           _mulle_rbtreeenumerator_next( &rover__ ## item, (void **) &item);)
+/**
+ **/
+
+// these enumerators return node *values*
+
+struct mulle_rbtreereverseenumerator
+{
+   struct mulle__rbtree   *_tree;
+   struct mulle_rbnode    *_node;
+};
+
+
+static inline struct mulle_rbtreereverseenumerator
+   mulle_rbtree_reverseenumerate( struct mulle_rbtree *a_tree)
+{
+   struct mulle_rbtreereverseenumerator   rover = { 0 };
+
+   if( ! a_tree)
+      return( rover);
+
+   rover._tree = (struct mulle__rbtree *) a_tree;
+   rover._node = _mulle__rbtree_find_rightmost_node( rover._tree,
+                                                    _mulle__rbtree_get_root_node( rover._tree));
+   return( rover);
+}
+
+
+MULLE_C_NONNULL_FIRST
+static inline int
+   _mulle_rbtreereverseenumerator_next( struct mulle_rbtreereverseenumerator *rover, void **item)
+{
+   if( ! rover->_node)
+      return( 0);
+   if( rover->_node == _mulle__rbtree_get_nil_node( rover->_tree))
+      return( 0);
+   if( item)
+      *item = _mulle__rbtree_get_node_value( (struct mulle__rbtree *) rover->_tree, rover->_node);
+   rover->_node = _mulle__rbtree_previous_node( rover->_tree, rover->_node);
+   return( 1);
+}
+
+
+MULLE_C_NONNULL_FIRST
+static inline void
+   _mulle_rbtreereverseenumerator_done( struct mulle_rbtreereverseenumerator *rover)
+{
+   MULLE_C_UNUSED( rover);
+}
+
+
+static inline void
+   mulle_rbtreereverseenumerator_done( struct mulle_rbtreereverseenumerator *rover)
+{
+   MULLE_C_UNUSED( rover);
+}
+
+// these enumerators return node *values*
+#define mulle_rbtree_reversefor( a_tree, item)                                                      \
+      for( struct mulle_rbtreereverseenumerator rover__ ## item = mulle_rbtree_reverseenumerate( a_tree);  \
+           _mulle_rbtreereverseenumerator_next( &rover__ ## item, (void **) &item);)
+
 
 #endif

@@ -3,8 +3,24 @@
 #include <assert.h>
 
 
-struct mulle_range   mulle_range_intersect( struct mulle_range range,
-                                            struct mulle_range other)
+int   mulle_range_intersects( struct mulle_range range,
+                              struct mulle_range other)
+{
+   uintptr_t   end1;
+   uintptr_t   end2;
+   uintptr_t   location;
+   uintptr_t   min;
+
+   end1      = mulle_range_get_max( range);
+   end2      = mulle_range_get_max( other);
+   min       = (end1 < end2) ? end1 : end2;
+   location  = (range.location > other.location) ? range.location : other.location;
+   return( min >= location);
+}
+
+
+struct mulle_range   mulle_range_intersection( struct mulle_range range,
+                                               struct mulle_range other)
 {
    uintptr_t            end1;
    uintptr_t            end2;
