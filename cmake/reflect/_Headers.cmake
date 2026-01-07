@@ -17,7 +17,6 @@ src/mulle-buffer
 src/mulle-concurrent
 src/mulle-container-debug
 src/mulle-container
-src/mulle-dlfcn
 src/mulle-fifo
 src/mulle-fprintf
 src/mulle-http
@@ -60,7 +59,6 @@ src/mulle-buffer/include-private.h
 src/mulle-concurrent/include-private.h
 src/mulle-container-debug/include-private.h
 src/mulle-container/include-private.h
-src/mulle-dlfcn/include-private.h
 src/mulle-fifo/include-private.h
 src/mulle-fprintf/include-private.h
 src/mulle-http/include-private.h
@@ -84,7 +82,6 @@ src/mulle-buffer/_mulle-buffer-include-private.h
 src/mulle-concurrent/_mulle-concurrent-include-private.h
 src/mulle-container-debug/_mulle-container-debug-include-private.h
 src/mulle-container/_mulle-container-include-private.h
-src/mulle-dlfcn/_mulle-dlfcn-include-private.h
 src/mulle-fifo/_mulle-fifo-include-private.h
 src/mulle-fprintf/_mulle-fprintf-include-private.h
 src/mulle-http/_mulle-http-include-private.h
@@ -215,7 +212,6 @@ src/mulle-concurrent/include.h
 src/mulle-container-debug/include.h
 src/mulle-container/include.h
 src/mulle-data/include.h
-src/mulle-dlfcn/include.h
 src/mulle-fifo/include.h
 src/mulle-fprintf/include.h
 src/mulle-http/include.h
@@ -346,9 +342,6 @@ src/mulle-data/mulle-prime.h
 src/mulle-data/mulle-qsort.h
 src/mulle-data/mulle-range.h
 src/mulle-data/xxhash.h
-src/mulle-dlfcn/mulle-dlfcn.h
-src/mulle-dlfcn/_mulle-dlfcn-include.h
-src/mulle-dlfcn/_mulle-dlfcn-versioncheck.h
 src/mulle-dtostr/mulle-dtostr.h
 src/mulle-fifo/mulle-fifo.h
 src/mulle-fifo/_mulle-fifo-include.h

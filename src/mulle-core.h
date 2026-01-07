@@ -61,7 +61,8 @@ uint32_t   mulle_core_get_version( void);
 # include <mulle-fifo/mulle-fifo.h>
 # include <mulle-multififo/mulle-multififo.h>
 
-# include <mulle-dlfcn/mulle-dlfcn.h>
+// no longer part of mulle-core amalgamation
+//# include <mulle-dlfcn/mulle-dlfcn.h>
 # include <mulle-mmap/mulle-mmap.h>
 # include <mulle-dtostr/mulle-dtostr.h>
 # include <mulle-fprintf/mulle-fprintf.h>

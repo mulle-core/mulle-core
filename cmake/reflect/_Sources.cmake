@@ -79,7 +79,6 @@ src/mulle-data/mulle-hash.c
 src/mulle-data/mulle-prime.c
 src/mulle-data/mulle-qsort.c
 src/mulle-data/mulle-range.c
-src/mulle-dlfcn/mulle-dlfcn.c
 src/mulle-dtostr/mulle-dtostr.c
 src/mulle-fifo/mulle-fifo.c
 src/mulle-fprintf/mulle-buffer-stdio.c
@@ -164,7 +163,6 @@ src/mulle-vararg/mulle-vararg.c
 #
 set( STANDALONE_SOURCES
 src/mulle-concurrent/mulle-concurrent-standalone.c
-src/mulle-dlfcn/mulle-dlfcn-standalone.c
 src/mulle-regex/mulle-regex-standalone.c
 src/mulle-sprintf/mulle-sprintf-standalone.c
 src/mulle-thread/mulle-thread-standalone.c
