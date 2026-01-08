@@ -64,110 +64,71 @@ foreach( SUB_PROJECT_PATH ${SUB_PROJECT_PATHS})
 endforeach()
 set( SUB_PROJECT_NAMES ${SUB_PROJECT_NAMES} CACHE INTERNAL "sub-project names")
 
-if( "${MULLE_PROJECT_TYPE}" STREQUAL "Executable")
 
-   ### Executable
+### Library
 
-   include( Dependencies)
-   include( Executable)
+if( HEADER_PHASE)
 
-   # use EXECUTABLE_COMPILE_TARGET for compiler options
-   target_compile_definitions( "${EXECUTABLE_COMPILE_TARGET}" PUBLIC)
-   target_compile_options( "${EXECUTABLE_COMPILE_TARGET}" PUBLIC)
-   # use EXECUTABLE_LINK_TARGET for linker options
-   if( LINK_PHASE)
-      target_link_options( "${EXECUTABLE_LINK_TARGET}" PUBLIC)
-   endif()
-
-   include( InstallExecutable)
-
-   # only for Executable
-   include( Motd OPTIONAL)
-
-
-elseif( "${MULLE_PROJECT_TYPE}" STREQUAL "Framework")
-
-   ### Framework
-
-   if( LINK_PHASE)
-      include( Dependencies)
-   endif()
-
-   include( Framework)
-   include( InstallFramework)
-
-elseif( "${MULLE_PROJECT_TYPE}" STREQUAL "Library")
-
-   ### Library
-
-   if( HEADER_PHASE)
-
-      #
-      # need to install like the embedded subprojects would
-      #
-      unset(REMAINING_HEADER)
-      foreach( TMP_HEADER ${PROJECT_INSTALLABLE_HEADERS})
-         get_filename_component( TMP_PROJECT_NAME "${TMP_HEADER}" DIRECTORY)
-         get_filename_component( TMP_PROJECT_NAME "${TMP_PROJECT_NAME}" NAME)
-         list( FIND SUB_PROJECT_NAMES "${TMP_PROJECT_NAME}" TMP_INDEX)
-         # can't stay as a symlink, otherwise symlinks get installed which
-         # fail, as they are relative
-         file( REAL_PATH "${TMP_HEADER}" TMP_HEADER)
-         if( NOT( "${TMP_INDEX}" EQUAL -1))
-            install( FILES ${TMP_HEADER} DESTINATION "include/${TMP_PROJECT_NAME}")
-         else()
-            list( APPEND REMAINING_HEADER "${TMP_HEADER}")
-         endif()
-      endforeach()
-
-      install( FILES ${REMAINING_HEADER} DESTINATION "include/${PROJECT_NAME}")
-      # install( FILES ${INSTALL_CMAKE_INCLUDES} DESTINATION "include/${PROJECT_NAME}/cmake")
-
-      # manually maintained!
-      install( FILES ${MINTOMIC_PUBLIC_HEADERS}  DESTINATION "include/mintomic")
-      # NOTE: it's really private subdir!
-      install( FILES ${MINTOMIC_PRIVATE_HEADERS} DESTINATION "include/mintomic/private")
-
-      # manually maintained!
-      install( FILES ${DLFCN_WIN32_PUBLIC_HEADERS}  DESTINATION "include")
-
-      # short cut out
-      if( NOT COMPILE_PHASE AND NOT LINK_PHASE)
-         return()
+   #
+   # need to install like the embedded subprojects would
+   #
+   unset(REMAINING_HEADER)
+   foreach( TMP_HEADER ${PROJECT_INSTALLABLE_HEADERS})
+      get_filename_component( TMP_PROJECT_NAME "${TMP_HEADER}" DIRECTORY)
+      get_filename_component( TMP_PROJECT_NAME "${TMP_PROJECT_NAME}" NAME)
+      list( FIND SUB_PROJECT_NAMES "${TMP_PROJECT_NAME}" TMP_INDEX)
+      # can't stay as a symlink, otherwise symlinks get installed which
+      # fail, as they are relative
+      file( REAL_PATH "${TMP_HEADER}" TMP_HEADER)
+      if( NOT( "${TMP_INDEX}" EQUAL -1))
+         install( FILES ${TMP_HEADER} DESTINATION "include/${TMP_PROJECT_NAME}")
+      else()
+         list( APPEND REMAINING_HEADER "${TMP_HEADER}")
       endif()
+   endforeach()
+
+   install( FILES ${REMAINING_HEADER} DESTINATION "include/${PROJECT_NAME}")
+   # install( FILES ${INSTALL_CMAKE_INCLUDES} DESTINATION "include/${PROJECT_NAME}/cmake")
+
+   # manually maintained!
+   install( FILES ${MINTOMIC_PUBLIC_HEADERS}  DESTINATION "include/mintomic")
+   # NOTE: it's really private subdir!
+   install( FILES ${MINTOMIC_PRIVATE_HEADERS} DESTINATION "include/mintomic/private")
+
+   # manually maintained!
+   install( FILES ${DLFCN_WIN32_PUBLIC_HEADERS}  DESTINATION "include")
+
+   # short cut out
+   if( NOT COMPILE_PHASE AND NOT LINK_PHASE)
+      return()
    endif()
-
-   if( LINK_PHASE)
-      include( Dependencies OPTIONAL)
-   endif()
-
-   include( Library)
-
-   # because clib flattens the headers, put we need "private" in the local
-   # build, we gotta reorganize
-   if( MINTOMIC_PRIVATE_HEADERS_COPIES)
-      add_dependencies( ${LIBRARY_COMPILE_TARGET} RearrangeMintomicPrivateHeaders)
-   endif()
-
-   # use LIBRARY_COMPILE_TARGET for compiler options
-   target_compile_definitions( "${LIBRARY_COMPILE_TARGET}" PUBLIC)
-   target_compile_options( "${LIBRARY_COMPILE_TARGET}" PUBLIC)
-   if( NOT MSVC)
-      target_compile_options( "${LIBRARY_COMPILE_TARGET}" PUBLIC -Wunused)
-   endif()
-
-   # use LIBRARY_LINK_TARGET for linker options
-   if( LINK_PHASE)
-      target_link_options( "${LIBRARY_LINK_TARGET}" PUBLIC)
-   endif()
-
-   include( InstallLibrary)
-
-else()
-
-   message( ERROR "Unknown project type \"${MULLE_PROJECT_TYPE}\"")
-
 endif()
+
+if( LINK_PHASE)
+   include( Dependencies OPTIONAL)
+endif()
+
+include( Library)
+
+# because clib flattens the headers, put we need "private" in the local
+# build, we gotta reorganize
+if( MINTOMIC_PRIVATE_HEADERS_COPIES)
+   add_dependencies( ${LIBRARY_COMPILE_TARGET} RearrangeMintomicPrivateHeaders)
+endif()
+
+# use LIBRARY_COMPILE_TARGET for compiler options
+target_compile_definitions( "${LIBRARY_COMPILE_TARGET}" PUBLIC)
+target_compile_options( "${LIBRARY_COMPILE_TARGET}" PUBLIC)
+if( NOT MSVC)
+   target_compile_options( "${LIBRARY_COMPILE_TARGET}" PUBLIC -Wunused)
+endif()
+
+# use LIBRARY_LINK_TARGET for linker options
+if( LINK_PHASE)
+   target_link_options( "${LIBRARY_LINK_TARGET}" PUBLIC)
+endif()
+
+include( InstallLibrary)
 
 if( LINK_PHASE)
    include( InstallCMakeInclude)

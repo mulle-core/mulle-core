@@ -45,11 +45,11 @@ The advantages of using **mulle-core** over the individual projects are:
 | Constituent                                  | Description
 |----------------------------------------------|-----------------------
 | [mulle-allocator](https://github.com/mulle-c/mulle-allocator) | 🔄 Flexible C memory allocation scheme
-| [mulle-buffer](https://github.com/mulle-c/mulle-buffer) | ↗️ A growable C char array and also a stream - on stack and heap
+| [mulle-buffer](https://github.com/mulle-c/mulle-buffer) | ↗️  A growable C char array and also a stream - on stack and heap
 | [mulle-c11](https://github.com/mulle-c/mulle-c11) | 🔀 Cross-platform C compiler glue (and some cpp conveniences)
 | [mulle-container-debug](https://github.com/mulle-c/mulle-container-debug) | 🛄 Debugging support for mulle-container
 | [mulle-container](https://github.com/mulle-c/mulle-container) | 🛄 Arrays, hashtables and a queue
-| [mulle-data](https://github.com/mulle-c/mulle-data) | #️⃣ A collection of hash functions
+| [mulle-data](https://github.com/mulle-c/mulle-data) | #️⃣  A collection of hash functions
 | [mulle-http](https://github.com/mulle-c/mulle-http) | 🈚 http URL parser
 | [mulle-rbtree](https://github.com/mulle-c/mulle-rbtree) | 🍫 mulle-rbtree organizes data in a red/black tree
 | [mulle-regex](https://github.com/mulle-c/mulle-regex) | 📣 Unicode regex library
@@ -66,12 +66,11 @@ The advantages of using **mulle-core** over the individual projects are:
 | [mulle-linkedlist](https://github.com/mulle-concurrent/mulle-linkedlist) | 🔂 mulle-linkedlist a wait and lock-free linked list
 | [mulle-multififo](https://github.com/mulle-concurrent/mulle-multififo) | 🐛 mulle-multififo multi-producer/multi-consumer FIFO holding `void *`
 | [mulle-thread](https://github.com/mulle-concurrent/mulle-thread) | 🔠 Cross-platform thread/mutex/tss/atomic operations in C
-| [dlfcn-win32](https://github.com/mulle-core/dlfcn-win32) | ===========
-| [mulle-dlfcn](https://github.com/mulle-core/mulle-dlfcn) | ♿️ Shared library helper
+| [mulle-dtostr](https://github.com/mulle-core/mulle-dtostr) | 🧶 Double to string conversion
 | [mulle-fprintf](https://github.com/mulle-core/mulle-fprintf) | 🔢 mulle-fprintf marries mulle-sprintf to stdio.h
 | [mulle-mmap](https://github.com/mulle-core/mulle-mmap) | 🇧🇿 Memory mapped file access
+| [mulle-rbtree-debug](https://github.com/mulle-core/mulle-rbtree-debug) | 🍫 mulle-rbtree-debug organizes data in a red/black tree
 | [mulle-sprintf](https://github.com/mulle-core/mulle-sprintf) | 🔢 An extensible sprintf function supporting stdarg and mulle-vararg
-| [mulle-stacktrace](https://github.com/mulle-core/mulle-stacktrace) | 👣 Stracktrace support for various OS
 | [mulle-time](https://github.com/mulle-core/mulle-time) | 🕕 Simple time types with arithmetic on timespec and timeval
 
 > #### Add another constituent to the amalgamation
