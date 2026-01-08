@@ -53,3 +53,7 @@ package/
 CMakeLists.txt.bak
 .mulle/etc/make/build-dir
 vgcore.*
+/*.md
+!/AGENTS.md
+!/README.md
+build-*/
