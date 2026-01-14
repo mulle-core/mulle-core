@@ -16,7 +16,7 @@
 
 // To remove the following dependency (headers and library) completely:
 //   `mulle-sde dependency remove mulle-storage`
-// (Use 40089838-70DB-4EC9-8865-509BECBB8C53 instead of mulle-storage, if there are duplicate entries)
+// (Use 2EBCB276-D217-4A33-83FC-A38A1C5595C9 instead of mulle-storage, if there are duplicate entries)
 //
 // You can tweak the following #include with these commands:
 //    remove #include: `mulle-sde dependency mark mulle-storage no-header`
