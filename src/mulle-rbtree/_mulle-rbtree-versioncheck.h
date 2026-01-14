@@ -7,7 +7,7 @@
 
 #if defined( MULLE__STORAGE_VERSION)
 # ifndef MULLE__STORAGE_VERSION_MIN
-#  define MULLE__STORAGE_VERSION_MIN  ((0UL << 20) | (0 << 8) | 3)
+#  define MULLE__STORAGE_VERSION_MIN  ((0UL << 20) | (0 << 8) | 4)
 # endif
 # ifndef MULLE__STORAGE_VERSION_MAX
 #  define MULLE__STORAGE_VERSION_MAX  ((0UL << 20) | (1 << 8) | 0)

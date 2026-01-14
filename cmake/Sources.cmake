@@ -25,7 +25,7 @@ include( _Sources OPTIONAL)
 
 # add dlfcn-win32, if needed
 #
-if( WIN32)
-   LIST( APPEND SOURCES "dlfcn-win32/dlfcn.c")
-endif()
+#if( WIN32)
+#   LIST( APPEND SOURCES "dlfcn-win32/dlfcn.c")
+#endif()
 

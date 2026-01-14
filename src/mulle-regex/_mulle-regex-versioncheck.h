@@ -7,7 +7,7 @@
 
 #if defined( MULLE__UTF_VERSION)
 # ifndef MULLE__UTF_VERSION_MIN
-#  define MULLE__UTF_VERSION_MIN  ((5UL << 20) | (0 << 8) | 2)
+#  define MULLE__UTF_VERSION_MIN  ((5UL << 20) | (1 << 8) | 0)
 # endif
 # ifndef MULLE__UTF_VERSION_MAX
 #  define MULLE__UTF_VERSION_MAX  ((6UL << 20) | (0 << 8) | 0)

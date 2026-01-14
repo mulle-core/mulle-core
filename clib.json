@@ -1,6 +1,6 @@
 {
    "name" : "mulle-core",
-   "version" : "0.6.0",
+   "version" : "0.7.0",
    "description" : "🌋 Almagamated library of mulle-core + mulle-concurrent + mulle-c",
    "keywords" : [],
    "license" : "BSD-3-Clause",

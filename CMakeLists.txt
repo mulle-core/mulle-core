@@ -8,7 +8,7 @@
 #
 cmake_minimum_required( VERSION 3.19...99.99) # for REAL_PATH
 
-project( mulle-core VERSION 0.6.0 LANGUAGES C)
+project( mulle-core VERSION 0.7.0 LANGUAGES C)
 
 # Common compiler flags for all platforms and compilers
 set(COMMON_C_FLAGS "")
