@@ -64,13 +64,26 @@ static inline mulle_vararg_list   mulle_vararg_list_make( void *buf)
    return( list);
 }
 
+#define _mulle_vararg_start( args, ap)                  \
+   args.p = &((char *) &ap)[ sizeof( ap) < sizeof( int) \
+                             ? sizeof( int)             \
+                             : sizeof( ap)]
 
-#define mulle_vararg_start( args, ap)     \
-   args.p = &((char *) &ap)[ sizeof( ap) < sizeof( int) ? sizeof( int) : sizeof( ap)]
+#define _mulle_vararg_start_fp( args, ap)                  \
+   args.p = &((char *) &ap)[ sizeof( ap) < sizeof( double) \
+                             ? sizeof( double)             \
+                             : sizeof( ap)]
 
-
-#define mulle_vararg_start_fp( args, ap)  \
-   args.p = &((char *) &ap)[ sizeof( ap) < sizeof( double) ? sizeof( double) : sizeof( ap)]
+// MEMO: this is now tied to the metaABI in that we assume that the first
+//       argument is a member of a struct pointer called _param.
+//       If you need to use a different pointer use `_mulle_vararg_start`
+//       which is more flexible.
+//       Technically mulle_metaabi_vararg_start would be a better name,
+//       but then we would have to envelope all macros. And the chance of
+//       accidentally using mulle_vararg_start with a shadowed local variable
+//       is too high.
+#define mulle_vararg_start( args, ap)     _mulle_vararg_start( args, _param->ap)
+#define mulle_vararg_start_fp( args, ap)  _mulle_vararg_start_fp( args, _param->ap)
 
 
 // use this for integer types

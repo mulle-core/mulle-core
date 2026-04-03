@@ -184,16 +184,37 @@ static inline void
 MULLE__UTF_GLOBAL
 char   *_mulle_utf32_as_utf8_not_ascii( mulle_utf32_t x, char *dst);
 
+MULLE__UTF_GLOBAL
+mulle_utf16_t   *_mulle_utf32_as_utf16_not_ascii( mulle_utf32_t x,
+                                                  mulle_utf16_t *dst);
+
+
 // no error checks whatsoever
 // returns end of `dst`
 static inline char   *mulle_utf32_as_utf8( mulle_utf32_t x, char *dst)
 {
-   if( (uint32_t) x < 0x80)
+   assert( dst);
+
+   if( x < 0x80)
    {
       *dst++ = (char) x;
       return( dst);
    }
    return( _mulle_utf32_as_utf8_not_ascii( x, dst));
+}
+
+
+static inline mulle_utf16_t   *mulle_utf32_as_utf16( mulle_utf32_t x,
+                                                     mulle_utf16_t *dst)
+{
+   assert( dst);
+
+   if( x < 0x10000)
+   {
+      *dst++ = (mulle_utf16_t) x;
+      return( dst);
+   }
+   return( _mulle_utf32_convert_to_utf16_as_surrogatepair( x, dst));
 }
 
 

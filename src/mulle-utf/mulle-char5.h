@@ -27,10 +27,12 @@
 MULLE__UTF_GLOBAL
 int   mulle_char5_encode_character( int c);
 
+MULLE__UTF_GLOBAL
+char   mulle_char5_lookup_table[ 128];
+
 // this is usually faster
 static inline int   mulle_char5_lookup_character( int c)
 {
-   extern char   mulle_char5_lookup_table[ 128];
 
    return( ((size_t) c < 128) ?  mulle_char5_lookup_table[ c] : -1);
 }

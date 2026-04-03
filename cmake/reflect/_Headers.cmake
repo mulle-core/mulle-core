@@ -27,6 +27,7 @@ src/mulle-slug
 src/mulle-sprintf
 src/mulle-storage
 src/mulle-thread
+src/mulle-time
 src/mulle-unicode
 src/mulle-url
 src/mulle-utf
@@ -38,8 +39,8 @@ src/mulle-rbtree
 src/mulle-allocator
 src/mulle-c11
 src
+src/mulle-dlfcn
 src/mulle-dtostr
-src/mulle-time
 src/mulle-vararg
 )
 
@@ -69,6 +70,7 @@ src/mulle-slug/include-private.h
 src/mulle-sprintf/include-private.h
 src/mulle-storage/include-private.h
 src/mulle-thread/include-private.h
+src/mulle-time/include-private.h
 src/mulle-unicode/include-private.h
 src/mulle-url/include-private.h
 src/mulle-utf/include-private.h
@@ -93,6 +95,7 @@ src/mulle-slug/_mulle-slug-include-private.h
 src/mulle-sprintf/_mulle-sprintf-include-private.h
 src/mulle-storage/_mulle-storage-include-private.h
 src/mulle-thread/_mulle-thread-include-private.h
+src/mulle-time/_mulle-time-include-private.h
 src/mulle-unicode/_mulle-unicode-include-private.h
 src/mulle-url/_mulle-url-include-private.h
 src/mulle-utf/_mulle-utf-include-private.h
@@ -199,6 +202,7 @@ src/mulle-utf/toupper-utf32.inc
 #
 set( PUBLIC_GENERATED_HEADERS
 src/reflect/_mulle-core-include.h
+src/reflect/_mulle-core-provide.h
 )
 
 #
@@ -225,6 +229,7 @@ src/mulle-slug/include.h
 src/mulle-sprintf/include.h
 src/mulle-storage/include.h
 src/mulle-thread/include.h
+src/mulle-time/include.h
 src/mulle-unicode/include.h
 src/mulle-url/include.h
 src/mulle-utf/include.h
@@ -252,10 +257,13 @@ src/mulle-buffer/_mulle-buffer-versioncheck.h
 src/mulle-buffer/mulle-flushablebuffer.h
 src/mulle-c11/mulle-c11-align.h
 src/mulle-c11/mulle-c11-bool.h
+src/mulle-c11/mulle-c11-builtin.h
 src/mulle-c11/mulle-c11-endian.h
 src/mulle-c11/mulle-c11-eval.h
+src/mulle-c11/mulle-c11-feature.h
 src/mulle-c11/mulle-c11.h
 src/mulle-c11/mulle-c11-integer.h
+src/mulle-c11/mulle-c11-swap.h
 src/mulle-concurrent/mulle-concurrent.h
 src/mulle-concurrent/mulle-concurrent-hashmap.h
 src/mulle-concurrent/_mulle-concurrent-include.h
@@ -342,6 +350,7 @@ src/mulle-data/mulle-prime.h
 src/mulle-data/mulle-qsort.h
 src/mulle-data/mulle-range.h
 src/mulle-data/xxhash.h
+src/mulle-dlfcn/mulle-dlfcn.h
 src/mulle-dtostr/mulle-dtostr.h
 src/mulle-fifo/mulle-fifo.h
 src/mulle-fifo/_mulle-fifo-include.h
@@ -378,6 +387,7 @@ src/mulle-linkedlist/_mulle-linkedlist-include.h
 src/mulle-linkedlist/_mulle-linkedlist-versioncheck.h
 src/mulle-mmap/mulle-mmap.h
 src/mulle-mmap/_mulle-mmap-include.h
+src/mulle-mmap/_mulle-mmap-provide.h
 src/mulle-mmap/_mulle-mmap-versioncheck.h
 src/mulle-multififo/mulle-lockingpointermultififo.h
 src/mulle-multififo/mulle-multififo.h
@@ -401,6 +411,7 @@ src/mulle-regex/mulle-utf32regex.h
 src/mulle-regex/version.h
 src/mulle-slug/mulle-slug.h
 src/mulle-slug/_mulle-slug-include.h
+src/mulle-slug/_mulle-slug-provide.h
 src/mulle-slug/_mulle-slug-versioncheck.h
 src/mulle-sprintf/mulle-sprintf-character.h
 src/mulle-sprintf/mulle-sprintf-escape.h
@@ -413,6 +424,7 @@ src/mulle-sprintf/mulle-sprintf-pointer.h
 src/mulle-sprintf/mulle-sprintf-return.h
 src/mulle-sprintf/mulle-sprintf-string.h
 src/mulle-sprintf/_mulle-sprintf-versioncheck.h
+src/mulle-sprintf/mulle-sscanf.h
 src/mulle-storage/mulle-indexedstorage.h
 src/mulle-storage/mulle-storage.h
 src/mulle-storage/_mulle-storage-include.h
@@ -431,6 +443,8 @@ src/mulle-time/mulle-absolutetime.h
 src/mulle-time/mulle-calendartime.h
 src/mulle-time/mulle-relativetime.h
 src/mulle-time/mulle-time.h
+src/mulle-time/_mulle-time-include.h
+src/mulle-time/_mulle-time-provide.h
 src/mulle-time/mulle-timespec.h
 src/mulle-time/mulle-timetype.h
 src/mulle-time/mulle-timeval.h

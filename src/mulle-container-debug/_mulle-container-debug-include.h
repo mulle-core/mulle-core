@@ -22,7 +22,7 @@
 //    remove #include: `mulle-sde dependency mark mulle-c11 no-header`
 //    rename              : `mulle-sde dependency|library set mulle-c11 include whatever.h`
 //    reorder             : `mulle-sde dependency move mulle-c11 <up|down>`
-//    toggle #include: `mulle-sde dependency mark mulle-c11 [no-]import`
+//    toggle objc         : `mulle-sde dependency mark mulle-c11 [no-]import`
 //    toggle public       : `mulle-sde dependency mark mulle-c11 [no-]public`
 //    toggle optional     : `mulle-sde dependency mark mulle-c11 [no-]require`
 //    remove for platform : `mulle-sde dependency mark mulle-c11 no-platform-<uname>`
@@ -37,7 +37,7 @@
 //    remove #include: `mulle-sde dependency mark mulle-buffer no-header`
 //    rename              : `mulle-sde dependency|library set mulle-buffer include whatever.h`
 //    reorder             : `mulle-sde dependency move mulle-buffer <up|down>`
-//    toggle #include: `mulle-sde dependency mark mulle-buffer [no-]import`
+//    toggle objc         : `mulle-sde dependency mark mulle-buffer [no-]import`
 //    toggle public       : `mulle-sde dependency mark mulle-buffer [no-]public`
 //    toggle optional     : `mulle-sde dependency mark mulle-buffer [no-]require`
 //    remove for platform : `mulle-sde dependency mark mulle-buffer no-platform-<uname>`
@@ -52,7 +52,7 @@
 //    remove #include: `mulle-sde dependency mark mulle-container no-header`
 //    rename              : `mulle-sde dependency|library set mulle-container include whatever.h`
 //    reorder             : `mulle-sde dependency move mulle-container <up|down>`
-//    toggle #include: `mulle-sde dependency mark mulle-container [no-]import`
+//    toggle objc         : `mulle-sde dependency mark mulle-container [no-]import`
 //    toggle public       : `mulle-sde dependency mark mulle-container [no-]public`
 //    toggle optional     : `mulle-sde dependency mark mulle-container [no-]require`
 //    remove for platform : `mulle-sde dependency mark mulle-container no-platform-<uname>`
@@ -67,7 +67,7 @@
 //    remove #include: `mulle-sde dependency mark mulle-sprintf no-header`
 //    rename              : `mulle-sde dependency|library set mulle-sprintf include whatever.h`
 //    reorder             : `mulle-sde dependency move mulle-sprintf <up|down>`
-//    toggle #include: `mulle-sde dependency mark mulle-sprintf [no-]import`
+//    toggle objc         : `mulle-sde dependency mark mulle-sprintf [no-]import`
 //    toggle public       : `mulle-sde dependency mark mulle-sprintf [no-]public`
 //    toggle optional     : `mulle-sde dependency mark mulle-sprintf [no-]require`
 //    remove for platform : `mulle-sde dependency mark mulle-sprintf no-platform-<uname>`

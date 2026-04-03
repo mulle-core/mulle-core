@@ -21,14 +21,16 @@
 
 #include "_mulle-utf-include.h"
 
-#ifdef MULLE__UTF_BUILD
-# define MULLE__UTF_GLOBAL    MULLE_C_GLOBAL
+#if defined( MULLE__UTF_BUILD) || defined( MULLE__CORE_BUILD)
+# define MULLE__UTF_GLOBAL       MULLE_C_GLOBAL
+# define MULLE__UTF_GLOBAL_VAR   MULLE_C_GLOBAL_VAR
 #else
-# if defined( MULLE_UTF_INCLUDE_DYNAMIC) || (defined( MULLE_INCLUDE_DYNAMIC) && ! defined( MULLE_UTF_INCLUDE_STATIC))
-#  define MULLE__UTF_GLOBAL   MULLE_C_EXTERN_GLOBAL
+# if defined( MULLE__UTF_INCLUDE_DYNAMIC) || (defined( MULLE_INCLUDE_DYNAMIC) && ! defined( MULLE__UTF_INCLUDE_STATIC))
+#  define MULLE__UTF_GLOBAL      MULLE_C_EXTERN_GLOBAL
 # else
-#  define MULLE__UTF_GLOBAL   extern
+#  define MULLE__UTF_GLOBAL      extern
 # endif
+# define MULLE__UTF_GLOBAL_VAR
 #endif
 
 

@@ -1,5 +1,5 @@
-#ifndef mulle_slug_include_private_h__
-#define mulle_slug_include_private_h__
+#ifndef mulle__slug_include_private_h__
+#define mulle__slug_include_private_h__
 
 
 /* DO:    #include this files in sources

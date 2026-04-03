@@ -31,7 +31,7 @@
 #include "_mulle-container-debug-include.h"
 
 #ifndef MULLE__CONTAINER__DEBUG_GLOBAL
-# ifdef MULLE__CONTAINER__DEBUG_BUILD
+# if defined( MULLE__CONTAINER__DEBUG_BUILD) || defined( MULLE__CORE_BUILD)
 #  define MULLE__CONTAINER__DEBUG_GLOBAL    MULLE_C_GLOBAL
 # else
 #  if defined( MULLE__CONTAINER__DEBUG_INCLUDE_DYNAMIC) || (defined( MULLE_INCLUDE_DYNAMIC) && ! defined( MULLE__CONTAINER__DEBUG_INCLUDE_STATIC))

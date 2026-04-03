@@ -22,7 +22,7 @@
 //    remove #include: `mulle-sde dependency mark mulle-storage no-header`
 //    rename              : `mulle-sde dependency|library set mulle-storage include whatever.h`
 //    reorder             : `mulle-sde dependency move mulle-storage <up|down>`
-//    toggle #include: `mulle-sde dependency mark mulle-storage [no-]import`
+//    toggle objc         : `mulle-sde dependency mark mulle-storage [no-]import`
 //    toggle public       : `mulle-sde dependency mark mulle-storage [no-]public`
 //    toggle optional     : `mulle-sde dependency mark mulle-storage [no-]require`
 //    remove for platform : `mulle-sde dependency mark mulle-storage no-platform-<uname>`

@@ -31,30 +31,35 @@ static inline uint32_t   mulle_slug_get_version_patch( void)
 }
 
 // mulle-c11 feature: MULLE_SLUG__GLOBAL
+MULLE__SLUG_GLOBAL
 uint32_t   mulle_slug_get_version( void);
 
 
 //
 // you get an allocated string back, that you need to mulle_free
 //
-extern char   *mulle_utf8_slugify( char *s);
+MULLE__SLUG_GLOBAL
+char   *mulle_utf8_slugify( char *s);
 
 //
 // you get a struct mulle_utf8data, whose characters you need to mulle_free
 //
-extern struct mulle_utf8data   mulle_utf8data_slugify( struct mulle_utf8data  data,
-                                                       struct mulle_allocator *allocator);
+MULLE__SLUG_GLOBAL
+struct mulle_utf8data   mulle_utf8data_slugify( struct mulle_utf8data  data,
+                                                struct mulle_allocator *allocator);
 
 
 // adds slugified string to buffer, useful for building up an html page
+MULLE__SLUG_GLOBAL
 void  mulle_buffer_add_slugified_utf8data( struct mulle_buffer *buffer,
                                            struct mulle_utf8data data);
 //
 // You can slugify into an existing buffer. You can use an alloca buffer
 // here and then get a) a max sized string and b) no mallocs
 //
-extern void  mulle_buffer_slugify_utf8data( struct mulle_buffer *buffer,
-                                            struct mulle_utf8data data);
+MULLE__SLUG_GLOBAL
+void  mulle_buffer_slugify_utf8data( struct mulle_buffer *buffer,
+                                     struct mulle_utf8data data);
 /*
  * The versioncheck header can be generated with
  * mulle-project-dependency-versions, but it is optional.

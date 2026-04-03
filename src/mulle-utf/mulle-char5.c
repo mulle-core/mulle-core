@@ -16,6 +16,7 @@
 #include "mulle-utf32.h"
 
 
+MULLE__UTF_GLOBAL_VAR
 char   mulle_char5_lookup_table[ 128] =
 {
    /* 00-1F */

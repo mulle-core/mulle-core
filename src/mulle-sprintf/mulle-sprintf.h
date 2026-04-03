@@ -43,7 +43,7 @@
 #include "mulle-sprintf-function.h"
 
 
-#define MULLE__SPRINTF_VERSION  ((3UL << 20) | (3 << 8) | 0)
+#define MULLE__SPRINTF_VERSION  ((4UL << 20) | (0 << 8) | 0)
 
 
 struct mulle_buffer;
@@ -172,7 +172,8 @@ struct mulle_sprintf_config
 
 static inline struct mulle_sprintf_config  *mulle_sprintf_get_config( void)
 {
-   MULLE__SPRINTF_GLOBAL struct mulle_sprintf_config   mulle_sprintf_config;
+   MULLE__SPRINTF_GLOBAL
+   struct mulle_sprintf_config   mulle_sprintf_config;
 
    return( &mulle_sprintf_config);
 }
@@ -181,6 +182,7 @@ static inline struct mulle_sprintf_config  *mulle_sprintf_get_config( void)
 static inline struct mulle_sprintf_conversion   *
   mulle_sprintf_get_defaultconversion( void)
 {
+   MULLE__SPRINTF_GLOBAL
    void   mulle_sprintf_register_default_conversion_functions_if_needed( struct mulle_sprintf_conversion *conversion);
    struct mulle_sprintf_conversion   *conversion;
 
@@ -222,6 +224,7 @@ static inline void    mulle_sprintf_free_storage( void)
             name ## __i._storage = (void *) 0x1)                                       \
          )                                                                             \
                                                                                        \
+         MULLE_C_CONFINED_LOOP                                                         \
          for( int  name ## __j = 0;    /* break protection */                          \
               name ## __j < 1;                                                         \
               name ## __j++)
@@ -234,6 +237,7 @@ static inline void    mulle_sprintf_free_storage( void)
 #include "mulle-sprintf-integer.h"
 #include "mulle-sprintf-pointer.h"
 #include "mulle-sprintf-return.h"
+#include "mulle-sscanf.h"
 #include "mulle-sprintf-string.h"
 
 #ifdef __has_include

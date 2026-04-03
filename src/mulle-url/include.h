@@ -21,10 +21,10 @@
 
 #include "_mulle-url-include.h"
 
-#ifdef MULLE__URL_BUILD
+#if defined( MULLE__URL_BUILD) || defined( MULLE__CORE_BUILD)
 # define MULLE__URL_GLOBAL    MULLE_C_GLOBAL
 #else
-# if defined( MULLE_URL_INCLUDE_DYNAMIC) || (defined( MULLE_INCLUDE_DYNAMIC) && ! defined( MULLE_URL_INCLUDE_STATIC))
+# if defined( MULLE__URL_INCLUDE_DYNAMIC) || (defined( MULLE_INCLUDE_DYNAMIC) && ! defined( MULLE__URL_INCLUDE_STATIC))
 #  define MULLE__URL_GLOBAL   MULLE_C_EXTERN_GLOBAL
 # else
 #  define MULLE__URL_GLOBAL   extern

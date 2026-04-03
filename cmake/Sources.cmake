@@ -23,9 +23,10 @@ include( _Sources OPTIONAL)
 # MULLE_MATCH_TO_CMAKE_SOURCES_FILE="DISABLE" # or NONE
 #
 
+
 # add dlfcn-win32, if needed
 #
-#if( WIN32)
-#   LIST( APPEND SOURCES "dlfcn-win32/dlfcn.c")
-#endif()
+if( WIN32)
+   LIST( APPEND SOURCES "dlfcn-win32/dlfcn.c")
+endif()
 

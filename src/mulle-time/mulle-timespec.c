@@ -34,7 +34,7 @@ mulle_timeinterval_t   mulle_timeinterval_now( void)
 
 mulle_timeinterval_t   mulle_timeinterval_now_monotonic( void)
 {
-   __int64   wintime;
+   __int64          wintime;
    static __int64   old_wintime;
 
    GetSystemTimeAsFileTime((FILETIME*)&wintime);
@@ -45,6 +45,60 @@ mulle_timeinterval_t   mulle_timeinterval_now_monotonic( void)
    return( (mulle_timeinterval_t) (wintime - old_wintime) / 10000000.0);
 }
 
+
+void   mulle_relativetime_sleep(mulle_relativetime_t time)
+{
+   HANDLE          timer;
+   LONGLONG        due_time_100ns;
+   LARGE_INTEGER   li;
+
+   // Early return for zero or negative time
+   if( time <= 0.0)
+      return;
+
+   // Convert seconds to 100-nanosecond units (Windows Waitable Timer uses 100-ns intervals)
+   due_time_100ns = (LONGLONG) (time * 10000000.0);  // 1 second = 10,000,000 × 100 ns
+
+   // Nothing to do if the time is too small to register
+   if( due_time_100ns <= 0)
+      return;
+
+   // Create a high-resolution waitable timer (Windows 10 2004+)
+   // Uses CREATE_WAITABLE_TIMER_HIGH_RESOLUTION flag for better than 1 ms granularity
+   timer = CreateWaitableTimerExW(
+      NULL,                           // default security attributes
+      NULL,                           // no name (unnamed timer)
+      CREATE_WAITABLE_TIMER_HIGH_RESOLUTION,
+      TIMER_ALL_ACCESS
+   );
+
+   // If high-resolution timer creation failed, fall back to Sleep()
+   if( timer == NULL)
+   {
+      // Fallback to millisecond sleep (round up to avoid sleeping too short)
+      Sleep((DWORD)(time * 1000.0 + 0.999));
+      return;
+   }
+
+   // Set relative wait (negative value means "relative to now")
+   li.QuadPart = -due_time_100ns;
+
+   // Arm the timer
+   if( ! SetWaitableTimer(timer, &li, 0, NULL, NULL, FALSE))
+   {
+      // If setting the timer failed, clean up and fall back to Sleep()
+      CloseHandle(timer);
+      Sleep((DWORD)(time * 1000.0 + 0.999));
+      return;
+   }
+
+   // Wait until the timer fires
+   WaitForSingleObject(timer, INFINITE);
+
+   // Clean up the timer handle
+   CloseHandle(timer);
+}
+
 #else
 
 mulle_timeinterval_t   mulle_timeinterval_now( void)
@@ -52,7 +106,7 @@ mulle_timeinterval_t   mulle_timeinterval_now( void)
    struct timespec   now;
 
    clock_gettime( CLOCK_REALTIME, &now);
-   return( now.tv_sec + now.tv_nsec / (1000.0*1000*1000));
+   return( now.tv_sec + now.tv_nsec / (1000.0 * 1000 * 1000));
 }
 
 
@@ -61,7 +115,7 @@ mulle_timeinterval_t   mulle_timeinterval_now_monotonic( void)
    struct timespec   now;
 
    clock_gettime( CLOCK_MONOTONIC, &now);
-   return( now.tv_sec + now.tv_nsec / (1000.0*1000*1000));
+   return( now.tv_sec + now.tv_nsec / (1000.0 * 1000 * 1000));
 }
 
 
@@ -81,6 +135,7 @@ mulle_timeinterval_t   mulle_timeinterval_now_monotonic( void)
 //         usleep(milliseconds * 1000); // The usleep() function suspends execution of the calling thread
 //     #endif
 // }
+
 
 void   mulle_relativetime_sleep( mulle_relativetime_t time)
 {
@@ -105,4 +160,3 @@ restart:
 }
 
 #endif
-

@@ -1,5 +1,5 @@
-#ifndef mulle_slug_include_h__
-#define mulle_slug_include_h__
+#ifndef mulle__slug_include_h__
+#define mulle__slug_include_h__
 
 /* DO:    #include this files in public headers.
 
@@ -25,13 +25,34 @@
 
 #include "_mulle-slug-include.h"
 
-// mulle-c11::feature...
-// #ifdef MULLE__SLUG_BUILD
-// # define MULLE_SLUG_EXTERN_GLOBAL  MULLE_C_GLOBAL
-// #else
-// # define MULLE_SLUG_EXTERN_GLOBAL  MULLE_C_EXTERN_GLOBAL
-// #endif
-
+// this is for WIN32: specify global non-inlined functions and variables
+// like this (can not be declared inside functions!)
+//
+// .h:
+// #include "include.h"
+// MULLE__SLUG_GLOBAL char *   aGlobalString;
+// MULLE__SLUG_GLOBAL void     aGlobalFunction( void);
+//
+// .c:
+// #include "include-private.h"
+// MULLE__SLUG_GLOBAL_VAR
+// char *  aGlobalString = "VfL Bochum 1848";
+// MULLE__SLUG_GLOBAL
+// void   aGlobalFunction( void) {}
+//
+#ifndef MULLE__SLUG_GLOBAL
+# ifdef MULLE__SLUG_BUILD
+#  define MULLE__SLUG_GLOBAL       MULLE_C_GLOBAL
+#  define MULLE__SLUG_GLOBAL_VAR   MULLE_C_GLOBAL
+# else
+#  if defined( MULLE__SLUG_INCLUDE_DYNAMIC) || (defined( MULLE_INCLUDE_DYNAMIC) && ! defined( MULLE__SLUG_INCLUDE_STATIC))
+#   define MULLE__SLUG_GLOBAL      MULLE_C_GLOBAL
+#  else
+#   define MULLE__SLUG_GLOBAL      extern
+#  endif
+# endif
+# define MULLE__SLUG_GLOBAL_VAR    MULLE_C_GLOBAL
+#endif
 /* You can add some more include statements here */
 
 #endif

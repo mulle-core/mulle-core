@@ -57,3 +57,5 @@ vgcore.*
 !/AGENTS.md
 !/README.md
 build-*/
+.roam
+.graveyard

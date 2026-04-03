@@ -68,10 +68,8 @@ uint32_t   mulle_hash_chained_32( void *bytes, size_t length, void **state_p)
       *state_p = state;
    }
 
-   if( length)
+   if( bytes)
    {
-      assert( bytes);
-
       XXH32_update( state, bytes, length);
       return( (uint32_t) -1);
    }
@@ -108,10 +106,8 @@ uint64_t   mulle_hash_chained_64( void *bytes, size_t length, void **state_p)
       *state_p = state;
    }
 
-   if( length)
+   if( bytes)
    {
-      assert( bytes);
-
       XXH64_update( state, bytes, length);
       return( (uint64_t) -1);
    }

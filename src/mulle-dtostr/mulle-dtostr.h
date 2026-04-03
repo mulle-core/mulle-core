@@ -10,12 +10,21 @@
 
 #define MULLE__DTOSTR_VERSION   ((0 << 24) | (1 << 8) | 0)
 
+#include <mulle-c11/mulle-c11.h>
 #include <stdint.h>
 #include <stddef.h>
 
-#ifdef __cplusplus
-extern "C" {
+
+#if defined( MULLE__DTOSTR_BUILD) || defined( MULLE__CORE_BUILD)
+# define MULLE__DTOSTR_GLOBAL    MULLE_C_GLOBAL
+#else
+# if defined( MULLE_DTOSTR_INCLUDE_DYNAMIC) || (defined( MULLE_INCLUDE_DYNAMIC) && ! defined( MULLE_DTOSTR_INCLUDE_STATIC))
+#  define MULLE__DTOSTR_GLOBAL   MULLE_C_EXTERN_GLOBAL
+# else
+#  define MULLE__DTOSTR_GLOBAL   extern
+# endif
 #endif
+
 
 #define MULLE__DTOSTR_BUFFER_SIZE 25
 
@@ -34,6 +43,8 @@ struct mulle_dtostr_decimal
 /* Decomposes a double into decimal representation.
  * Returns the intermediate form suitable for custom formatting.
  */
+
+MULLE__DTOSTR_GLOBAL
 struct mulle_dtostr_decimal   mulle_dtostr_decompose( double value);
 
 /*
@@ -43,10 +54,8 @@ struct mulle_dtostr_decimal   mulle_dtostr_decompose( double value);
  * It is claimed that you get the exact same double value back
  * when using strtod (at least on linux, else we'd need to implement our own.)
  */
+MULLE__DTOSTR_GLOBAL
 size_t   mulle_dtostr( double value, char *buffer);
 
-#ifdef __cplusplus
-}
-#endif
 
 #endif  /* MULLE__DTOSTR_H */
