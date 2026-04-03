@@ -3,7 +3,7 @@
 
 #include <mulle-c11/mulle-c11.h>
 
-#ifdef MULLE__TIME_BUILD
+#if defined( MULLE__TIME_BUILD) || defined( MULLE__CORE_BUILD)
 # define MULLE__TIME_GLOBAL    MULLE_C_GLOBAL
 #else
 # if defined( MULLE_TIME_INCLUDE_DYNAMIC) || (defined( MULLE_INCLUDE_DYNAMIC) && ! defined( MULLE_TIME_INCLUDE_STATIC))

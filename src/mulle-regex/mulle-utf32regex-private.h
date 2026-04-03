@@ -31,5 +31,6 @@ typedef struct mulle_utf32regex
 } regexp;
 
 
+MULLE__REGEX_GLOBAL
 void   mulle_utf32regex_dump( struct mulle_utf32regex *r);
 

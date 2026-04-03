@@ -88,8 +88,8 @@ struct mulle_rbtree_config
 };
 
 
-MULLE_C_NONNULL_FIRST_SECOND
 MULLE__RBTREE_GLOBAL
+MULLE_C_NONNULL_FIRST_SECOND
 void   _mulle_rbtree_init_with_config( struct mulle_rbtree *a_tree,
                                        struct mulle_rbtree_config *config,
                                        struct mulle_allocator *allocator);
@@ -107,6 +107,7 @@ static inline void
 
 
 
+MULLE__RBTREE_GLOBAL
 MULLE_C_NONNULL_FIRST
 void   _mulle_rbtree_done( struct mulle_rbtree *a_tree);
 

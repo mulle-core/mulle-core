@@ -28,6 +28,20 @@
         #endif
     #endif
 
+#elif defined(__TINYC__)
+    // TCC (Tiny C Compiler) - x86/x86-64 only; reuses the GCC inline-asm path
+    #define MINT_COMPILER_GCC 1
+    #define MINT_HAS_STDINT 1
+    #if defined(__x86_64__)
+        #define MINT_CPU_X64 1
+        #define MINT_PTR_SIZE 8
+    #elif defined(__i386__)
+        #define MINT_CPU_X86 1
+        #define MINT_PTR_SIZE 4
+    #else
+        #error TCC is only supported on x86 and x86-64 targets!
+    #endif
+
 #elif defined(__GNUC__)
     // GCC compiler family
     #define MINT_COMPILER_GCC 1
@@ -71,6 +85,11 @@
             // Thumb instruction set mode
             #define MINT_CPU_ARM_THUMB 1
         #endif
+    #elif defined(__aarch64__) || defined(__arm64__)
+        // ARM64 - always ARMv8 or later
+        #define MINT_CPU_ARM64 1
+        #define MINT_CPU_ARM_VERSION 8
+        #define MINT_PTR_SIZE 8
 
     #else
         #error Unrecognized target CPU!

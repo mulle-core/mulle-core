@@ -563,6 +563,7 @@ static inline int  mulle_range_contains( struct mulle_range big, struct mulle_ra
  * @param b The other `mulle_range` to check
  * @return 1 (true) if the `mulle_range`s intersect, 0 (false) otherwise.
  *///
+MULLE__DATA_GLOBAL
 int   mulle_range_intersects( struct mulle_range range,
                               struct mulle_range other);
 
@@ -724,6 +725,7 @@ unsigned int   mulle_range_insert( struct mulle_range a,
 // This can be 0 to n (incl), so don't use the return value unverified to
 // buf, as it could overflow.
 //
+MULLE__DATA_GLOBAL
 unsigned int   _mulle_range_hole_bsearch( struct mulle_range *buf,
                                           unsigned int n,
                                           uintptr_t search_location);
@@ -758,7 +760,6 @@ MULLE__DATA_GLOBAL
 struct mulle_range   *mulle_range_intersects_bsearch( struct mulle_range *buf,
                                                       unsigned int n,
                                                       struct mulle_range search);
-
 
 
 #define mulle_range_for( range, name)                                \

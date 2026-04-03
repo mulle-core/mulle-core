@@ -23,7 +23,7 @@
 #include <mulle-c11/mulle-c11.h>
 
 
-#ifdef MULLE__DATA_BUILD
+#if defined( MULLE__DATA_BUILD) || defined( MULLE__CORE_BUILD)
 # define MULLE__DATA_GLOBAL    MULLE_C_GLOBAL
 #else
 # if defined( MULLE_DATA_INCLUDE_DYNAMIC) || (defined( MULLE_INCLUDE_DYNAMIC) && ! defined( MULLE_DATA_INCLUDE_STATIC))

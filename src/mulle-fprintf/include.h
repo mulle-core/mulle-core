@@ -29,7 +29,7 @@
 
 #include "_mulle-fprintf-include.h"
 
-#ifdef MULLE__FPRINTF_BUILD
+#if defined( MULLE__FPRINTF_BUILD) || defined( MULLE__CORE_BUILD)
 # define MULLE__FPRINTF_GLOBAL    MULLE_C_GLOBAL
 #else
 # if defined( MULLE_FPRINTF_INCLUDE_DYNAMIC) || (defined( MULLE_INCLUDE_DYNAMIC) && ! defined( MULLE_FPRINTF_INCLUDE_STATIC))

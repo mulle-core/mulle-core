@@ -1,5 +1,10 @@
-#ifndef mulle_core_include_h__
-#define mulle_core_include_h__
+#ifndef mulle__core_include_h__
+#define mulle__core_include_h__
+
+// this is a global symbol that is exposed, which can be used to detect
+// if this library is available
+
+#define HAVE_INCLUDE_MULLE__CORE
 
 /* DO:    #include this files in public headers.
 
@@ -25,12 +30,35 @@
 
 #include "_mulle-core-include.h"
 
-// mulle-c11::feature...
-// #ifdef MULLE_CORE_BUILD
-// # define MULLE_CORE_EXTERN_GLOBAL  MULLE_C_GLOBAL
-// #else
-// # define MULLE_CORE_EXTERN_GLOBAL  MULLE_C_EXTERN_GLOBAL
-// #endif
+
+// this is for WIN32: specify global non-inlined functions and variables
+// like this (can not be declared inside functions!)
+//
+// .h:
+// #include "include.h"
+// MULLE__CORE_GLOBAL char *   aGlobalString;
+// MULLE__CORE_GLOBAL void     aGlobalFunction( void);
+//
+// .c:
+// #include "include-private.h"
+// MULLE__CORE_GLOBAL_VAR
+// char *  aGlobalString = "VfL Bochum 1848";
+// MULLE__CORE_GLOBAL
+// void   aGlobalFunction( void) {}
+//
+#ifndef MULLE__CORE_GLOBAL
+# ifdef MULLE__CORE_BUILD
+#  define MULLE__CORE_GLOBAL       MULLE_C_GLOBAL
+#  define MULLE__CORE_GLOBAL_VAR   MULLE_C_GLOBAL
+# else
+#  if defined( MULLE__CORE_INCLUDE_DYNAMIC) || (defined( MULLE_INCLUDE_DYNAMIC) && ! defined( MULLE__CORE_INCLUDE_STATIC))
+#   define MULLE__CORE_GLOBAL      MULLE_C_GLOBAL
+#  else
+#   define MULLE__CORE_GLOBAL      extern
+#  endif
+# endif
+# define MULLE__CORE_GLOBAL_VAR    MULLE_C_GLOBAL
+#endif
 
 /* You can add some more include statements here */
 

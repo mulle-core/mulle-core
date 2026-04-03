@@ -1,9 +1,11 @@
 //
-//  mintomic_empty.c
-//  mulle-thread
+//  mulle_sscanf.h
+//  mulle-sprintf
 //
-//  Created by Nat! on 10.10.15.
-//  Copyright (c) 2015 Mulle kybernetiK. All rights reserved.
+//  Created by Nat!
+//  Copyright (c) 2026 Nat! - Mulle kybernetiK.
+//  All rights reserved.
+//
 //
 //  Redistribution and use in source and binary forms, with or without
 //  modification, are permitted provided that the following conditions are met:
@@ -31,5 +33,20 @@
 //  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 //  POSSIBILITY OF SUCH DAMAGE.
 //
-// xcode not happy if .a not exist
-unsigned long   __mulle_mintomic_version__ = 0x0000;
+
+#ifndef mulle_sscanf_h__
+#define mulle_sscanf_h__
+
+#include "include.h"
+
+#include <stdarg.h>
+
+
+MULLE__SPRINTF_GLOBAL
+int   mulle_sscanf( char const *str, char const *format, ...);
+
+MULLE__SPRINTF_GLOBAL
+int   mulle_vsscanf( char const *str, char const *format, va_list args);
+
+
+#endif

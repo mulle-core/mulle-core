@@ -31,7 +31,7 @@
 #include "_mulle-rbtree-include.h"
 
 #ifndef MULLE__RBTREE_GLOBAL
-# ifdef MULLE__RBTREE_BUILD
+# if defined( MULLE__RBTREE_BUILD) || defined( MULLE__CORE_BUILD)
 #  define MULLE__RBTREE_GLOBAL    MULLE_C_GLOBAL
 # else
 #  if defined( MULLE__RBTREE_INCLUDE_DYNAMIC) || (defined( MULLE_INCLUDE_DYNAMIC) && ! defined( MULLE__RBTREE_INCLUDE_STATIC))

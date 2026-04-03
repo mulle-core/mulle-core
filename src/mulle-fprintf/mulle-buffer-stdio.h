@@ -197,6 +197,7 @@ struct mulle_buffer_stdio_functions   mulle_stdio_functions;
  * @param binary use MULLE_BUFFER_IS_BINARY for "rb" MULLE_BUFFER_IS_TEXT for "r"
  * @param allocator The allocator to use for the buffer's storage.
  */
+MULLE__FPRINTF_GLOBAL
 int   mulle_buffer_init_with_filepath( struct mulle_buffer *buffer,
                                        char *filepath,
                                        int mode,
@@ -206,12 +207,14 @@ int   mulle_buffer_init_with_filepath( struct mulle_buffer *buffer,
 
 
 // read specified amount of bytes from FILE
+MULLE__FPRINTF_GLOBAL
 size_t   mulle_buffer_fread_FILE( struct mulle_buffer *buffer,
                                   size_t size,
                                   size_t nmem,
                                   FILE *fp);
 
 // read remaining bytes from FILE
+MULLE__FPRINTF_GLOBAL
 size_t   mulle_buffer_fread_FILE_all( struct mulle_buffer *buffer,
                                       FILE *fp);
 
@@ -228,6 +231,7 @@ size_t   mulle_buffer_fread_FILE_all( struct mulle_buffer *buffer,
         name ## __i = ( mulle_buffer_done( &name ## __storage), (void *) 0x1) \
       )                                                                       \
                                                                               \
+      MULLE_C_CONFINED_LOOP                                                   \
       for( int  name ## __j = 0;    /* break protection */                    \
            name ## __j < 1;                                                   \
            name ## __j++)

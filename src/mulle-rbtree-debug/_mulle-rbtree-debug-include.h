@@ -22,7 +22,7 @@
 //    remove #include: `mulle-sde dependency mark mulle-rbtree no-header`
 //    rename              : `mulle-sde dependency|library set mulle-rbtree include whatever.h`
 //    reorder             : `mulle-sde dependency move mulle-rbtree <up|down>`
-//    toggle #include: `mulle-sde dependency mark mulle-rbtree [no-]import`
+//    toggle objc         : `mulle-sde dependency mark mulle-rbtree [no-]import`
 //    toggle public       : `mulle-sde dependency mark mulle-rbtree [no-]public`
 //    toggle optional     : `mulle-sde dependency mark mulle-rbtree [no-]require`
 //    remove for platform : `mulle-sde dependency mark mulle-rbtree no-platform-<uname>`
@@ -37,7 +37,7 @@
 //    remove #include: `mulle-sde dependency mark mulle-fprintf no-header`
 //    rename              : `mulle-sde dependency|library set mulle-fprintf include whatever.h`
 //    reorder             : `mulle-sde dependency move mulle-fprintf <up|down>`
-//    toggle #include: `mulle-sde dependency mark mulle-fprintf [no-]import`
+//    toggle objc         : `mulle-sde dependency mark mulle-fprintf [no-]import`
 //    toggle public       : `mulle-sde dependency mark mulle-fprintf [no-]public`
 //    toggle optional     : `mulle-sde dependency mark mulle-fprintf [no-]require`
 //    remove for platform : `mulle-sde dependency mark mulle-fprintf no-platform-<uname>`

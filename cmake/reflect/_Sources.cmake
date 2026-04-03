@@ -79,6 +79,7 @@ src/mulle-data/mulle-hash.c
 src/mulle-data/mulle-prime.c
 src/mulle-data/mulle-qsort.c
 src/mulle-data/mulle-range.c
+src/mulle-dlfcn/mulle-dlfcn.c
 src/mulle-dtostr/mulle-dtostr.c
 src/mulle-fifo/mulle-fifo.c
 src/mulle-fprintf/mulle-buffer-stdio.c
@@ -106,9 +107,9 @@ src/mulle-sprintf/mulle-sprintf-integer.c
 src/mulle-sprintf/mulle-sprintf-pointer.c
 src/mulle-sprintf/mulle-sprintf-return.c
 src/mulle-sprintf/mulle-sprintf-string.c
+src/mulle-sprintf/mulle-sscanf.c
 src/mulle-storage/mulle-storage.c
-src/mulle-thread/mintomic-empty.c
-src/mulle-thread/mulle-thread-linkage.c
+src/mulle-thread/mulle-thread.c
 src/mulle-thread/mulle-thread-windows.c
 src/mulle-time/mulle-relativetime.c
 src/mulle-time/mulle-timespec.c
@@ -163,9 +164,7 @@ src/mulle-vararg/mulle-vararg.c
 #
 set( STANDALONE_SOURCES
 src/mulle-concurrent/mulle-concurrent-standalone.c
-src/mulle-regex/mulle-regex-standalone.c
 src/mulle-sprintf/mulle-sprintf-standalone.c
-src/mulle-thread/mulle-thread-standalone.c
 src/mulle-unicode/mulle-unicode-standalone.c
 src/mulle-utf/mulle-utf-standalone.c
 )

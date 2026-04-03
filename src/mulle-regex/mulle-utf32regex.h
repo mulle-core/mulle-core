@@ -19,6 +19,7 @@ struct mulle_utf32regex;
 //
 
 /* may return NULL on failure (malformed regular expression) */
+MULLE__REGEX_GLOBAL
 struct mulle_utf32regex   *mulle_utf32regex_compile( mulle_utf32_t *pattern);
 
 static inline void   mulle_utf32regex_free( struct mulle_utf32regex *regex)
@@ -28,6 +29,7 @@ static inline void   mulle_utf32regex_free( struct mulle_utf32regex *regex)
 
 
 /* returns < 0 on failure, 1 on match, 0 on no match */
+MULLE__REGEX_GLOBAL
 int   mulle_utf32regex_execute( struct mulle_utf32regex *regex,
                                 mulle_utf32_t *src);
 
@@ -37,6 +39,7 @@ int   mulle_utf32regex_execute( struct mulle_utf32regex *regex,
    Does not append a trailing zero, unless specified by `zero`. `dst_len` must
    then be + 1
  */
+MULLE__REGEX_GLOBAL
 int   mulle_utf32regex_substitute( struct mulle_utf32regex *regex,
                                    mulle_utf32_t *replacement,
                                    mulle_utf32_t *dst,
@@ -48,11 +51,13 @@ int   mulle_utf32regex_substitute( struct mulle_utf32regex *regex,
 // returns malloced buffer, or NULL
 // convenience for doing compile/match in one step
 //
+MULLE__REGEX_GLOBAL
 mulle_utf32_t   *mulle_utf32_match( mulle_utf32_t *pattern, mulle_utf32_t *src);
 
 // returns malloced buffer, or NULL
 // convenience for doing compile/substitute in one step
 //
+MULLE__REGEX_GLOBAL
 mulle_utf32_t   *mulle_utf32_substitute( mulle_utf32_t *pattern,
                                          mulle_utf32_t *replacement,
                                          mulle_utf32_t *src);
@@ -63,6 +68,7 @@ mulle_utf32_t   *mulle_utf32_substitute( mulle_utf32_t *pattern,
 // for the space you should malloc. Will return (unsigned int) -1 on error.
 //
 // You need to add the front and back part yourself.
+MULLE__REGEX_GLOBAL
 size_t   mulle_utf32regex_substitution_length( struct mulle_utf32regex *regex,
                                                mulle_utf32_t *replacement);
 
@@ -82,6 +88,7 @@ static inline size_t
 // use 0 to get range of matched string
 // use 1-9 for \1 to \9
 //
+MULLE__REGEX_GLOBAL
 struct mulle_range   mulle_utf32regex_range_for_index( struct mulle_utf32regex *regex, unsigned int i);
 
 #ifdef __has_include

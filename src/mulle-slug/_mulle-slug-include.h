@@ -22,7 +22,7 @@
 //    remove #include: `mulle-sde dependency mark mulle-utf no-header`
 //    rename              : `mulle-sde dependency|library set mulle-utf include whatever.h`
 //    reorder             : `mulle-sde dependency move mulle-utf <up|down>`
-//    toggle #include: `mulle-sde dependency mark mulle-utf [no-]import`
+//    toggle objc         : `mulle-sde dependency mark mulle-utf [no-]import`
 //    toggle public       : `mulle-sde dependency mark mulle-utf [no-]public`
 //    toggle optional     : `mulle-sde dependency mark mulle-utf [no-]require`
 //    remove for platform : `mulle-sde dependency mark mulle-utf no-platform-<uname>`
@@ -37,7 +37,7 @@
 //    remove #include: `mulle-sde dependency mark mulle-buffer no-header`
 //    rename              : `mulle-sde dependency|library set mulle-buffer include whatever.h`
 //    reorder             : `mulle-sde dependency move mulle-buffer <up|down>`
-//    toggle #include: `mulle-sde dependency mark mulle-buffer [no-]import`
+//    toggle objc         : `mulle-sde dependency mark mulle-buffer [no-]import`
 //    toggle public       : `mulle-sde dependency mark mulle-buffer [no-]public`
 //    toggle optional     : `mulle-sde dependency mark mulle-buffer [no-]require`
 //    remove for platform : `mulle-sde dependency mark mulle-buffer no-platform-<uname>`

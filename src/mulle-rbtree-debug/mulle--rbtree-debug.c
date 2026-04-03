@@ -2,7 +2,7 @@
 //  mulle--rbtree-debug.c
 //  mulle-rbtree-debug
 //
-//  Copyright (c) <|YEAR|> Nat! - Mulle kybernetiK.
+//  Copyright (c) 2025 Nat! - Mulle kybernetiK.
 //  All rights reserved.
 //
 //

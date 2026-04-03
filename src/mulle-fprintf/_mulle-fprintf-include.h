@@ -22,7 +22,7 @@
 //    remove #include: `mulle-sde dependency mark mulle-sprintf no-header`
 //    rename              : `mulle-sde dependency|library set mulle-sprintf include whatever.h`
 //    reorder             : `mulle-sde dependency move mulle-sprintf <up|down>`
-//    toggle #include: `mulle-sde dependency mark mulle-sprintf [no-]import`
+//    toggle objc         : `mulle-sde dependency mark mulle-sprintf [no-]import`
 //    toggle public       : `mulle-sde dependency mark mulle-sprintf [no-]public`
 //    toggle optional     : `mulle-sde dependency mark mulle-sprintf [no-]require`
 //    remove for platform : `mulle-sde dependency mark mulle-sprintf no-platform-<uname>`

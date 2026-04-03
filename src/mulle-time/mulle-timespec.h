@@ -15,6 +15,8 @@ MULLE__TIME_GLOBAL
 mulle_timeinterval_t   mulle_timeinterval_now_monotonic( void);
 
 
+MULLE__TIME_GLOBAL
+void   mulle_relativetime_sleep( mulle_relativetime_t time);
 
 
 // timespec as used by nanosleep
@@ -91,7 +93,5 @@ static inline mulle_relativetime_t
    return( mulle_relativetime_init_with_s_ns( a.tv_sec, a.tv_sec));
 }
 
-
-void   mulle_relativetime_sleep( mulle_relativetime_t time);
 
 #endif

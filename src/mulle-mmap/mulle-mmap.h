@@ -32,7 +32,7 @@
 #include <string.h>
 
 
-#define MULLE__MMAP_VERSION  ((0UL << 20) | (2 << 8) | 6)
+#define MULLE__MMAP_VERSION  ((1UL << 20) | (0 << 8) | 0)
 
 
 static inline unsigned int   mulle_mmap_get_version_major( void)
@@ -57,10 +57,14 @@ MULLE__MMAP_GLOBAL
 uint32_t   mulle_mmap_get_version( void);
 
 
+
 #ifdef _WIN32
 # ifndef WIN32_LEAN_AND_MEAN
 #  define WIN32_LEAN_AND_MEAN
 # endif // WIN32_LEAN_AND_MEAN
+# ifndef MULLE_BOOL_DEFINED
+#  error "you need to include <mulle-c11/mulle-c11-bool.h> before including <windows.h>"
+# endif
 # include <windows.h>
 #endif // ifdef _WIN32
 
@@ -79,6 +83,38 @@ typedef int     mulle_mmap_file_t;
 # define MULLE_MMAP_INVALID_HANDLE  -1
 #endif
 
+
+// Shared memory allocation result (cross-platform, exec-compatible)
+// The handle field contains:
+//   - Windows: HANDLE from CreateFileMapping (inheritable)
+//   - Unix: file descriptor from shm_open (cast via intptr_t)
+// Both can be passed to child processes for IPC:
+//   - Windows: Pass handle value to CreateProcess child
+//   - Unix: Pass fd to fork/exec child (fd remains valid after exec)
+struct mulle_mmap_shared_memory
+{
+   void                  *address;
+   size_t                size;
+   mulle_mmap_file_t     handle;  // Windows: HANDLE, Unix: fd (cast via intptr_t)
+};
+
+
+static inline void   *mulle_mmap_shared_memory_get_address( struct mulle_mmap_shared_memory *p)
+{
+   return( p ? p->address : NULL);
+}
+
+
+static inline size_t   mulle_mmap_shared_memory_get_size( struct mulle_mmap_shared_memory *p)
+{
+   return( p ? p->size : 0);
+}
+
+
+static inline mulle_mmap_file_t   mulle_mmap_shared_memory_get_handle( struct mulle_mmap_shared_memory *p)
+{
+   return( p ? p->handle : MULLE_MMAP_INVALID_HANDLE);
+}
 
 
 enum mulle_mmap_accessmode
@@ -242,11 +278,92 @@ void   *mulle_mmap_alloc_pages( size_t size);
 // free with this
 
 
-/* like mulle_mmap_alloc_pages but produces shared memory pages instead
- * https://stackoverflow.com/questions/5656530/how-to-use-shared-memory-with-linux-in-c
+/* Allocate shared memory pages that can be shared with child processes.
+ *
+ * UNIX SEMANTICS:
+ * - Uses MAP_SHARED|MAP_ANONYMOUS with mmap()
+ * - After fork(), both parent and child have independent references to the same
+ *   physical memory pages
+ * - Either process can munmap() their mapping independently without affecting
+ *   the other process
+ * - The physical pages persist until BOTH processes have unmapped them
+ * - If a process exits without unmapping, the kernel automatically unmaps
+ * - No handle to track - the mapping is reference-counted by the kernel
+ *
+ * WINDOWS SEMANTICS:
+ * - Uses CreateFileMapping() with inheritable handle + MapViewOfFile()
+ * - The file mapping handle must be kept open for child processes to inherit it
+ * - After CreateProcess(), both parent and child have independent handles to
+ *   the same file mapping object
+ * - Either process can UnmapViewOfFile() their view independently without
+ *   affecting the other process's view
+ * - Either process can CloseHandle() their handle independently
+ * - The file mapping object persists until ALL handles are closed AND all
+ *   views are unmapped
+ * - If a process exits without closing, Windows automatically closes handles
+ *   and unmaps views
+ * - IMPORTANT: The handle in the returned structure must be kept open if you
+ *   want child processes to inherit access. Closing it before CreateProcess()
+ *   will prevent children from accessing the mapping.
+ *
+ * MEMORY LEAKS ON CLOSE ?
+ * - On both platforms, the OS will clean up on process termination, but
+ *   explicit cleanup is better practice
+ * - Forgetting to free will not leak memory across process termination, but
+ *   may leak during the process lifetime
+ *
+ * USAGE EXAMPLE:
+ *   struct mulle_mmap_shared_memory mem = mulle_mmap_alloc_shared_memory(4096);
+ *   if( mem.address) {
+ *       // Use mem.address...
+ *       // mem.handle can be passed to child processes for IPC
+ *       mulle_mmap_free_shared_memory(&mem);
+ *   }
  */
 MULLE__MMAP_GLOBAL
-void   *mulle_mmap_alloc_shared_pages( size_t size);
+struct mulle_mmap_shared_memory   mulle_mmap_alloc_shared_memory( size_t size);
+
+/* Free shared memory allocated with mulle_mmap_alloc_shared_memory() */
+MULLE__MMAP_GLOBAL
+int   mulle_mmap_free_shared_memory( struct mulle_mmap_shared_memory *mem);
+
+/*
+ * Map an existing shared memory region (created by another process) into
+ * this process's address space.
+ *
+ * handle          - the file mapping handle/fd from mulle_mmap_shared_memory
+ * size            - size of the mapping
+ * preferred_addr  - desired virtual address (pass the parent's .address for
+ *                   fixed-address mapping so dlmalloc internal pointers remain
+ *                   valid). NULL lets the OS choose (unsafe for dlmalloc use).
+ *
+ * Returns the mapped address, or NULL on failure.
+ */
+MULLE__MMAP_GLOBAL
+void   *mulle_mmap_map_shared_memory( mulle_mmap_file_t handle,
+                                      size_t size,
+                                      void *preferred_addr);
+
+
+#ifndef _WIN32
+/* Fast Unix-only shared memory allocation using MAP_ANONYMOUS.
+ * This is faster than mulle_mmap_alloc_shared_memory() but:
+ * - Only works with fork() (not fork+exec)
+ * - Not available on Windows (returns NULL with errno=ENOSYS)
+ * - Returns simple void* pointer (no handle for IPC)
+ * 
+ * Use this when you only need fork() without exec().
+ * Use mulle_mmap_alloc_shared_memory() for cross-platform or exec() support.
+ */
+#endif
+MULLE__MMAP_GLOBAL
+void   *mulle_mmap_alloc_shared_pages_nowindows( size_t size);
+
+/* Free shared pages allocated with mulle_mmap_alloc_shared_pages_nowindows() */
+MULLE__MMAP_GLOBAL
+void   mulle_mmap_free_shared_pages_nowindows( void *address, size_t size);
+#ifndef _WIN32
+#endif
 
     /** Returns whether a valid memory mapping has been created. */
 static inline int   _mulle_mmap_is_open( struct mulle_mmap *p)

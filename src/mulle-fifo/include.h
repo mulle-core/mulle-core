@@ -29,7 +29,7 @@
 
 #include "_mulle-fifo-include.h"
 
-#ifdef MULLE__FIFO_BUILD
+#if defined( MULLE__FIFO_BUILD) || defined( MULLE__CORE_BUILD)
 # define MULLE__FIFO_GLOBAL    MULLE_C_GLOBAL
 #else
 # if defined( MULLE_FIFO_INCLUDE_DYNAMIC) || (defined( MULLE_INCLUDE_DYNAMIC) && ! defined( MULLE_FIFO_INCLUDE_STATIC))

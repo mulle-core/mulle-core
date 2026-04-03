@@ -3,10 +3,11 @@
 #include "mulle-relativetime.h"
 
 #include <assert.h>
+#include <math.h>
 #include "mulle-absolutetime.h"
 
 
-static mulle_absolutetime_t    load_timestamp;
+static mulle_absolutetime_t    load_timestamp = INFINITY ;
 
 MULLE_C_CONSTRUCTOR( load)
 static void   load( void)
@@ -21,7 +22,7 @@ static void   load( void)
 //
 mulle_relativetime_t   mulle_relativetime_now( void)
 {
-   assert( load_timestamp != 0.0);
+   assert( ! isinf( load_timestamp));
    return( mulle_absolutetime_now() - load_timestamp);
 }
 

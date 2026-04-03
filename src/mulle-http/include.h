@@ -21,7 +21,7 @@
 
 #include "_mulle-http-include.h"
 
-#ifdef MULLE__HTTP_BUILD
+#if defined( MULLE__HTTP_BUILD) || defined( MULLE__CORE_BUILD)
 # define MULLE__HTTP_GLOBAL    MULLE_C_GLOBAL
 #else
 # if defined( MULLE_HTTP_INCLUDE_DYNAMIC) || (defined( MULLE_INCLUDE_DYNAMIC) && ! defined( MULLE_HTTP_INCLUDE_STATIC))

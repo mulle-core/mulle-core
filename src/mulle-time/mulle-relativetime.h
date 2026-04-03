@@ -7,6 +7,11 @@
 typedef mulle_timeinterval_t   mulle_relativetime_t;
 
 
+// this gives elapsed seconds since the load of the program
+MULLE__TIME_GLOBAL
+mulle_relativetime_t   mulle_relativetime_now( void);
+
+
 static inline void   _mulle_relativetime_init( mulle_relativetime_t *p, 
                                                mulle_timeinterval_t value)
 {
@@ -35,12 +40,6 @@ static inline mulle_relativetime_t
 {
    return( tv_sec + tv_nsec / (double) (1000L*1000*1000));
 }
-
-
-// this gives elapsed seconds since the load of the program
-MULLE__TIME_GLOBAL
-mulle_relativetime_t   mulle_relativetime_now( void);
-
 
 
 

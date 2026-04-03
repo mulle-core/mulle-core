@@ -48,6 +48,7 @@ struct mulle_pointermultififo
 };
 
 
+MULLE__MULTIFIFO_GLOBAL
 void   _mulle_pointermultififo_init( struct mulle_pointermultififo *p,
                                      unsigned int size,
                                      struct mulle_allocator *allocator);
@@ -60,6 +61,7 @@ static inline void   _mulle_pointermultififo_done( struct mulle_pointermultififo
 
 
 
+MULLE__MULTIFIFO_GLOBAL
 MULLE_C_NONNULL_FIRST
 void   *_mulle_pointermultififo_read_barrier( struct mulle_pointermultififo *p);
 
@@ -68,6 +70,7 @@ void   *_mulle_pointermultififo_read_barrier( struct mulle_pointermultififo *p);
 // fifo is full. This can be remedied by making the fifo larger, but ususally
 // indicates, that consumers are taking too long...
 //
+MULLE__MULTIFIFO_GLOBAL
 MULLE_C_NONNULL_FIRST
 int   _mulle_pointermultififo_write( struct mulle_pointermultififo *p, void *pointer);
 
