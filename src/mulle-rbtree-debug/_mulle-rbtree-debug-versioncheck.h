@@ -7,7 +7,7 @@
 
 #if defined( MULLE__FPRINTF_VERSION)
 # ifndef MULLE__FPRINTF_VERSION_MIN
-#  define MULLE__FPRINTF_VERSION_MIN  ((0UL << 20) | (3 << 8) | 2)
+#  define MULLE__FPRINTF_VERSION_MIN  ((0UL << 20) | (3 << 8) | 3)
 # endif
 # ifndef MULLE__FPRINTF_VERSION_MAX
 #  define MULLE__FPRINTF_VERSION_MAX  ((0UL << 20) | (4 << 8) | 0)
@@ -25,7 +25,7 @@
 #endif
 #if defined( MULLE__RBTREE_VERSION)
 # ifndef MULLE__RBTREE_VERSION_MIN
-#  define MULLE__RBTREE_VERSION_MIN  ((0UL << 20) | (1 << 8) | 0)
+#  define MULLE__RBTREE_VERSION_MIN  ((0UL << 20) | (1 << 8) | 1)
 # endif
 # ifndef MULLE__RBTREE_VERSION_MAX
 #  define MULLE__RBTREE_VERSION_MAX  ((0UL << 20) | (2 << 8) | 0)

@@ -11,7 +11,7 @@
  *
  *  version:  major, minor, patch
  */
-#define MULLE__STORAGE_VERSION  ((0UL << 20) | (0 << 8) | 4)
+#define MULLE__STORAGE_VERSION  ((0UL << 20) | (0 << 8) | 5)
 
 
 static inline unsigned int   mulle_storage_get_version_major( void)
