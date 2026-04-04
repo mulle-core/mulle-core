@@ -10,6 +10,7 @@
       repo="mulle-core";
       homepage="https://github.com/mulle-core/mulle-core";
       license="BSD-3-Clause";
+      version="0.8.0";
    };
    amalgamated =
    (
