@@ -54,6 +54,6 @@ void  mulle__rbtree_node_ascii_fprintf( FILE *fp,
                                         char *(*print_value_fn)( void *));
 
 
-#define MULLE__RBTREE__DEBUG_VERSION   ((0UL << 20) | (1 << 8) | 0)
+#define MULLE__RBTREE__DEBUG_VERSION   ((0UL << 20) | (1 << 8) | 1)
 
 #endif
