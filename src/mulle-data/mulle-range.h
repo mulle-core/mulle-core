@@ -547,18 +547,18 @@ static inline struct mulle_range
  * @return 1 (true) if the smaller `mulle_range` is contained within the larger
  *         `mulle_range`, 0 (false) otherwise.
  */
-static inline int  mulle_range_contains( struct mulle_range big, struct mulle_range small)
+static inline int  mulle_range_contains( struct mulle_range big, struct mulle_range range2)
 {
    //
    // the problem here is mostly, if a zero length range can contain another
    // zero length range. Does a non-zero length range contain a zero length
    // range. We say yes if the location is in range.
    //
-   if( ! mulle_range_contains_location( big, small.location))
+   if( ! mulle_range_contains_location( big, range2.location))
       return( 0);
-   if( ! small.length)
+   if( ! range2.length)
       return( 1);
-   return( mulle_range_contains_location( big, mulle_range_get_max( small) - 1));
+   return( mulle_range_contains_location( big, mulle_range_get_max( range2) - 1));
 }
 
 
