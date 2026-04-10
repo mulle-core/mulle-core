@@ -51,11 +51,17 @@ struct mulle_range
 
 
 /**
- * `mulle_range_location_min`: The minimum valid location value for a `mulle_range` struct.
+ * `mulle_range_location_min`: The minimum valid location value for a
+ *                             `mulle_range` struct.
  *
- * `mulle_range_location_max`: The maximum valid location value for a `mulle_range` struct. This is one less than the `mulle_not_found_e` value, which represents an "not found" condition.
+ * `mulle_range_location_max`: The maximum valid location value for a
+ *                             `mulle_range` struct. This is one less than the
+ *                             `mulle_not_found_e` value, which represents an
+ *                             "not found" condition.
  *
- * `mulle_range_zero`: A `mulle_range` struct with both location and length set to 0, representing an empty or invalid range.
+ * `mulle_range_zero`       :  A `mulle_range` struct with both location and
+ *                             length set to 0, representing an empty or
+ *                             invalid range.
  */
 // like uintptr_min
 #define mulle_range_location_min       (0)
@@ -73,27 +79,27 @@ struct mulle_range
  * @param length The length of the range.
  * @return A `mulle_range` struct with the specified location and length.
  */
-//
-// experimentally make max=0xF....E and notfound=0xF...F
-// #define mulle_range_location_max       ((~(uintptr_t) 0) - 1)
-// compatible would be max=0x7....E and notfound=0x7...F
-//
-// Why this is moot: if we are storing void *, they will take up 2 or 3 bits
-// worth of address space
-//
 static inline struct mulle_range
    mulle_range_make( uintptr_t location, uintptr_t length)
 {
    struct mulle_range   range;
 
-/* Oftentimes it's OK to create invalid ranges, and filter them out
-   later with mulle_range_is_valid, as the checking logic needs not to be done 
-   "before" mulle_range is created 
+   //
+   // experimentally make max=0xF....E and notfound=0xF...F
+   // #define mulle_range_location_max       ((~(uintptr_t) 0) - 1)
+   // compatible would be max=0x7....E and notfound=0x7...F
+   //
+   // Why this is moot: if we are storing void *, they will take up 2 or 3 bits
+   // worth of address space
+   //
+   // Oftentimes it's OK to create invalid ranges, and filter them out
+   // later with mulle_range_is_valid, as the checking logic needs not to be done
+   // "before" mulle_range is created
+   //
+   // assert( location >= mulle_range_location_min && location <= mulle_range_location_max);
+   // assert( location + length <= mulle_range_location_max + 1);
+   // assert( location + length >= location);         // wrap around
 
-   assert( location >= mulle_range_location_min && location <= mulle_range_location_max);
-   assert( location + length <= mulle_range_location_max + 1);
-   assert( location + length >= location);         // wrap around
-*/
    range.location = location;
    range.length   = length;
    return( range);
@@ -115,18 +121,17 @@ static inline struct mulle_range
  * @param location2 The ending location of the range.
  * @return A `mulle_range` struct that represents the specified range of locations.
  */
-//
-// a location is 1 wide, so location 1 to location 4 is 1, 2, 3, 4 = 4 length
-// so 4 - 1 +1
-//
 static inline struct mulle_range
    mulle_range_make_locations( uintptr_t location, uintptr_t location2)
 {
+   //
+   // a location is 1 wide, so location 1 to location 4 is 1, 2, 3, 4 = 4 length
+   // so 4 - 1 +1
+   //
    if( location < location2)
       return( mulle_range_make( location, location2 - location + 1));
    return( mulle_range_make( location2, location - location2 + 1));
 }
-
 
 
 
@@ -259,9 +264,9 @@ static inline uintptr_t   _mulle_range_get_max( struct mulle_range range)
  * @param range The `mulle_range` struct to get the maximum value from.
  * @return The maximum value of the given `mulle_range` struct.
  */
-// use max here like NSMaxRange
 static inline uintptr_t   mulle_range_get_max( struct mulle_range range)
 {
+// use max here like NSMaxRange
    assert( mulle_range_is_valid( range));
 
    return( range.location + range.length);
@@ -392,10 +397,10 @@ static inline int   mulle_range_less_than_or_equal_to_location( struct mulle_ran
  * @param location The location to compare against the last location of the range.
  * @return 1 if the given location is less than the last location of the range, 0 otherwise.
  */
-//  |..........|  location.
 static inline int   mulle_range_less_than_location( struct mulle_range range,
                                                     uintptr_t location)
 {
+//  |..........|  location.
    if( ! range.length)
       return( 0);
 
@@ -430,10 +435,10 @@ static inline int   mulle_range_greater_than_or_equal_to_location( struct mulle_
  * @param location The location to compare against the start location of the range.
  * @return 1 if the given location is greater than the start location of the range, 0 otherwise.
  */
-//  location  |..........|
 static inline int   mulle_range_greater_than_location( struct mulle_range range,
-                                                              uintptr_t location)
+                                                       uintptr_t location)
 {
+   //  location  |..........|
    if( ! range.length)
       return( 0);
 
@@ -449,10 +454,10 @@ static inline int   mulle_range_greater_than_location( struct mulle_range range,
  * @param location The location to compare against the start location of the range.
  * @return 1 if the given location is greater than the start location of the range, 0 otherwise.
  */
-//  location  |..........|
 static inline int   mulle_range_equal_to_location( struct mulle_range range,
                                                    uintptr_t location)
 {
+   //  location  |..........|
    if( ! range.length)
       return( 0);
 
@@ -467,10 +472,10 @@ static inline int   mulle_range_equal_to_location( struct mulle_range range,
  * @param location The location to calculate the distance to.
  * @return The absolute distance between the range and the location, or `UINTPTR_MAX` if the range is empty.
  */
-//  distance is an absolute value
 static inline uintptr_t   mulle_range_distance_to_location( struct mulle_range range,
                                                             uintptr_t location)
 {
+   //  distance is an absolute value
    if( ! range.length)
       return( UINTPTR_MAX);
 
@@ -541,13 +546,14 @@ static inline struct mulle_range
  *        the larger `mulle_range`.
  * @return 1 (true) if the smaller `mulle_range` is contained within the larger
  *         `mulle_range`, 0 (false) otherwise.
- *///
-// the problem here is mostly, if a zero length range can contain another
-// zero length range. Does a non-zero length range contain a zero length
-// range. We say yes if the location is in range.
-//
+ */
 static inline int  mulle_range_contains( struct mulle_range big, struct mulle_range small)
 {
+   //
+   // the problem here is mostly, if a zero length range can contain another
+   // zero length range. Does a non-zero length range contain a zero length
+   // range. We say yes if the location is in range.
+   //
    if( ! mulle_range_contains_location( big, small.location))
       return( 0);
    if( ! small.length)
@@ -562,7 +568,7 @@ static inline int  mulle_range_contains( struct mulle_range big, struct mulle_ra
  * @param a The one `mulle_range` to check.
  * @param b The other `mulle_range` to check
  * @return 1 (true) if the `mulle_range`s intersect, 0 (false) otherwise.
- *///
+ */
 MULLE__DATA_GLOBAL
 int   mulle_range_intersects( struct mulle_range range,
                               struct mulle_range other);
@@ -626,15 +632,6 @@ struct mulle_range   mulle_range_union( struct mulle_range range,
  * @param b The `mulle_range` to subtract.
  * @param result An array of two `mulle_range` values to store the result.
  */
-//
-// this punches holes into ranges, you get two ranges back as the
-// result. one is the left side of the hole, and the other the right side
-// if b completely clobbers a, the ranges will be { 0, 0 }, { 0, 0 }
-// If the resulting range starts with a.location it will be in result[ 0]
-// otherwise in result[ 1]. This is so, that 0 is always the prefix and 1 is
-// the suffix. Therefore its possible that result[0].length == 0 and
-// result[1].length > 0 (b cuts of a's head)
-//
 MULLE__DATA_GLOBAL
 void   mulle_range_subtract( struct mulle_range a,
                              struct mulle_range b,
@@ -660,13 +657,13 @@ void   mulle_range_subtract( struct mulle_range a,
  * @param location The location to subtract.
  * @param result An array of two `mulle_range` values to store the result.
  */
-// this punches holes into ranges, you can get 2 ranges back as the
-// result, one is the left side of the hole, and the other the right side
 static inline
 void   mulle_range_subtract_location( struct mulle_range a,
                                       uintptr_t location,
                                       struct mulle_range result[ 2])
 {
+   // this punches holes into ranges, you can get 2 ranges back as the
+   // result, one is the left side of the hole, and the other the right side
    mulle_range_subtract( a, mulle_range_make( location, 1), result);
 }
 
@@ -685,15 +682,6 @@ void   mulle_range_subtract_location( struct mulle_range a,
  * @param result An array of two `mulle_range` values to store the result.
  * @return The number of `mulle_range` values stored in the `result` array (either 1 or 2).
  */
-//
-// Computes the state of 'a' after insertion of a range 'b'. 'b' must be
-// adjacent, or intersect 'a' (else 0 is returned).
-// You get either one or two result ranges back. If you get two, then
-// 'b' created a hole (not part of the result). result[ 0] is the unshifted
-// range and result[1] is the shifted range:
-//
-// Example a=[0-9] b=[2-3], result[ 2] = { [0-2], [5-14] }
-//
 MULLE__DATA_GLOBAL
 unsigned int   mulle_range_insert( struct mulle_range a,
                                    struct mulle_range b,
@@ -717,14 +705,6 @@ unsigned int   mulle_range_insert( struct mulle_range a,
  * @return The index where a new `mulle_range` with the given `search_location`
  *         should be inserted.
  */
-//
-// Find a hole. Or rather the place in buf, were you would insert a new range.
-// **This only works if its been ascertained that location is not already
-// contained. (i.e. run mulle_range_contains_bsearch beforehand). You get the
-// index back where you want to insert a new range.
-// This can be 0 to n (incl), so don't use the return value unverified to
-// buf, as it could overflow.
-//
 MULLE__DATA_GLOBAL
 unsigned int   _mulle_range_hole_bsearch( struct mulle_range *buf,
                                           unsigned int n,
@@ -740,7 +720,6 @@ unsigned int   _mulle_range_hole_bsearch( struct mulle_range *buf,
  * @return The `mulle_range` in the `buf` array that contains the `search` range,
  *         or `NULL` if no such `mulle_range` is found.
  */
-// returns range containing search or NULL
 MULLE__DATA_GLOBAL
 struct mulle_range   *mulle_range_contains_bsearch( struct mulle_range *buf,
                                                     unsigned int n,
