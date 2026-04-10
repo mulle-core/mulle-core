@@ -67,6 +67,7 @@ static int   print( struct _mulle_aba_freeentry   *entry,
                     struct _mulle_aba_freeentry   *prev,
                     void *userinfo)
 {
+   MULLE_C_UNUSED( userinfo);
 #if MULLE_ABA_TRACE || MULLE_ABA_TRACE_ALLOC
    fprintf( stderr, "%s:   %s[%p=%p]\n", mulle_aba_thread_name(),
                         prev ? "->" : "", entry, entry->_pointer);
