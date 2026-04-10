@@ -71,9 +71,13 @@ struct mulle_range   mulle_range_union( struct mulle_range range,
 
 
 
+// Find a hole. Or rather the place in buf, were you would insert a new range.
+// **This only works if its been ascertained that location is not already
+// contained. (i.e. run mulle_range_contains_bsearch beforehand). You get the
+// index back where you want to insert a new range.
+// This can be 0 to n (incl), so don't use the return value unverified to
+// buf, as it could overflow.
 //
-// Find a hole, this only works if its been ascertained
-// that location is not contained
 //
 unsigned int   _mulle_range_hole_bsearch( struct mulle_range *buf,
                                           unsigned int n,
@@ -260,6 +264,16 @@ void   mulle_range_subtract( struct mulle_range a,
    result[ 1] = mulle_range_zero;
 }
 
+
+//
+// Computes the state of 'a' after insertion of a range 'b'. 'b' must be
+// adjacent, or intersect 'a' (else 0 is returned).
+// You get either one or two result ranges back. If you get two, then
+// 'b' created a hole (not part of the result). result[ 0] is the unshifted
+// range and result[1] is the shifted range:
+//
+// Example a=[0-9] b=[2-3], result[ 2] = { [0-2], [5-14] }
+//
 
 MULLE__DATA_GLOBAL
 unsigned int   mulle_range_insert( struct mulle_range a,
