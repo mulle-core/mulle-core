@@ -1,270 +1,173 @@
 # mulle-time Library Documentation for AI
-<!-- Keywords: time, timespec -->
-
+<!-- Keywords: time, timespec, timeval, interval, absolute, relative, calendar -->
 ## 1. Introduction & Purpose
 
-mulle-time provides simple, high-precision time types and arithmetic operations on timespec and timeval structures. It defines `timespec_add`, `timespec_sub`, and `timespec_compare` functions, as well as their timeval counterparts. The library introduces semantic type aliases (`mulle_absolutetime_t`, `mulle_calendartime_t`, `mulle_relativetime_t`) built on top of `mulle_timeinterval_t` (a double) to make code more readable and prevent mixing incompatible time types. It serves as the foundation for NSTimeInterval compatibility in mulle-objc.
+- mulle-time provides small, portable time types and helper operations around POSIX timespec/timeval and a unified double-based timeinterval type (mulle_timeinterval_t).
+- Solves: simple arithmetic (add/sub/compare), conversions between representations, monotonic vs. calendar times, and small typed aliases for clarity (absolute, relative, calendar).
+- Key features: timespec/timeval arithmetic, now() for monotonic/real time, typed wrappers (mulle_absolutetime_t, mulle_calendartime_t, mulle_relativetime_t), ranges and small helpers.
+- Relationship: component of mulle-core; expects mulle-c11 and mulle-sde build tooling.
 
 ## 2. Key Concepts & Design Philosophy
 
-- **Semantic Type Safety**: Uses typedef'd doubles with distinct names (absolutetime, calendartime, relativetime) to prevent mixing incompatible time semantics at compile time through documentation and naming conventions
-- **Arithmetic Rules**: Defines strict rules for valid operations:
-  - `absolutetime + relativetime = absolutetime` (adding delay to a moment)
-  - `absolutetime - absolutetime = relativetime` (computing elapsed time)
-  - `relativetime + relativetime = relativetime` (combining delays)
-  - Invalid operations are documented to prevent misuse
-- **Monotonic vs. Wall-Clock Time**: Distinguishes between `mulle_timeinterval_now()` (wall-clock, may jump) and `mulle_timeinterval_now_monotonic()` (monotonic, suitable for animations and timers)
-- **Precision**: Prefers `struct timespec` (nanosecond precision) over `timeval` (microsecond precision) where available
-- **Minimal Dependencies**: No floating-point math library requirement (implements mod without -lm)
+- Lightweight, header-only helpers and small inline functions where possible for zero-overhead.
+- Distinct semantic types for different time domains: absolute (monotonic), calendar (wall-clock), relative (durations). Prevents accidental mixing.
+- Prefer struct timespec for precision; timeval supported as fallback.
+- Inline operations (add/sub/compare) return canonical normalized results (nanosecond/microsecond carry handling).
+- Minimal dependencies and C89-compatible style; exposes C linkage macros (MULLE__TIME_GLOBAL).
 
 ## 3. Core API & Data Structures
 
-### mulle-timespec.h
+### 3.1. src/mulle-timetype.h
+- typedefs:
+  - mulle_timeinterval_t: double representing seconds (can be absolute or relative).
+  - mulle_time_comparison_t: enum { MulleTimeAscending, MulleTimeSame, MulleTimeDescending } for compare results.
+- Constants: MULLE_TIMEINTERVAL_SINCE_1970, MULLE_TIMEINTERVAL_DISTANT_FUTURE/PAST.
+- Utilities:
+  - mulle_timeinterval_add(a,b), mulle_timeinterval_subtract(a,b)
+  - mulle_timeinterval_mod(value,m)
+  - mulle_timeinterval_quantize(value,rate)
+- Data struct: struct mulle_timeintervalrange { start, end } + constructor mulle_timeintervalrange_make
 
-#### struct timespec
-- **Purpose**: POSIX time structure with seconds and nanosecond components
-- **Fields**: `tv_sec` (seconds), `tv_nsec` (nanoseconds, 0-999,999,999)
-- **Lifecycle**: No creation/destruction needed; inline initialization via make functions
+### 3.2. src/mulle-timespec.h
+- Purpose: helpers for struct timespec and sleeping/now functions.
+- Functions (global):
+  - mulle_timeinterval_now(void): wall-clock time (seconds as double)
+  - mulle_timeinterval_now_monotonic(void): monotonic time for animation/timers
+  - mulle_relativetime_sleep(mulle_relativetime_t time)
+- Inline operations on struct timespec:
+  - timespec_compare(a,b) -> mulle_time_comparison_t
+  - timespec_add(a,b) -> struct timespec (normalizes nsec carry)
+  - timespec_sub(a,b) -> struct timespec
+  - timespec_make_with_relativetime(time)
+  - deprecated: mulle_relativetime_get_timespec
+  - mulle_relativetime_make_with_timespec(struct timespec)
 
-#### Core Comparison & Arithmetic Functions
+### 3.3. src/mulle-timeval.h
+- Purpose: timeval arithmetic (fallback for platforms without timespec).
+- Inline helpers:
+  - timeval_compare(a,b)
+  - timeval_add(a,b)
+  - timeval_sub(a,b)
 
-- `timespec_compare(a, b)` → `mulle_time_comparison_t`: Returns MulleTimeAscending, MulleTimeSame, or MulleTimeDescending
-- `timespec_add(a, b)` → `struct timespec`: Adds two timespec values with proper carry handling
-- `timespec_sub(a, b)` → `struct timespec`: Subtracts b from a with proper borrow handling
-- `timespec_make_with_relativetime(time)` → `struct timespec`: Converts mulle_relativetime_t to timespec
+### 3.4. src/mulle-calendartime.h
+- Type: typedef mulle_calendartime_t (alias of mulle_timeinterval_t) for wall-clock/calendar timestamps.
+- Functions and helpers:
+  - mulle_calendartime_now(void)
+  - mulle_calendartime_init/_mulle_calendartime_init, mulle_calendartime_make
+  - struct mulle_calendartimerange, helper macros and make/init functions
+- Semantics: calendar times may "jump" with timezone/clock changes — do not mix with absolutetime.
 
-#### Helper Functions
+### 3.5. src/mulle-absolutetime.h
+- Type: typedef mulle_absolutetime_t (alias of mulle_timeinterval_t) for monotonic timestamps (since boot).
+- Functions:
+  - mulle_absolutetime_now(void)
+  - init/make helpers and range struct (mulle_absolutetimerange)
+  - conversion helpers from struct timespec: mulle_absolutetime_init_with_timespec, _with_s_ns
 
-- `mulle_relativetime_get_timespec(time)`: Deprecated alias for timespec_make_with_relativetime
-- `mulle_relativetime_sleep(time)`: Sleeps for specified relative time duration
-- `mulle_relativetime_make_with_timespec(a)`: Converts timespec to mulle_relativetime_t
-
-### mulle-timetype.h
-
-#### mulle_timeinterval_t (typedef double)
-- **Purpose**: Primary time storage type; can represent both absolute and relative times
-- **Constants**:
-  - `MULLE_TIMEINTERVAL_SINCE_1970`: 978307200.0 (reference point)
-  - `MULLE_TIMEINTERVAL_DISTANT_FUTURE`: 63113904000.0
-  - `MULLE_TIMEINTERVAL_DISTANT_PAST`: -63114076800.0
-
-#### Core Interval Arithmetic
-
-- `mulle_timeinterval_add(a, b)` → `mulle_timeinterval_t`: Simple double addition
-- `mulle_timeinterval_subtract(a, b)` → `mulle_timeinterval_t`: Simple double subtraction
-- `mulle_timeinterval_mod(value, m)` → `mulle_timeinterval_t`: Modulo operation (avoids -lm dependency)
-- `mulle_timeinterval_quantize(value, rate)` → `mulle_timeinterval_t`: Snaps value to nearest multiple of rate
-
-#### mulle_timeintervalrange struct
-- **Purpose**: Represents a time interval with start and end points
-- **Fields**: `start`, `end` (both mulle_timeinterval_t)
-- **Factory**: `mulle_timeintervalrange_make(start, end)` → `struct mulle_timeintervalrange`
-
-#### Global Functions
-
-- `mulle_timeinterval_now()` → `mulle_timeinterval_t`: Returns current wall-clock time (may jump)
-- `mulle_timeinterval_now_monotonic()` → `mulle_timeinterval_t`: Returns monotonic time (best for animations/timers)
-
-### mulle-absolutetime.h
-
-#### mulle_absolutetime_t (typedef double)
-- **Purpose**: Semantic wrapper for absolute (monotonic) timestamps relative to system boot
-- **Lifetime**: Ideally doesn't jump when system sleeps (compare with wall-clock time)
-
-#### Core Operations
-
-- `mulle_absolutetime_now()` → `mulle_absolutetime_t`: Gets current absolute time (uses monotonic clock)
-- `mulle_absolutetime_init(p, value)`: Safe initialization with NULL check
-- `_mulle_absolutetime_init(p, value)`: Unchecked initialization
-- `mulle_absolutetime_make(value)` → `mulle_absolutetime_t`: Direct casting
-- `mulle_absolutetime_init_with_timespec(ts)`: Converts timespec to absolutetime
-- `mulle_absolutetime_init_with_s_ns(sec, nsec)`: Creates absolutetime from components
-
-#### mulle_absolutetimerange struct
-- **Purpose**: Range with start and end absolute times
-- **Fields**: `start`, `end` (both mulle_absolutetime_t)
-- **Factory**: `mulle_absolutetimerange_make(start, end)`
-
-### mulle-calendartime.h
-
-#### mulle_calendartime_t (typedef double)
-- **Purpose**: Semantic wrapper for calendar/wall-clock timestamps (may jump)
-- **Usage**: For timestamps related to actual calendar dates/times, as opposed to monotonic boot time
-
-### mulle-relativetime.h
-
-#### mulle_relativetime_t (typedef double)
-- **Purpose**: Semantic wrapper for time delays and relative durations
-- **Usage**: For time intervals that represent delays, durations, or differences
-
-#### Core Functions
-
-- `mulle_relativetime_now()`: Relative time since some reference point
-- `mulle_relativetime_sleep(time)`: Suspends execution for specified duration
+### 3.6. src/mulle-relativetime.h
+- Type: typedef mulle_relativetime_t (alias of mulle_timeinterval_t) for durations/delays.
+- Functions:
+  - mulle_relativetime_now(void): elapsed seconds since program load
+  - init/make helpers: mulle_relativetime_init/_mulle_relativetime_init, mulle_relativetime_make_with_s_ns
+  - struct mulle_relativetimerange and helpers
 
 ## 4. Performance Characteristics
 
-- **O(1) for all operations**: All arithmetic and comparison functions are inline operations on doubles or simple integer arithmetic
-- **Memory**: Negligible; timespec/timeval are fixed-size stack structures
-- **Thread-Safety**: All operations are on local variables; no shared state (thread-safe by design)
-- **Precision**:
-  - timespec: nanosecond precision (10^-9 seconds)
-  - timeval: microsecond precision (10^-6 seconds)
-  - timeinterval_t (double): ~15-17 significant decimal digits of precision
-- **No External Dependencies**: Implements mod without linking to math library
+- Core operations are inline, O(1) cost (addition, subtraction, compare) with minimal branching.
+- Conversions (timespec/timeval <-> double) are constant-time arithmetic.
+- No dynamic allocation; memory overhead negligible.
+- Not thread-synchronized: callers must coordinate if sharing mutable range structs. The now() functions call system timers and are thread-safe in typical libc implementations.
 
 ## 5. AI Usage Recommendations & Patterns
 
-### Best Practices
-
-- **Use Semantic Types**: Prefer `mulle_absolutetime_t`, `mulle_calendartime_t`, and `mulle_relativetime_t` over bare doubles to document intent
-- **Choose Correct Clock**: Use `mulle_timeinterval_now_monotonic()` for animations, timers, and performance measurements; use `mulle_timeinterval_now()` for calendar/logging timestamps
-- **Carry Handling**: The timespec_add/sub functions handle carry/borrow automatically; always use these rather than manual field manipulation
-- **Ranges**: When storing time intervals with start/end, use the provided range structs for clarity
-
-### Common Pitfalls
-
-- **Do Not Mix Time Types**: Avoid operations between calendartime and absolutetime without explicit conversion (semantically invalid)
-- **Sleep Precision**: `mulle_relativetime_sleep()` depends on OS scheduler; precision may not be guaranteed below ~10ms
-- **Double Precision**: While doubles work, be aware of precision loss in very large time values
-- **Overflow**: timespec arithmetic doesn't guard against overflow; ensure inputs are reasonable
-
-### Idiomatic Usage
-
-- Use timespec for nanosleep and precise timing code
-- Use timeinterval_t for high-level APIs and NSTimeInterval compatibility
-- Use the semantic types (absolute/calendar/relative) in function signatures for self-documenting code
-- Store durations as mulle_relativetime_t, moments as mulle_absolutetime_t
+- Prefer using typed aliases (mulle_absolutetime_t, mulle_calendartime_t, mulle_relativetime_t) to document intent and avoid mixing domains.
+- Use timespec helpers when sub-second precision is needed; use timespec_add/sub/compare for interval math.
+- Use mulle_timeinterval_now_monotonic() for animation/timers; use mulle_calendartime_now() for wall-clock timestamps.
+- Best practices:
+  - Always use the provided init/make functions to construct typed values.
+  - Treat returned struct pointers from system calls as ephemeral; copy into typed double if you need to store long-term.
+- Pitfalls:
+  - Do not mix calendar and absolute times in arithmetic — results are undefined.
+  - Beware of deprecated helpers (mulle_relativetime_get_timespec) — prefer current names.
 
 ## 6. Integration Examples
 
-### Example 1: Basic Timespec Arithmetic
+### Example 1: Creating and comparing times (monotonic)
 
 ```c
-#include <mulle-time/mulle-time.h>
+#include "mulle-timespec.h"
 #include <stdio.h>
 
-int main() {
-    struct timespec start, duration, end;
-    
-    start.tv_sec = 100;
-    start.tv_nsec = 500000000;  // 100.5 seconds
-    
-    duration.tv_sec = 0;
-    duration.tv_nsec = 250000000;  // 0.25 seconds
-    
-    end = timespec_add(start, duration);
-    printf("End: %ld.%09ld\n", end.tv_sec, end.tv_nsec);  // 100.750000000
-    
-    return 0;
+int
+main()
+{
+   struct timespec  a;
+   struct timespec  b;
+   struct timespec  sum;
+
+   a = timespec_make_with_relativetime( 1.5);
+   b = timespec_make_with_relativetime( 0.75);
+   sum = timespec_add( a, b);
+
+   if( timespec_compare( sum, a) == MulleTimeDescending)
+   {
+      printf( "sum > a\n");
+   }
+   return( 0);
 }
 ```
 
-### Example 2: Time Comparison
+### Example 2: Use monotonic now for animation timing
 
 ```c
-#include <mulle-time/mulle-time.h>
+#include "mulle-timespec.h"
+#include "mulle-absolutetime.h"
 #include <stdio.h>
 
-int main() {
-    struct timespec a, b;
-    
-    a.tv_sec = 100;
-    a.tv_nsec = 100;
-    
-    b.tv_sec = 100;
-    b.tv_nsec = 200;
-    
-    mulle_time_comparison_t result = timespec_compare(a, b);
-    if (result == MulleTimeAscending)
-        printf("a < b\n");
-    else if (result == MulleTimeSame)
-        printf("a == b\n");
-    else
-        printf("a > b\n");
-    
-    return 0;
+int
+main()
+{
+   mulle_absolutetime_t  t0;
+   mulle_absolutetime_t  t1;
+
+   t0 = mulle_absolutetime_now();
+   /* do some work */
+   t1 = mulle_absolutetime_now();
+
+   printf( "elapsed: %f seconds\n", (double) (t1 - t0));
+   return( 0);
 }
 ```
 
-### Example 3: Getting Current Time (Monotonic)
+### Example 3: Calendar time and ranges
 
 ```c
-#include <mulle-time/mulle-time.h>
+#include "mulle-calendartime.h"
 #include <stdio.h>
 
-int main() {
-    mulle_absolutetime_t start = mulle_absolutetime_now();
-    
-    // Simulate work
-    for (int i = 0; i < 1000000; i++) {
-        asm volatile("");
-    }
-    
-    mulle_absolutetime_t end = mulle_absolutetime_now();
-    mulle_relativetime_t elapsed = end - start;
-    
-    printf("Elapsed: %.6f seconds\n", elapsed);
-    return 0;
-}
-```
+int
+main()
+{
+   mulle_calendartime_t   now;
+   struct mulle_calendartimerange  r;
 
-### Example 4: Time Quantization for Animations
+   now = mulle_calendartime_now();
+   r = mulle_calendartimerange_make( now, now + 3600.0);
 
-```c
-#include <mulle-time/mulle-time.h>
-#include <stdio.h>
-
-int main() {
-    // Snap animation frame times to 60 FPS (1/60 = ~0.0167s)
-    mulle_timeinterval_t frame_rate = 1.0 / 60.0;
-    
-    mulle_timeinterval_t timestamp = 1.0;  // Could be 1.15
-    mulle_timeinterval_t quantized = mulle_timeinterval_quantize(timestamp, frame_rate);
-    
-    printf("Quantized: %.4f\n", quantized);
-    return 0;
-}
-```
-
-### Example 5: Time Range Checking
-
-```c
-#include <mulle-time/mulle-time.h>
-#include <stdio.h>
-
-int main() {
-    struct mulle_absolutetimerange range;
-    range.start = 100.0;
-    range.end = 200.0;
-    
-    mulle_absolutetime_t current = 150.0;
-    
-    if (current >= range.start && current <= range.end) {
-        printf("Time is within range\n");
-    }
-    
-    return 0;
-}
-```
-
-### Example 6: Sleep with Relative Time
-
-```c
-#include <mulle-time/mulle-time.h>
-#include <stdio.h>
-
-int main() {
-    printf("Sleeping for 0.5 seconds...\n");
-    
-    mulle_relativetime_t delay = 0.5;
-    mulle_relativetime_sleep(delay);
-    
-    printf("Done sleeping\n");
-    return 0;
+   printf( "now: %f, end: %f\n", now, r.end);
+   return( 0);
 }
 ```
 
 ## 7. Dependencies
 
 - mulle-c11
+- mulle-core (this component is part of the mulle-core collection)
+- build tooling: mulle-sde (development), clib (optional for source-only install)
+
+## 8. Shortcut
+
+- If a prior TOC.md exists, inspect its commit timestamp in git to generate diffs. This TOC was generated from headers in src/ and examples in test/ on commit HEAD.
+
+--
+Generated by an AI assistant reading public headers and README.md; primary sources: src/*.h and test/ examples.

@@ -1,31 +1,25 @@
-## 0.7.0
-
-Various small improvements
-
-
-## 0.6.0
+## 0.8.0
 
 
 
-* new workflow test more compilers and platforms (stolen from zlib)
-* asset generation now improved and also does aarch64 now
 
 
-## 0.5.0
-
-* incorporate changes from subprojects
 
 
-## 0.4.0
-
-* new version, see constituents for changes
 
 
-## 0.3.0
-
-Various small improvements
 
 
-## 0.2.0
 
-* Various small improvements
+
+
+
+
+
+
+
+feature: add Windows dlfcn support and expose mulle-time in amalgamation
+
+* provide dlfcn-win32 implementation and public header to enable dlopen/dlsym on Windows
+* include mulle-time headers and sources in public includes and build so time APIs are available to consumers
+* install TOC.md from constituent libraries into share/ on install to surface per-constituent metadata
