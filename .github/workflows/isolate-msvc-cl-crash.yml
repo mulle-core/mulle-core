@@ -1,0 +1,106 @@
+name: Isolate MSVC cl.exe crash (mulle--map.c)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  isolate:
+    name: Isolate (${{ matrix.arch }})
+    runs-on: windows-latest
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: [x64, Win32]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup MSVC developer environment
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: ${{ matrix.arch == 'Win32' && 'x86' || 'x64' }}
+
+      # ------------------------------------------------------------------ #
+      # Phase A: compile mulle--map.c directly with cl.exe (no CMake)
+      # ------------------------------------------------------------------ #
+
+      - name: Phase A – Compile mulle--map.c directly (/O2)
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force cl-isolate | Out-Null
+          Write-Host "=== cl.exe version ==="
+          cl 2>&1 | Select-Object -First 2
+          Write-Host "=== Compiling with /O2 ==="
+          cl /nologo /c /W3 /O2 `
+             /I src/mulle-container `
+             /Fo:cl-isolate\mulle--map-O2.obj `
+             src/mulle-container/mulle--map.c
+          Write-Host "Exit code: $LASTEXITCODE"
+
+      - name: Phase A – Compile mulle--map.c directly (/Od)
+        shell: pwsh
+        run: |
+          Write-Host "=== Compiling with /Od ==="
+          cl /nologo /c /W3 /Od `
+             /I src/mulle-container `
+             /Fo:cl-isolate\mulle--map-Od.obj `
+             src/mulle-container/mulle--map.c
+          Write-Host "Exit code: $LASTEXITCODE"
+
+      # ------------------------------------------------------------------ #
+      # Phase B: CMake + Ninja (verbose) to capture the real compile command
+      # ------------------------------------------------------------------ #
+
+      - name: Install Ninja
+        run: choco install --no-progress ninja
+
+      - name: Phase B – Configure with CMake + Ninja + MSVC
+        shell: pwsh
+        run: |
+          $arch = "${{ matrix.arch }}"
+          # Ninja does not support -A; use CMAKE_GENERATOR_PLATFORM workaround
+          # Instead, rely on the MSVC dev-cmd already targeting the right arch
+          cmake -S . -B build-ninja-$arch -G Ninja `
+            -D CMAKE_BUILD_TYPE=Release `
+            -D CMAKE_C_COMPILER=cl `
+            -D CMAKE_CXX_COMPILER=cl
+
+      - name: Phase B – Build (verbose) and capture log
+        shell: pwsh
+        run: |
+          $arch = "${{ matrix.arch }}"
+          $logFile = "build-ninja-$arch\build.log"
+          cmake --build build-ninja-$arch --verbose 2>&1 | Tee-Object -FilePath $logFile
+          Write-Host ""
+          Write-Host "=== Build log saved to $logFile ==="
+
+      - name: Phase B – Extract mulle--map.c compile command from log
+        shell: pwsh
+        run: |
+          $arch = "${{ matrix.arch }}"
+          $logFile = "build-ninja-$arch\build.log"
+          if (-not (Test-Path $logFile)) {
+            Write-Host "Build log not found: $logFile"
+            exit 1
+          }
+          $lines = Get-Content $logFile
+          $matchLines = $lines | Select-String -Pattern "mulle--map\.c"
+          if (-not $matchLines) {
+            Write-Host "WARNING: No lines referencing mulle--map.c found in build log."
+            Write-Host "Showing last 30 lines of log for context:"
+            $lines | Select-Object -Last 30 | ForEach-Object { Write-Host $_ }
+            exit 1
+          }
+          Write-Host "=== Compile command(s) involving mulle--map.c ==="
+          $matchLines | ForEach-Object { Write-Host $_.Line }
+
+      - name: Upload build logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-log-${{ matrix.arch }}
+          path: build-ninja-${{ matrix.arch }}/build.log
+          if-no-files-found: ignore
