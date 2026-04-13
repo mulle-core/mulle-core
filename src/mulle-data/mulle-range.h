@@ -66,7 +66,7 @@ struct mulle_range
 // like uintptr_min
 #define mulle_range_location_min       (0)
 // like uintptr_max, not like get_max though!!
-#define mulle_range_location_max       (mulle_not_found_e-1)
+#define mulle_range_location_max       (mulle_not_found_e - 1)
 #define mulle_range_zero               ((struct mulle_range) { 0, 0 })
 
 // the struct and the three defines need to stay compatible with MulleObjC/mulle-objc-type.h
@@ -547,18 +547,19 @@ static inline struct mulle_range
  * @return 1 (true) if the smaller `mulle_range` is contained within the larger
  *         `mulle_range`, 0 (false) otherwise.
  */
-static inline int  mulle_range_contains( struct mulle_range big, struct mulle_range small)
+static inline int  mulle_range_contains( struct mulle_range big_range,
+                                         struct mulle_range small_range)
 {
    //
    // the problem here is mostly, if a zero length range can contain another
    // zero length range. Does a non-zero length range contain a zero length
    // range. We say yes if the location is in range.
    //
-   if( ! mulle_range_contains_location( big, small.location))
+   if( ! mulle_range_contains_location( big_range, small_range.location))
       return( 0);
-   if( ! small.length)
+   if( ! small_range.length)
       return( 1);
-   return( mulle_range_contains_location( big, mulle_range_get_max( small) - 1));
+   return( mulle_range_contains_location( big_range, mulle_range_get_max( small_range) - 1));
 }
 
 
