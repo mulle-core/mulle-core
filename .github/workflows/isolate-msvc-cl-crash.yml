@@ -36,6 +36,7 @@ jobs:
           Write-Host "=== Compiling with /O2 ==="
           cl /nologo /c /W3 /O2 `
              /I src/mulle-container `
+             /I src `
              /Fo:cl-isolate\mulle--map-O2.obj `
              src/mulle-container/mulle--map.c
           Write-Host "Exit code: $LASTEXITCODE"
@@ -46,6 +47,7 @@ jobs:
           Write-Host "=== Compiling with /Od ==="
           cl /nologo /c /W3 /Od `
              /I src/mulle-container `
+             /I src `
              /Fo:cl-isolate\mulle--map-Od.obj `
              src/mulle-container/mulle--map.c
           Write-Host "Exit code: $LASTEXITCODE"
