@@ -1,0 +1,51 @@
+name: FIL-C Memory Safety
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+  workflow_dispatch:
+
+env:
+  FILC_VERSION: "0.678"
+  BUILD_TYPE: release
+
+jobs:
+  fil-c:
+    name: Ubuntu FIL-C
+    runs-on: ubuntu-latest
+    continue-on-error: true
+
+    steps:
+    - name: Set MULLE_HOSTNAME
+      run: |
+        name="${GITHUB_REF##*/}"
+        MULLE_HOSTNAME="${MULLE_HOSTNAME:-ci-${name##*-}}"
+        echo "MULLE_HOSTNAME=${MULLE_HOSTNAME}" >> $GITHUB_ENV
+
+    - name: Add to path
+      run: echo "$HOME/bin" >> $GITHUB_PATH
+
+    - uses: actions/checkout@v4
+
+    - name: Install FIL-C
+      run: |
+        curl -L -o filc.tar.xz "https://github.com/pizlonator/fil-c/releases/download/v${FILC_VERSION}/filc-${FILC_VERSION}-linux-x86_64.tar.xz"
+        tar xf filc.tar.xz
+        echo "${PWD}/pizfix/bin" >> $GITHUB_PATH
+
+    - name: Verify FIL-C
+      run: filcc --version
+
+    - uses: mulle-sde/github-ci@v2
+
+    - name: Mulle-SDE Fetch
+      run: mulle-sde fetch
+
+    - name: Mulle-SDE Craft
+      run: mulle-sde -DCC=filcc craft --${BUILD_TYPE:-release}
+
+    - name: Mulle-SDE Test
+      run: |
+        [ ! -d test ] || mulle-sde -DCC=filcc test
