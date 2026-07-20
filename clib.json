@@ -51,6 +51,8 @@
       "src/mulle-concurrent/mulle-concurrent-hashmap.h",
       "src/mulle-concurrent/mulle-concurrent-pointerarray.c",
       "src/mulle-concurrent/mulle-concurrent-pointerarray.h",
+      "src/mulle-concurrent/mulle-concurrent-pointerset.c",
+      "src/mulle-concurrent/mulle-concurrent-pointerset.h",
       "src/mulle-concurrent/mulle-concurrent-standalone.c",
       "src/mulle-concurrent/mulle-concurrent-types.h",
       "src/mulle-concurrent/mulle-concurrent.h",
