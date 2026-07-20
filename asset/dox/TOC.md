@@ -1,5 +1,5 @@
 # mulle-core Library Documentation for AI
-<!-- Keywords: amalgamation, envelope, version, headers, dependencies -->
+<!-- Keywords: C, container, time, buffer, rbtree, printf, url, utf, thread, concurrency, vararg, regex, http, mmap, hash -->
 
 ## 1. Introduction & Purpose
 

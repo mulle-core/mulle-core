@@ -1,1 +1,1 @@
-mulle-core;${MULLE__CORE_NODETYPE:-tar};;ABDE6001-DEBC-4736-BA0D-6B0457AB177F;${MULLE__CORE_URL:-https://github.com/nat/mulle-core/archive/${MULLE_TAG}.tar.gz};${MULLE__CORE_BRANCH};${MULLE__CORE_TAG:-latest};;
+mulle-core;${MULLE__CORE_NODETYPE:-tar};;7A608A36-7A83-4A96-AEA9-4A1A9971678E;${MULLE__CORE_URL:-https://github.com/mulle-kybernetik-tv/mulle-core/archive/${MULLE_TAG}.tar.gz};${MULLE__CORE_BRANCH};${MULLE__CORE_TAG:-latest};;

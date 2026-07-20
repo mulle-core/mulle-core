@@ -53,16 +53,51 @@ int   mulle_vfprintf( FILE *fp, char *format, va_list args);
 MULLE__FPRINTF_GLOBAL
 int   mulle_mvfprintf( FILE *fp, char *format, mulle_vararg_list arguments);
 
-static inline
-int   mulle_vprintf( char *format, va_list args)
+static inline int   mulle_vprintf( char *format, va_list args)
 {
    return( mulle_vfprintf( stdout, format, args));
 }
 
-static inline
-int   mulle_mvprintf( char *format, mulle_vararg_list arguments)
+static inline int   mulle_mvprintf( char *format, mulle_vararg_list arguments)
 {
    return( mulle_mvfprintf( stdout, format, arguments));
+}
+
+
+// just to make everything look uniform
+static inline int   mulle_fputc( int c, FILE *fp)
+{
+   return( fputc( c, fp));
+}
+
+
+static inline int   mulle_putc( int c, FILE *fp)
+{
+   return( putc( c, fp));
+}
+
+
+static inline int   mulle_putchar( int c, FILE *fp)
+{
+   return( putchar( c));
+}
+
+
+static inline int   mulle_fputs( char *s, FILE *fp)
+{
+   return( fputs( s, fp));
+}
+
+
+static inline int   mulle_puts( char *s)
+{
+   return( puts( s));
+}
+
+
+static inline int   mulle_fflush( FILE *fp)
+{
+   return( fflush( fp));
 }
 
 

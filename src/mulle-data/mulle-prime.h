@@ -148,6 +148,11 @@ static inline uintptr_t   mulle_prime_hash_for_depth( uintptr_t value, int depth
    }
 
    abort();
+   // return( 0);
+   // depending on the compiler, some will say:
+   // "Hey, no return here!""
+   // uncomment and others will say
+   // "Hey, this will never be reached!"
 }
 
 #endif

@@ -20,6 +20,7 @@ src/mulle-buffer/mulle-buffer.c
 src/mulle-buffer/mulle-flushablebuffer.c
 src/mulle-concurrent/mulle-concurrent-hashmap.c
 src/mulle-concurrent/mulle-concurrent-pointerarray.c
+src/mulle-concurrent/mulle-concurrent-pointerset.c
 src/mulle-container-debug/mulle--array-debug.c
 src/mulle-container-debug/mulle-array-debug.c
 src/mulle-container-debug/mulle--assoc-debug.c
