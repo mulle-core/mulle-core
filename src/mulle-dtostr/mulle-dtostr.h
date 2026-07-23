@@ -8,7 +8,7 @@
 #ifndef MULLE__DTOSTR_H
 #define MULLE__DTOSTR_H
 
-#define MULLE__DTOSTR_VERSION   ((0 << 24) | (1 << 8) | 0)
+#define MULLE__DTOSTR_VERSION   ((0 << 24) | (1 << 8) | 2)
 
 #include <mulle-c11/mulle-c11.h>
 #include <stdint.h>
