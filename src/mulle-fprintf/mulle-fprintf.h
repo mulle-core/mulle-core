@@ -77,7 +77,7 @@ static inline int   mulle_putc( int c, FILE *fp)
 }
 
 
-static inline int   mulle_putchar( int c, FILE *fp)
+static inline int   mulle_putchar( int c)
 {
    return( putchar( c));
 }
