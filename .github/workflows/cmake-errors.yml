@@ -38,13 +38,13 @@ jobs:
             build-config: Debug
 
           - name: Windows MSVC Win32
-            os: windows-latest
+            os: windows-2022
             compiler: cl
             cflags: /WX /W3
             cmake-args: -A Win32
 
           - name: Windows MSVC Win64
-            os: windows-latest
+            os: windows-2022
             compiler: cl
             cflags: /WX /W3 /wd4244  # fixes some warnings in http_parser.c which is not my code
             cmake-args: -A x64
