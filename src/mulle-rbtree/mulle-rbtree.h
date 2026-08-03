@@ -1,5 +1,5 @@
 //
-//  mulle-rbtree.c
+//  mulle-rbtree.h
 //  mulle-rbtree
 //
 //  Copyright (c) 2023 Nat! - Mulle kybernetiK.

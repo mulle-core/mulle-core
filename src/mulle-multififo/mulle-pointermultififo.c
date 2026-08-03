@@ -1,10 +1,10 @@
 //
-//  mulle--pointerfifo.h
+//  mulle-pointermultififo.c
 //  mulle-multififo
 //
-//  Created by Nat! on 10.02.2021
-//  Copyright © 2021 Nat! for Mulle kybernetiK.
+//  Copyright (c) 2021 Nat! - Mulle kybernetiK.
 //  All rights reserved.
+//
 //
 //  Redistribution and use in source and binary forms, with or without
 //  modification, are permitted provided that the following conditions are met:

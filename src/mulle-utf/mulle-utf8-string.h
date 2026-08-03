@@ -1,5 +1,5 @@
 //
-//  mulle-utf8-string.c
+//  mulle-utf8-string.h
 //  mulle-utf
 //
 //  Copyright (c) 2023 Nat! - Mulle kybernetiK.

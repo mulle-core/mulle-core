@@ -2,6 +2,12 @@
 
 #### 🌋 Almagamated library of mulle-core + mulle-concurrent + mulle-c
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset=".github/mulle-core-stack.svg">
+  <source media="(prefers-color-scheme: light)" srcset=".github/mulle-core-stack-light.svg">
+  <img alt="The mulle-core amalgamation: constituent libraries grouped by field" src=".github/mulle-core-stack-light.svg" width="100%">
+</picture>
+
 This is an almagamation of the [mulle-core](//github.com/mulle-core),
 [mulle-concurrent](//github.com/mulle-concurrent),
 [mulle-c](//github.com/mulle-c) projects that need not be forced linked. See

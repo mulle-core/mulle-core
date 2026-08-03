@@ -2,8 +2,7 @@
 //  mulle-url.h
 //  mulle-url
 //
-//  Created by Nat! on 18.03.16.
-//  Copyright © 2016 Mulle kybernetiK.
+//  Copyright (c) 2020 Nat! - Mulle kybernetiK.
 //  Copyright (c) 2016 Codeon GmbH.
 //  All rights reserved.
 //
