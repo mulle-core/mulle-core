@@ -1,9 +1,10 @@
 //
-//  mulle_pointerpairarray.c
-//  mulle-container
+//  mulle--pointerpairarray-debug.c
+//  mulle-container-debug
 //
-//  Created by Nat! on 03.11.16.
-//  Copyright © 2016 Mulle kybernetiK. All rights reserved.
+//  Copyright (c) 2024 Nat! - Mulle kybernetiK.
+//  All rights reserved.
+//
 //
 //  Redistribution and use in source and binary forms, with or without
 //  modification, are permitted provided that the following conditions are met:

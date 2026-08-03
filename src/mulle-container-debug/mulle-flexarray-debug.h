@@ -1,11 +1,11 @@
 //
-//  mulle-flexarray.h
-//  mulle-container
+//  mulle-flexarray-debug.h
+//  mulle-container-debug
 //
-//  Created by Nat! on 22/08/16.
-//  Copyright (c) 2022 Nat! - Mulle kybernetiK.
+//  Copyright (c) 2024 Nat! - Mulle kybernetiK.
 //  Copyright (c) 2022 Codeon GmbH.
 //  All rights reserved.
+//
 //
 //  Redistribution and use in source and binary forms, with or without
 //  modification, are permitted provided that the following conditions are met:
@@ -33,7 +33,6 @@
 //  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 //  POSSIBILITY OF SUCH DAMAGE.
 //
-
 #ifndef mulle_flexarray_debug_h__
 #define mulle_flexarray_debug_h__
 

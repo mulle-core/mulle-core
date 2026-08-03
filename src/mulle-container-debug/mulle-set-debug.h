@@ -1,13 +1,10 @@
 //
-//  mulle-set.h
-//  mulle-container
+//  mulle-set-debug.h
+//  mulle-container-debug
 //
-//  Created by Nat! on 17.04.16.
-//  Copyright © 2016 Mulle kybernetiK. All rights reserved.
+//  Copyright (c) 2024 Nat! - Mulle kybernetiK.
+//  All rights reserved.
 //
-
-//
-//  Copyright (C) 2011 Nat!, Mulle kybernetiK.
 //
 //  Redistribution and use in source and binary forms, with or without
 //  modification, are permitted provided that the following conditions are met:

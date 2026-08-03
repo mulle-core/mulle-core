@@ -1,8 +1,10 @@
-//  mulle--array.h
-//  mulle-container
 //
-//  Copyright (C) 2011 Nat!, Mulle kybernetiK.
+//  mulle--array-debug.h
+//  mulle-container-debug
+//
+//  Copyright (c) 2024 Nat! - Mulle kybernetiK.
 //  All rights reserved.
+//
 //
 //  Redistribution and use in source and binary forms, with or without
 //  modification, are permitted provided that the following conditions are met:
