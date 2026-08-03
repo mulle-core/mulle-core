@@ -41,13 +41,15 @@ jobs:
             os: windows-latest
             compiler: cl
             cflags: /WX /W3
-            cmake-args: -A Win32
+            cmake-args: -G Ninja
+            msvc-arch: x86
 
           - name: Windows MSVC Win64
             os: windows-latest
             compiler: cl
             cflags: /WX /W3 /wd4244  # fixes some warnings in http_parser.c which is not my code
-            cmake-args: -A x64
+            cmake-args: -G Ninja
+            msvc-arch: x64
 
           - name: Windows GCC
             os: windows-latest
@@ -73,6 +75,12 @@ jobs:
       if: runner.os == 'Windows'
       run: |
         choco install --no-progress ninja ${{ matrix.packages }}
+
+    - name: Setup MSVC developer environment
+      if: matrix.msvc-arch
+      uses: ilammy/msvc-dev-cmd@v1
+      with:
+        arch: ${{ matrix.msvc-arch }}
 
     - name: Generate project files
       run: cmake -S ${{ matrix.src-dir || '.' }} -B ${{ matrix.build-dir || '.' }} ${{ matrix.cmake-args }} -D CMAKE_BUILD_TYPE=${{ matrix.build-config || 'Release' }}
