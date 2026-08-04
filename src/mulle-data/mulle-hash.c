@@ -34,6 +34,10 @@
 //
 #include "mulle-hash.h"
 
+#if defined( _MSC_VER)
+#  define XXH_FORCE_MEMORY_ACCESS 2 /* MSVC /O2 crashes on the portable memcpy read (fatal error C1001) */
+#endif
+
 #define XXH_STATIC_LINKING_ONLY /* access advanced declarations */
 #define XXH_IMPLEMENTATION      /* access definitions */
 

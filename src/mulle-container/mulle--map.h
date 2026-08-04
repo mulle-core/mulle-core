@@ -654,7 +654,16 @@ static inline struct mulle__mapenumerator
    struct mulle__genericpointermapenumerator   tmp;
 
    tmp = mulle__pointermap_enumerate_generic( (struct mulle__pointermap *) map, callback);
+#if defined( _MSC_VER)
+   // MSVC (VS 2022 / 14.44) hits an internal compiler error (fatal error C1001)
+   // in the /O2 optimizer on the memcpy() below, so copy the struct member by
+   // member instead. The two structs share the same base layout.
+   rover._base    = tmp._base;
+   rover._space   = tmp._space;
+   rover._notakey = tmp._notakey;
+#else
    memcpy( &rover, &tmp, sizeof( struct mulle__genericpointermapenumerator));
+#endif
    return( rover);
 }
 
