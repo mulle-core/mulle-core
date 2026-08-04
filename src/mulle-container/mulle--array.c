@@ -412,7 +412,11 @@ char   *_mulle__array_describe( struct mulle__array *array,
 
       if( separate)
       {
+#ifdef _MSC_VER
+         result[ len] = ','; result[ len + 1] = ' ';
+#else
          memcpy( &result[ len], ", ", 2);
+#endif
          len   += 2;
       }
 

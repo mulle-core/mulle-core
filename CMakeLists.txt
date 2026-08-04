@@ -8,7 +8,7 @@
 #
 cmake_minimum_required( VERSION 3.19...99.99) # for REAL_PATH
 
-project( mulle-core VERSION 0.8.1 LANGUAGES C)
+project( mulle-core VERSION 0.9.0 LANGUAGES C)
 
 # Common compiler flags for all platforms and compilers
 set(COMMON_C_FLAGS "")
@@ -128,17 +128,31 @@ if( LINK_PHASE)
    target_link_options( "${LIBRARY_LINK_TARGET}" PUBLIC)
 endif()
 
-# Install TOC.md from constituent libraries
+# Install the API TOC of each constituent library.
+#
+# clib flattens paths to their basename, so a constituent's
+# "asset/dox/api/toc/index.md" arrives here as "src/<name>/index.md" and the
+# legacy "asset/dox/TOC.md" arrives as "src/<name>/TOC.md". Accept both, but
+# prefer "index.md".
+#
+# Always install as "share/<name>/dox/api/toc/index.md", which is where
+# `mulle-sde api` looks. Note that DESTINATION is a directory, the filename is
+# set with RENAME.
+#
 if( LINK_PHASE)
    foreach( SUB_PROJECT_NAME ${SUB_PROJECT_NAMES})
-      set( SUB_ASSETS_TOC "${CMAKE_CURRENT_SOURCE_DIR}/src/${SUB_PROJECT_NAME}/TOC.md")
+      set( SUB_ASSETS_TOC "${CMAKE_CURRENT_SOURCE_DIR}/src/${SUB_PROJECT_NAME}/index.md")
+      if( NOT EXISTS "${SUB_ASSETS_TOC}")
+         set( SUB_ASSETS_TOC "${CMAKE_CURRENT_SOURCE_DIR}/src/${SUB_PROJECT_NAME}/TOC.md")
+      endif()
       if( EXISTS "${SUB_ASSETS_TOC}")
-         message( STATUS "Installing TOC.md from ${SUB_PROJECT_NAME}")
+         message( STATUS "Installing API TOC from ${SUB_PROJECT_NAME}")
          install( FILES "${SUB_ASSETS_TOC}"
+                  DESTINATION "share/${SUB_PROJECT_NAME}/dox/api/toc"
+                  RENAME "index.md"
                   PERMISSIONS OWNER_WRITE OWNER_READ
                               GROUP_READ
-                              WORLD_READ
-                  DESTINATION "share/${SUB_PROJECT_NAME}/dox")
+                              WORLD_READ)
       endif()
    endforeach()
 endif()

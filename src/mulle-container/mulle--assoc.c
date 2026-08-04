@@ -666,28 +666,44 @@ char   *_mulle__assoc_describe( struct mulle__assoc *assoc,
       separate  = result != NULL;
       result    = mulle_allocator_realloc( allocator,
                                            result,
-                                           len + (separate * 2) + 2 + key_len + 1 \
+                                           len + (separate * 2) + 2 + key_len + 1
                                             + 2 + value_len + 2 + 1);
 
       if( separate)
       {
+#ifdef _MSC_VER
+         result[ len] = ','; result[ len + 1] = ' ';
+#else
          memcpy( &result[ len], ", ", 2);
+#endif
          len   += 2;
       }
 
+#ifdef _MSC_VER
+      result[ len] = '{'; result[ len + 1] = ' ';
+#else
       memcpy( &result[ len], "{ ", 2);
+#endif
       len   += 2;
 
       memcpy( &result[ len], key, key_len);
       len += key_len;
 
+#ifdef _MSC_VER
+      result[ len] = ','; result[ len + 1] = ' ';
+#else
       memcpy( &result[ len], ", ", 2);
+#endif
       len   += 2;
 
       memcpy( &result[ len], value, value_len);
       len += value_len;
 
+#ifdef _MSC_VER
+      result[ len] = ' '; result[ len + 1] = '}';
+#else
       memcpy( &result[ len], " }", 2);
+#endif
       len   += 2;
 
       if( value_allocator)
