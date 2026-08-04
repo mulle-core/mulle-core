@@ -41,14 +41,16 @@ jobs:
             os: windows-2022
             compiler: cl
             cflags: /WX /W3
-            cmake-args: -G Ninja
+            # MSVC 14.44 optimizer (cl) hits fatal error C1001 at /O2, use /O1
+            cmake-args: -G Ninja -D CMAKE_C_FLAGS_RELEASE="/O1 /Ob2 /DNDEBUG"
             msvc-arch: x86
 
           - name: Windows MSVC Win64
             os: windows-2022
             compiler: cl
             cflags: /WX /W3 /wd4244  # fixes some warnings in http_parser.c which is not my code
-            cmake-args: -G Ninja
+            # MSVC 14.44 optimizer (cl) hits fatal error C1001 at /O2, use /O1
+            cmake-args: -G Ninja -D CMAKE_C_FLAGS_RELEASE="/O1 /Ob2 /DNDEBUG"
             msvc-arch: x64
 
           - name: Windows GCC

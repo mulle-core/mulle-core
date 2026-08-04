@@ -167,11 +167,10 @@ char   *_mulle__set_describe( struct mulle__set *set,
 
       if( separate)
       {
-#ifdef _MSC_VER
-         result[ len] = ','; result[ len + 1] = ' ';
-#else
+         // MSVC (VS 2022 / 14.44) fatally crashes with C1001 in the /O2
+         // optimizer on memcpy() here. CI lowers MSVC to /O1, so no code
+         // workaround is needed.
          memcpy( &result[ len], ", ", 2);
-#endif
          len += 2;
       }
 

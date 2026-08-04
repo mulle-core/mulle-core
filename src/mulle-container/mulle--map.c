@@ -227,22 +227,20 @@ char   *_mulle__map_describe( struct mulle__map *map,
 
       if( separate)
       {
-#ifdef _MSC_VER
-         result[ len] = ','; result[ len + 1] = ' ';
-#else
+         // MSVC (VS 2022 / 14.44) fatally crashes with C1001 in the /O2
+         // optimizer on memcpy() here. CI lowers MSVC to /O1, so no code
+         // workaround is needed.
          memcpy( &result[ len], ", ", 2);
-#endif
          len   += 2;
       }
 
       memcpy( &result[ len], key, key_len);
       len += key_len;
 
-#ifdef _MSC_VER
-      result[ len] = ' '; result[ len + 1] = '='; result[ len + 2] = ' ';
-#else
+      // MSVC (VS 2022 / 14.44) fatally crashes with C1001 in the /O2
+      // optimizer on memcpy() here. CI lowers MSVC to /O1, so no code
+      // workaround is needed.
       memcpy( &result[ len], " = ", 3);
-#endif
       len += 3;
 
       memcpy( &result[ len], value, value_len);

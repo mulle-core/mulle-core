@@ -66,16 +66,9 @@ static inline struct mulle_maptinyenumerator
    struct mulle__maptinyenumerator   tmp;
 
    tmp = mulle__map_tinyenumerate_nil( (struct mulle__map *) map);
-#if defined( _MSC_VER)
-   // MSVC (VS 2022 / 14.44) hits an internal compiler error (fatal error C1001)
-   // in the /O2 optimizer on the memcpy() below, so copy the struct member by
-   // member instead. The structs share the same base layout.
-   rover._curr   = tmp._curr;
-   rover._left   = tmp._left;
-   rover._offset = tmp._offset;
-#else
+   // MSVC (VS 2022 / 14.44) fatally crashes with C1001 in the /O2 optimizer on
+   // this memcpy(). CI lowers MSVC to /O1, so no code workaround is needed.
    memcpy( &rover, &tmp, sizeof( struct mulle__maptinyenumerator));
-#endif
    return( rover);
 }
 
