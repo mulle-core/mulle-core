@@ -167,7 +167,11 @@ char   *_mulle__set_describe( struct mulle__set *set,
 
       if( separate)
       {
+#ifdef _MSC_VER
+         result[ len] = ','; result[ len + 1] = ' ';
+#else
          memcpy( &result[ len], ", ", 2);
+#endif
          len += 2;
       }
 

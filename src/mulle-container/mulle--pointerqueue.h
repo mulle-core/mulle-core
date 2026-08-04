@@ -50,9 +50,9 @@ struct mulle__pointerqueuebucket;
    struct mulle__pointerqueuebucket   *_spares;          \
    struct mulle__pointerqueuebucket   *_read;            \
    struct mulle__pointerqueuebucket   *_write;           \
-   size_t                       _count;            \
-   size_t                       _read_index;       \
-   size_t                       _write_index;      \
+   size_t                             _count;            \
+   size_t                             _read_index;       \
+   size_t                             _write_index;      \
                                                          \
    unsigned short                     _bucket_size;      \
    unsigned short                     _spare_allowance
