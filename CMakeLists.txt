@@ -1,10 +1,10 @@
 #
 # You rarely need to edit this file. To add or remove files in your
-# project edit the "src" folders contents and run `mulle-sde reflect`
+# project edit the "mulle-core" folders contents and run `mulle-sde reflect`
 #
 #
 # A convenient way to add a new source file is:
-#    mulle-sde add src/foo.c
+#    mulle-sde add mulle-core/foo.c
 #
 cmake_minimum_required( VERSION 3.19...99.99) # for REAL_PATH
 
@@ -53,7 +53,7 @@ include( Files)
 # include( IDESupport OPTIONAL)
 
 unset( SUB_PROJECT_NAMES)
-file( GLOB SUB_PROJECT_PATHS src/mulle-*)
+file( GLOB SUB_PROJECT_PATHS mulle-core/mulle-*)
 
 foreach( SUB_PROJECT_PATH ${SUB_PROJECT_PATHS})
    if( IS_DIRECTORY "${SUB_PROJECT_PATH}")
@@ -141,9 +141,9 @@ endif()
 #
 if( LINK_PHASE)
    foreach( SUB_PROJECT_NAME ${SUB_PROJECT_NAMES})
-      set( SUB_ASSETS_TOC "${CMAKE_CURRENT_SOURCE_DIR}/src/${SUB_PROJECT_NAME}/index.md")
+      set( SUB_ASSETS_TOC "${CMAKE_CURRENT_SOURCE_DIR}/mulle-core/${SUB_PROJECT_NAME}/index.md")
       if( NOT EXISTS "${SUB_ASSETS_TOC}")
-         set( SUB_ASSETS_TOC "${CMAKE_CURRENT_SOURCE_DIR}/src/${SUB_PROJECT_NAME}/TOC.md")
+         set( SUB_ASSETS_TOC "${CMAKE_CURRENT_SOURCE_DIR}/mulle-core/${SUB_PROJECT_NAME}/TOC.md")
       endif()
       if( EXISTS "${SUB_ASSETS_TOC}")
          message( STATUS "Installing API TOC from ${SUB_PROJECT_NAME}")

@@ -35,9 +35,9 @@ jobs:
           cl 2>&1 | Select-Object -First 2
           Write-Host "=== Compiling with /O2 ==="
           cl /nologo /c /W3 /O2 `
-             /I src/mulle-container `
+             /I mulle-core/mulle-container `
              /Fo:cl-isolate\mulle--map-O2.obj `
-             src/mulle-container/mulle--map.c
+             mulle-core/mulle-container/mulle--map.c
           Write-Host "Exit code: $LASTEXITCODE"
 
       - name: Phase A – Compile mulle--map.c directly (/Od)
@@ -45,9 +45,9 @@ jobs:
         run: |
           Write-Host "=== Compiling with /Od ==="
           cl /nologo /c /W3 /Od `
-             /I src/mulle-container `
+             /I mulle-core/mulle-container `
              /Fo:cl-isolate\mulle--map-Od.obj `
-             src/mulle-container/mulle--map.c
+             mulle-core/mulle-container/mulle--map.c
           Write-Host "Exit code: $LASTEXITCODE"
 
       # ------------------------------------------------------------------ #

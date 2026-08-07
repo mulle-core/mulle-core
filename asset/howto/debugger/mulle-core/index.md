@@ -2,7 +2,7 @@
 
 # mulle-core
 
-Use this topic after you already have a stacktrace or failing test and need the local interpretation step. `mulle-core` is mostly an envelope, so the first debugging move is to map the symptom from `src/mulle-core.h` to the owning constituent header.
+Use this topic after you already have a stacktrace or failing test and need the local interpretation step. `mulle-core` is mostly an envelope, so the first debugging move is to map the symptom from `mulle-core/mulle-core.h` to the owning constituent header.
 
 ## Understand first
 
@@ -19,30 +19,30 @@ mulle-sde code search http_parser_execute
 
 - `README.md`
 - `asset/dox/TOC.md`
-- `src/mulle-core.h`
-- `src/mulle-sprintf/mulle-sprintf.h`
-- `src/mulle-container/mulle-array.h`
-- `src/mulle-container/mulle-map.h`
-- `src/mulle-container/mulle-container-callback-global.h`
-- `src/mulle-container-debug/mulle-pointerarray-debug.h`
-- `src/mulle-rbtree-debug/mulle-rbtree-debug.h`
-- `src/mulle-concurrent/mulle-concurrent-hashmap.h`
-- `src/mulle-thread/mulle-thread.h`
-- `src/mulle-http/TOC.md`
-- `src/mulle-http/http_parser.h`
-- `src/mulle-utf/mulle-utf-rover.h`
-- `src/mulle-time/TOC.md`
+- `mulle-core/mulle-core.h`
+- `mulle-core/mulle-sprintf/mulle-sprintf.h`
+- `mulle-core/mulle-container/mulle-array.h`
+- `mulle-core/mulle-container/mulle-map.h`
+- `mulle-core/mulle-container/mulle-container-callback-global.h`
+- `mulle-core/mulle-container-debug/mulle-pointerarray-debug.h`
+- `mulle-core/mulle-rbtree-debug/mulle-rbtree-debug.h`
+- `mulle-core/mulle-concurrent/mulle-concurrent-hashmap.h`
+- `mulle-core/mulle-thread/mulle-thread.h`
+- `mulle-core/mulle-http/TOC.md`
+- `mulle-core/mulle-http/http_parser.h`
+- `mulle-core/mulle-utf/mulle-utf-rover.h`
+- `mulle-core/mulle-time/TOC.md`
 - `test/README.md`
 
 ## Main local surfaces
 
 | Symptom | Start here | Local read |
 | --- | --- | --- |
-| Missing export, wrong include, version mismatch | `src/mulle-core.h` | Confirm the constituent header is re-exported by the envelope before chasing implementation bugs. |
-| Array/map corruption, ownership leaks, wrong sentinel | `src/mulle-container/mulle-array.h`, `src/mulle-container/mulle-map.h`, `src/mulle-container-debug/mulle-pointerarray-debug.h` | The callback preset defines retain/release, equality, hashing, and `notakey`; inspect that contract first. |
-| Sorted structure corruption | `src/mulle-rbtree-debug/mulle-rbtree-debug.h` | Validate invariants first, then render ASCII or DOT if the shape matters. |
-| Racy insert/remove or deadlock | `src/mulle-concurrent/mulle-concurrent-hashmap.h`, `src/mulle-thread/mulle-thread.h` | Sentinel restrictions and scoped mutex/once macros explain many local failures. |
-| Short parses, bad slices, wrong timer math | `src/mulle-http/TOC.md`, `src/mulle-utf/mulle-utf-rover.h`, `src/mulle-time/TOC.md` | These APIs are length- and domain-driven; inspect lengths, fragments, and time-type mixups. |
+| Missing export, wrong include, version mismatch | `mulle-core/mulle-core.h` | Confirm the constituent header is re-exported by the envelope before chasing implementation bugs. |
+| Array/map corruption, ownership leaks, wrong sentinel | `mulle-core/mulle-container/mulle-array.h`, `mulle-core/mulle-container/mulle-map.h`, `mulle-core/mulle-container-debug/mulle-pointerarray-debug.h` | The callback preset defines retain/release, equality, hashing, and `notakey`; inspect that contract first. |
+| Sorted structure corruption | `mulle-core/mulle-rbtree-debug/mulle-rbtree-debug.h` | Validate invariants first, then render ASCII or DOT if the shape matters. |
+| Racy insert/remove or deadlock | `mulle-core/mulle-concurrent/mulle-concurrent-hashmap.h`, `mulle-core/mulle-thread/mulle-thread.h` | Sentinel restrictions and scoped mutex/once macros explain many local failures. |
+| Short parses, bad slices, wrong timer math | `mulle-core/mulle-http/TOC.md`, `mulle-core/mulle-utf/mulle-utf-rover.h`, `mulle-core/mulle-time/TOC.md` | These APIs are length- and domain-driven; inspect lengths, fragments, and time-type mixups. |
 
 ## Primary local workflow
 
@@ -55,4 +55,4 @@ mulle-sde code search http_parser_execute
 
 - Name the constituent family in the report, not only `mulle-core`.
 - Say whether a helper returned borrowed state (`mulle__rbtree_validate`) or owned memory (`mulle_pointerarray_describe`).
-- If the change touched `src/mulle-core.h`, call out that the public envelope changed.
+- If the change touched `mulle-core/mulle-core.h`, call out that the public envelope changed.

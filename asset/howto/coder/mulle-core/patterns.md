@@ -10,12 +10,12 @@
 #include <mulle-core/mulle-core.h>
 ```
 
-- Use `src/mulle-core.h` for version checks and for the authoritative list of exported families.
+- Use `mulle-core/mulle-core.h` for version checks and for the authoritative list of exported families.
 - When behavior matters, open the constituent header next; the umbrella header does not redefine buffer, container, thread, or parser semantics.
 
 ## Use scoped buffers for transient output
 
-- `src/mulle-buffer/mulle-buffer.h` favors scoped macros over manual lifetime code.
+- `mulle-core/mulle-buffer/mulle-buffer.h` favors scoped macros over manual lifetime code.
 - `mulle_buffer_do` gives you a small stack-backed flexible buffer first and cleans it up automatically.
 - `mulle_buffer_do_string` is the shortest path when you need an owned C string result.
 
@@ -32,11 +32,11 @@ fputs( s, stderr);
 mulle_free( s);
 ```
 
-- For short-lived formatted text with no explicit buffer variable, `src/mulle-sprintf/mulle-sprintf.h` offers `mulle_sprintf_do`.
+- For short-lived formatted text with no explicit buffer variable, `mulle-core/mulle-sprintf/mulle-sprintf.h` offers `mulle_sprintf_do`.
 
 ## Pick the container callback before you pick the container
 
-- `src/mulle-container/mulle-container-callback-global.h` exposes the common ownership presets: copied, nonowned, owned, pointer, and integer variants.
+- `mulle-core/mulle-container/mulle-container-callback-global.h` exposes the common ownership presets: copied, nonowned, owned, pointer, and integer variants.
 - Arrays embed one key callback plus the allocator. Maps embed a key/value callback pair plus the allocator.
 - For C strings, start with `mulle_container_keycallback_copied_cstring` unless you have a good reason to keep external ownership.
 
@@ -49,15 +49,15 @@ mulle_array_add( &array, "beta");
 mulle_array_done( &array);
 ```
 
-- For integers, `src/mulle-container/mulle-array.h` allows `mulle_container_keycallback_int` plus `mulle_int_as_pointer()` / `mulle_pointer_as_int()`, but the same header says `mulle-structarray` is the better fit for dense integer storage.
-- For maps, use the operation that matches your duplicate policy from `src/mulle-container/mulle-map.h`: `insert` for fail-on-duplicate, `register` for "existing or new", `update` for replace-existing, `set` for unconditional convenience.
+- For integers, `mulle-core/mulle-container/mulle-array.h` allows `mulle_container_keycallback_int` plus `mulle_int_as_pointer()` / `mulle_pointer_as_int()`, but the same header says `mulle-structarray` is the better fit for dense integer storage.
+- For maps, use the operation that matches your duplicate policy from `mulle-core/mulle-container/mulle-map.h`: `insert` for fail-on-duplicate, `register` for "existing or new", `update` for replace-existing, `set` for unconditional convenience.
 
 ## Separate lock-free mutation from traversal
 
-- `src/mulle-concurrent/mulle-concurrent-hashmap.h` is the local concurrent table surface.
+- `mulle-core/mulle-concurrent/mulle-concurrent-hashmap.h` is the local concurrent table surface.
 - Initialize once, then use `mulle_concurrent_hashmap_register` or `mulle_concurrent_hashmap_insert` for publication.
 - Keep enumeration isolated from mutation-heavy code paths; the header only promises a limited, thread-local enumerator.
-- For one-time setup around those structures, prefer the block form from `src/mulle-thread/mulle-thread.h`:
+- For one-time setup around those structures, prefer the block form from `mulle-core/mulle-thread/mulle-thread.h`:
 
 ```c
 mulle_thread_once_do( once_token)
@@ -68,7 +68,7 @@ mulle_thread_once_do( once_token)
 
 ## Treat HTTP, URL, UTF, and time as length-driven helpers
 
-- `src/mulle-http/http_parser.h` and `src/mulle-http/TOC.md` show the normal parser shape: fill `http_parser_settings`, call `http_parser_init`, feed chunks with `http_parser_execute`, then inspect `parser.http_errno` if parsing stops early.
+- `mulle-core/mulle-http/http_parser.h` and `mulle-core/mulle-http/TOC.md` show the normal parser shape: fill `http_parser_settings`, call `http_parser_init`, feed chunks with `http_parser_execute`, then inspect `parser.http_errno` if parsing stops early.
 
 ```c
 struct http_parser           parser;
@@ -81,8 +81,8 @@ if( parsed < strlen( request))
    fprintf( stderr, "%s\n", http_errno_name( parser.http_errno));
 ```
 
-- Use `http_parser_parse_url` for actual URL component extraction. `src/mulle-url/_mulle-url-provide.h` is mainly the character-validation layer that supports parsing.
-- Use `src/mulle-utf/mulle-utf-rover.h` when you need one iterator shape across UTF-8, UTF-16, and UTF-32:
+- Use `http_parser_parse_url` for actual URL component extraction. `mulle-core/mulle-url/_mulle-url-provide.h` is mainly the character-validation layer that supports parsing.
+- Use `mulle-core/mulle-utf/mulle-utf-rover.h` when you need one iterator shape across UTF-8, UTF-16, and UTF-32:
 
 ```c
 struct mulle_utf_rover  rover;
@@ -92,4 +92,4 @@ while( _mulle_utf_rover_has_character( &rover))
    consume( _mulle_utf_rover_next_character( &rover));
 ```
 
-- Use typed time helpers from `src/mulle-time/mulle-relativetime.h` and `src/mulle-time/TOC.md` to keep duration, monotonic time, and calendar time separate.
+- Use typed time helpers from `mulle-core/mulle-time/mulle-relativetime.h` and `mulle-core/mulle-time/TOC.md` to keep duration, monotonic time, and calendar time separate.

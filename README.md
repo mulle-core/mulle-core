@@ -86,7 +86,7 @@ The advantages of using **mulle-core** over the individual projects are:
 > ``` bash
 > mulle-sde dependency add --amalgamated \
 >                          --fetchoptions "clibmode=copy" \
->                          --address src/mulle-container-debug \
+>                          --address mulle-core/mulle-container-debug \
 >                          clib:mulle-c/mulle-container-debug
 > ```
 >

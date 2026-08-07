@@ -48,7 +48,7 @@
   - mulle-sprintf / mulle-fprintf — formatting helpers
   - mulle-thread — cross-platform threading and synchronization
 
-- For full API surface, consult each constituent's public headers under src/<component>/ (this envelope does not redefine constituent function signatures).
+- For full API surface, consult each constituent's public headers under mulle-core/<component>/ (this envelope does not redefine constituent function signatures).
 
 ## 4. Performance Characteristics
 
@@ -140,4 +140,4 @@ Notes: examples use the constituent APIs re-exported by the envelope header. Con
 
 ---
 
-References: README.md (project overview), src/mulle-core.h (envelope header), .mulle/etc/sourcetree/config (dependency list).
+References: README.md (project overview), mulle-core/mulle-core.h (envelope header), .mulle/etc/sourcetree/config (dependency list).

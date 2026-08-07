@@ -203,6 +203,32 @@ if( LIBRARY_SOURCES OR OTHER_LIBRARY_OBJECT_FILES OR OTHER_${LIBRARY_UPCASE_IDEN
          #
       endif()
 
+      #
+      # INTERFACE propagation for add_subdirectory consumers.
+      # Transitive dependencies and include paths are propagated so that
+      # a simple target_link_libraries( app PRIVATE <library>) suffices.
+      #
+      set( _INTERFACE_LIBS
+         ${DEPENDENCY_LIBRARIES}
+         ${DEPENDENCY_FRAMEWORKS}
+         ${OS_SPECIFIC_LIBRARIES}
+         ${OS_SPECIFIC_FRAMEWORKS}
+      )
+      if( _INTERFACE_LIBS)
+         target_link_libraries( "${LIBRARY_NAME}" INTERFACE ${_INTERFACE_LIBS})
+      endif()
+      unset( _INTERFACE_LIBS)
+
+      foreach( _inc_dir ${INCLUDE_DIRS})
+         if( NOT IS_ABSOLUTE "${_inc_dir}")
+            set( _inc_dir "${CMAKE_CURRENT_SOURCE_DIR}/${_inc_dir}")
+         endif()
+         target_include_directories( "${LIBRARY_NAME}" INTERFACE
+            $<BUILD_INTERFACE:${_inc_dir}>
+         )
+      endforeach()
+      unset( _inc_dir)
+
       set( INSTALL_LIBRARY_TARGETS
          "${LIBRARY_NAME}"
          ${INSTALL_LIBRARY_TARGETS}

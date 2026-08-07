@@ -36,7 +36,7 @@ if( NOT __INSTALL_CMAKE_INCLUDE__CMAKE__)
              # Get just the filename part
              get_filename_component( HEADER_FILENAME ${HEADER_REL_PATH} NAME)
 
-             # Check if its an amalgamation header was directly in src/
+             # Check if its an amalgamation header was directly in mulle-core/
              if( HEADER_REL_DIR MATCHES "^mulle-")
                  set( DEST_DIR "${CMAKE_BINARY_DIR}/include/${HEADER_REL_DIR}")
              else()

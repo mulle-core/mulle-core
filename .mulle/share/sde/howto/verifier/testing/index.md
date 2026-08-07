@@ -26,8 +26,9 @@ mulle-sde craft
 Correct:
 
 ```bash
-mulle-sde retest
-mulle-sde test craft
+mulle-sde retest # wipes stash, refetches, crafts and runs
+# or
+mulle-sde test craft  # keeps stash as is
 mulle-sde test run
 ```
 
@@ -44,12 +45,17 @@ mulle-sde vibecoding
 ## Running tests
 
 ```bash
-mulle-sde test run /absolute/path/to/file
-mulle-sde test run --rerun /absolute/path/to/file
-mulle-sde test run --timeout 10 /absolute/path/to/file
-mulle-sde test --valgrind run /absolute/path/to/file
-mulle-sde test run
-mulle-sde retest
+mulle-sde test run                           # run all tests
+mulle-sde test rerun                         # run failed and new tests
+mulle-sde retest                             # complete tidy retest (expensive)
+```
+
+
+```bash
+mulle-sde test run path/to/test                 # run a a single test
+mulle-sde test run --rerun path/to/test         # only run failed tests
+mulle-sde test run --timeout 10 path/to/test    # do not use unix timeout
+mulle-sde test --valgrind run path/to/test      # notice position!
 ```
 
 ## Recommendation for graphical executables
@@ -89,7 +95,7 @@ Note: `MULLE_TEST_RUN_TIMEOUT` controls `mulle-sde test run`.
 ```bash
 cat /absolute/path/to/file.tmp.stdout
 cat /absolute/path/to/file.tmp.stderr
-mulle-sde test run --rerun --golden-stdout /absolute/path/to/file
+mulle-sde test run --rerun --golden-stdout path/to/test
 ```
 
 Always use absolute paths with `--golden-stdout`. Relative paths can resolve

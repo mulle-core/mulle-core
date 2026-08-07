@@ -16,12 +16,12 @@ mulle-sde code search http_parser_execute
 
 ## Local references
 
-- `src/mulle-core.h`
-- `src/mulle-container/mulle-map.h`
-- `src/mulle-concurrent/mulle-concurrent-hashmap.h`
-- `src/mulle-http/http_parser.h`
-- `src/mulle-utf/TOC.md`
-- `src/mulle-time/TOC.md`
+- `mulle-core/mulle-core.h`
+- `mulle-core/mulle-container/mulle-map.h`
+- `mulle-core/mulle-concurrent/mulle-concurrent-hashmap.h`
+- `mulle-core/mulle-http/http_parser.h`
+- `mulle-core/mulle-utf/TOC.md`
+- `mulle-core/mulle-time/TOC.md`
 - `test/README.md`
 - `test/cmake/toolchain--linux-windows--x86_64-w64-mingw32--mulle-clang.cmake`
 
@@ -36,7 +36,7 @@ mulle-sde code search http_parser_execute
 
 | Surface | Cover this | Avoid this |
 | --- | --- | --- |
-| Envelope/version | Compile or run through `<mulle-core/mulle-core.h>` and the version helpers in `src/mulle-core.h`. | Testing only the constituent header and missing a broken re-export. |
+| Envelope/version | Compile or run through `<mulle-core/mulle-core.h>` and the version helpers in `mulle-core/mulle-core.h`. | Testing only the constituent header and missing a broken re-export. |
 | Buffers/formatting | Check termination, allocator ownership, and scoped macro exit behavior. | Passing only "happy string" tests that never exercise overflow or cleanup. |
 | Containers | Check callback-selected ownership, `notakey`, and the exact `insert`/`register`/`update`/`set` contract. | Treating all callbacks as `NULL`-sentinel string callbacks. |
 | Concurrency/threading | Check invalid sentinel values, enumerator mutation alerts, and required cleanup. | Pure timing-based tests with no contract assertion. |

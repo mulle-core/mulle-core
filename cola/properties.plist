@@ -25,7 +25,7 @@
       {
          description="🚮 A lock-free, cross-platform solution to the ABA problem";
          domain="clib";
-         name="src/mulle-aba";
+         name="mulle-core/mulle-aba";
          repo="mulle-aba@*";
          url="https://github.com/mulle-concurrent/mulle-aba@*";
          user="mulle-concurrent";
@@ -33,7 +33,7 @@
       {
          description="🔄 Flexible C memory allocation scheme";
          domain="clib";
-         name="src/mulle-allocator";
+         name="mulle-core/mulle-allocator";
          repo="mulle-allocator@*";
          url="https://github.com/mulle-c/mulle-allocator@*";
          user="mulle-c";
@@ -41,7 +41,7 @@
       {
          description="↗️  A growable C char array and also a stream - on stack and heap";
          domain="clib";
-         name="src/mulle-buffer";
+         name="mulle-core/mulle-buffer";
          repo="mulle-buffer@*";
          url="https://github.com/mulle-c/mulle-buffer@*";
          user="mulle-c";
@@ -49,7 +49,7 @@
       {
          description="🔀 Cross-platform C compiler glue (and some cpp conveniences)";
          domain="clib";
-         name="src/mulle-c11";
+         name="mulle-core/mulle-c11";
          repo="mulle-c11@*";
          url="https://github.com/mulle-c/mulle-c11@*";
          user="mulle-c";
@@ -57,7 +57,7 @@
       {
          description="📶 A lock- and wait-free hashtable (and an array too), written in C";
          domain="clib";
-         name="src/mulle-concurrent";
+         name="mulle-core/mulle-concurrent";
          repo="mulle-concurrent@*";
          url="https://github.com/mulle-concurrent/mulle-concurrent@*";
          user="mulle-concurrent";
@@ -65,7 +65,7 @@
       {
          description="🛄 Debugging support for mulle-container";
          domain="clib";
-         name="src/mulle-container-debug";
+         name="mulle-core/mulle-container-debug";
          repo="mulle-container-debug@*";
          url="https://github.com/mulle-c/mulle-container-debug@*";
          user="mulle-c";
@@ -73,7 +73,7 @@
       {
          description="🛄 Arrays, hashtables and a queue";
          domain="clib";
-         name="src/mulle-container";
+         name="mulle-core/mulle-container";
          repo="mulle-container@*";
          url="https://github.com/mulle-c/mulle-container@*";
          user="mulle-c";
@@ -81,7 +81,7 @@
       {
          description="#️⃣  A collection of hash functions";
          domain="clib";
-         name="src/mulle-data";
+         name="mulle-core/mulle-data";
          repo="mulle-data@*";
          url="https://github.com/mulle-c/mulle-data@*";
          user="mulle-c";
@@ -89,7 +89,7 @@
       {
          description="🧶 Double to string conversion";
          domain="clib";
-         name="src/mulle-dtostr";
+         name="mulle-core/mulle-dtostr";
          repo="mulle-dtostr@*";
          url="https://github.com/mulle-core/mulle-dtostr@*";
          user="mulle-core";
@@ -97,7 +97,7 @@
       {
          description="🐍 mulle-fifo fixed sized producer/consumer FIFOs holding `void *`";
          domain="clib";
-         name="src/mulle-fifo";
+         name="mulle-core/mulle-fifo";
          repo="mulle-fifo@*";
          url="https://github.com/mulle-concurrent/mulle-fifo@*";
          user="mulle-concurrent";
@@ -105,7 +105,7 @@
       {
          description="🔢 mulle-fprintf marries mulle-sprintf to stdio.h";
          domain="clib";
-         name="src/mulle-fprintf";
+         name="mulle-core/mulle-fprintf";
          repo="mulle-fprintf@*";
          url="https://github.com/mulle-core/mulle-fprintf@*";
          user="mulle-core";
@@ -113,7 +113,7 @@
       {
          description="🈚 http URL parser";
          domain="clib";
-         name="src/mulle-http";
+         name="mulle-core/mulle-http";
          repo="mulle-http@*";
          url="https://github.com/mulle-c/mulle-http@*";
          user="mulle-c";
@@ -121,7 +121,7 @@
       {
          description="🔂 mulle-linkedlist a wait and lock-free linked list";
          domain="clib";
-         name="src/mulle-linkedlist";
+         name="mulle-core/mulle-linkedlist";
          repo="mulle-linkedlist@*";
          url="https://github.com/mulle-concurrent/mulle-linkedlist@*";
          user="mulle-concurrent";
@@ -129,7 +129,7 @@
       {
          description="🇧🇿 Memory mapped file access";
          domain="clib";
-         name="src/mulle-mmap";
+         name="mulle-core/mulle-mmap";
          repo="mulle-mmap@*";
          url="https://github.com/mulle-core/mulle-mmap@*";
          user="mulle-core";
@@ -137,7 +137,7 @@
       {
          description="🐛 mulle-multififo multi-producer/multi-consumer FIFO holding `void *`";
          domain="clib";
-         name="src/mulle-multififo";
+         name="mulle-core/mulle-multififo";
          repo="mulle-multififo@*";
          url="https://github.com/mulle-concurrent/mulle-multififo@*";
          user="mulle-concurrent";
@@ -145,7 +145,7 @@
       {
          description="🍫 mulle-rbtree organizes data in a red/black tree";
          domain="clib";
-         name="src/mulle-rbtree";
+         name="mulle-core/mulle-rbtree";
          repo="mulle-rbtree@*";
          url="https://github.com/mulle-c/mulle-rbtree@*";
          user="mulle-c";
@@ -153,7 +153,7 @@
       {
          description="🍫 mulle-rbtree-debug organizes data in a red/black tree";
          domain="clib";
-         name="src/mulle-rbtree-debug";
+         name="mulle-core/mulle-rbtree-debug";
          repo="mulle-rbtree-debug@*";
          url="https://github.com/mulle-core/mulle-rbtree-debug@*";
          user="mulle-core";
@@ -161,7 +161,7 @@
       {
          description="📣 Unicode regex library";
          domain="clib";
-         name="src/mulle-regex";
+         name="mulle-core/mulle-regex";
          repo="mulle-regex@*";
          url="https://github.com/mulle-c/mulle-regex@*";
          user="mulle-c";
@@ -169,7 +169,7 @@
       {
          description="🐌 Creates URL slugs";
          domain="clib";
-         name="src/mulle-slug";
+         name="mulle-core/mulle-slug";
          repo="mulle-slug@*";
          url="https://github.com/mulle-c/mulle-slug@*";
          user="mulle-c";
@@ -177,7 +177,7 @@
       {
          description="🔢 An extensible sprintf function supporting stdarg and mulle-vararg";
          domain="clib";
-         name="src/mulle-sprintf";
+         name="mulle-core/mulle-sprintf";
          repo="mulle-sprintf@*";
          url="https://github.com/mulle-core/mulle-sprintf@*";
          user="mulle-core";
@@ -185,7 +185,7 @@
       {
          description="🛅 Memory management for tree nodes";
          domain="clib";
-         name="src/mulle-storage";
+         name="mulle-core/mulle-storage";
          repo="mulle-storage@*";
          url="https://github.com/mulle-c/mulle-storage@*";
          user="mulle-c";
@@ -193,7 +193,7 @@
       {
          description="🔠 Cross-platform thread/mutex/tss/atomic operations in C";
          domain="clib";
-         name="src/mulle-thread";
+         name="mulle-core/mulle-thread";
          repo="mulle-thread@*";
          url="https://github.com/mulle-concurrent/mulle-thread@*";
          user="mulle-concurrent";
@@ -201,7 +201,7 @@
       {
          description="🕕 Simple time types with arithmetic on timespec and timeval";
          domain="clib";
-         name="src/mulle-time";
+         name="mulle-core/mulle-time";
          repo="mulle-time@*";
          url="https://github.com/mulle-core/mulle-time@*";
          user="mulle-core";
@@ -209,7 +209,7 @@
       {
          description="🈚 Unicode ctype like library";
          domain="clib";
-         name="src/mulle-unicode";
+         name="mulle-core/mulle-unicode";
          repo="mulle-unicode@*";
          url="https://github.com/mulle-c/mulle-unicode@*";
          user="mulle-c";
@@ -217,7 +217,7 @@
       {
          description="🈷️ Support for URL parsing";
          domain="clib";
-         name="src/mulle-url";
+         name="mulle-core/mulle-url";
          repo="mulle-url@*";
          url="https://github.com/mulle-c/mulle-url@*";
          user="mulle-c";
@@ -225,7 +225,7 @@
       {
          description="🔤 UTF8-16-32 analysis and manipulation library";
          domain="clib";
-         name="src/mulle-utf";
+         name="mulle-core/mulle-utf";
          repo="mulle-utf@*";
          url="https://github.com/mulle-c/mulle-utf@*";
          user="mulle-c";
@@ -233,7 +233,7 @@
       {
          description="⏪ Access variable arguments in struct layout fashion in C";
          domain="clib";
-         name="src/mulle-vararg";
+         name="mulle-core/mulle-vararg";
          repo="mulle-vararg@*";
          url="https://github.com/mulle-c/mulle-vararg@*";
          user="mulle-c";
