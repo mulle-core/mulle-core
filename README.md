@@ -52,41 +52,41 @@ The advantages of using **mulle-core** over the individual projects are:
 
 | Constituent                                  | Description
 |----------------------------------------------|-----------------------
-| [mulle-allocator](https://github.com/mulle-c/mulle-allocator) | 🔄 Flexible C memory allocation scheme
-| [mulle-buffer](https://github.com/mulle-c/mulle-buffer) | ↗️  A growable C char array and also a stream - on stack and heap
-| [mulle-c11](https://github.com/mulle-c/mulle-c11) | 🔀 Cross-platform C compiler glue (and some cpp conveniences)
-| [mulle-container-debug](https://github.com/mulle-c/mulle-container-debug) | 🛄 Debugging support for mulle-container
-| [mulle-container](https://github.com/mulle-c/mulle-container) | 🛄 Arrays, hashtables and a queue
-| [mulle-data](https://github.com/mulle-c/mulle-data) | #️⃣  A collection of hash functions
-| [mulle-http](https://github.com/mulle-c/mulle-http) | 🈚 http URL parser
-| [mulle-rbtree](https://github.com/mulle-c/mulle-rbtree) | 🍫 mulle-rbtree organizes data in a red/black tree
-| [mulle-regex](https://github.com/mulle-c/mulle-regex) | 📣 Unicode regex library
-| [mulle-slug](https://github.com/mulle-c/mulle-slug) | 🐌 Creates URL slugs
-| [mulle-storage](https://github.com/mulle-c/mulle-storage) | 🛅 Memory management for tree nodes
-| [mulle-unicode](https://github.com/mulle-c/mulle-unicode) | 🈚 Unicode ctype like library
-| [mulle-url](https://github.com/mulle-c/mulle-url) | 🈷️ Support for URL parsing
-| [mulle-utf](https://github.com/mulle-c/mulle-utf) | 🔤 UTF8-16-32 analysis and manipulation library
-| [mulle-vararg](https://github.com/mulle-c/mulle-vararg) | ⏪ Access variable arguments in struct layout fashion in C
+| [mulle-core/mulle-allocator](https://github.com/mulle-c/mulle-allocator) | 🔄 Flexible C memory allocation scheme
+| [mulle-core/mulle-buffer](https://github.com/mulle-c/mulle-buffer) | ↗️  A growable C char array and also a stream - on stack and heap
+| [mulle-core/mulle-c11](https://github.com/mulle-c/mulle-c11) | 🔀 Cross-platform C compiler glue (and some cpp conveniences)
+| [mulle-core/mulle-container-debug](https://github.com/mulle-c/mulle-container-debug) | 🛄 Debugging support for mulle-container
+| [mulle-core/mulle-container](https://github.com/mulle-c/mulle-container) | 🛄 Arrays, hashtables and a queue
+| [mulle-core/mulle-data](https://github.com/mulle-c/mulle-data) | #️⃣  A collection of hash functions
+| [mulle-core/mulle-http](https://github.com/mulle-c/mulle-http) | 🈚 http URL parser
+| [mulle-core/mulle-rbtree](https://github.com/mulle-c/mulle-rbtree) | 🍫 mulle-rbtree organizes data in a red/black tree
+| [mulle-core/mulle-regex](https://github.com/mulle-c/mulle-regex) | 📣 Unicode regex library
+| [mulle-core/mulle-slug](https://github.com/mulle-c/mulle-slug) | 🐌 Creates URL slugs
+| [mulle-core/mulle-storage](https://github.com/mulle-c/mulle-storage) | 🛅 Memory management for tree nodes
+| [mulle-core/mulle-unicode](https://github.com/mulle-c/mulle-unicode) | 🈚 Unicode ctype like library
+| [mulle-core/mulle-url](https://github.com/mulle-c/mulle-url) | 🈷️ Support for URL parsing
+| [mulle-core/mulle-utf](https://github.com/mulle-c/mulle-utf) | 🔤 UTF8-16-32 analysis and manipulation library
+| [mulle-core/mulle-vararg](https://github.com/mulle-c/mulle-vararg) | ⏪ Access variable arguments in struct layout fashion in C
 | [mintomic](https://github.com/mulle-concurrent/mintomic) | For more information, see [the documentation](http://mintomic.github.io/) or the accompanying blog post, [Introducing Mintomic](http://preshing.com/20130505/introducing-mintomic-a-small-portable-lock-free-api).
-| [mulle-aba](https://github.com/mulle-concurrent/mulle-aba) | 🚮 A lock-free, cross-platform solution to the ABA problem
-| [mulle-concurrent](https://github.com/mulle-concurrent/mulle-concurrent) | 📶 A lock- and wait-free hashtable (and an array too), written in C
-| [mulle-fifo](https://github.com/mulle-concurrent/mulle-fifo) | 🐍 mulle-fifo fixed sized producer/consumer FIFOs holding `void *`
-| [mulle-linkedlist](https://github.com/mulle-concurrent/mulle-linkedlist) | 🔂 mulle-linkedlist a wait and lock-free linked list
-| [mulle-multififo](https://github.com/mulle-concurrent/mulle-multififo) | 🐛 mulle-multififo multi-producer/multi-consumer FIFO holding `void *`
-| [mulle-thread](https://github.com/mulle-concurrent/mulle-thread) | 🔠 Cross-platform thread/mutex/tss/atomic operations in C
-| [mulle-dtostr](https://github.com/mulle-core/mulle-dtostr) | 🧶 Double to string conversion
-| [mulle-fprintf](https://github.com/mulle-core/mulle-fprintf) | 🔢 mulle-fprintf marries mulle-sprintf to stdio.h
-| [mulle-mmap](https://github.com/mulle-core/mulle-mmap) | 🇧🇿 Memory mapped file access
-| [mulle-rbtree-debug](https://github.com/mulle-core/mulle-rbtree-debug) | 🍫 mulle-rbtree-debug organizes data in a red/black tree
-| [mulle-sprintf](https://github.com/mulle-core/mulle-sprintf) | 🔢 An extensible sprintf function supporting stdarg and mulle-vararg
-| [mulle-time](https://github.com/mulle-core/mulle-time) | 🕕 Simple time types with arithmetic on timespec and timeval
+| [mulle-core/mulle-aba](https://github.com/mulle-concurrent/mulle-aba) | 🚮 A lock-free, cross-platform solution to the ABA problem
+| [mulle-core/mulle-concurrent](https://github.com/mulle-concurrent/mulle-concurrent) | 📶 A lock- and wait-free hashtable (and an array too), written in C
+| [mulle-core/mulle-fifo](https://github.com/mulle-concurrent/mulle-fifo) | 🐍 mulle-fifo fixed sized producer/consumer FIFOs holding `void *`
+| [mulle-core/mulle-linkedlist](https://github.com/mulle-concurrent/mulle-linkedlist) | 🔂 mulle-linkedlist a wait and lock-free linked list
+| [mulle-core/mulle-multififo](https://github.com/mulle-concurrent/mulle-multififo) | 🐛 mulle-multififo multi-producer/multi-consumer FIFO holding `void *`
+| [mulle-core/mulle-thread](https://github.com/mulle-concurrent/mulle-thread) | 🔠 Cross-platform thread/mutex/tss/atomic operations in C
+| [mulle-core/mulle-dtostr](https://github.com/mulle-core/mulle-dtostr) | 🧶 Double to string conversion
+| [mulle-core/mulle-fprintf](https://github.com/mulle-core/mulle-fprintf) | 🔢 mulle-fprintf marries mulle-sprintf to stdio.h
+| [mulle-core/mulle-mmap](https://github.com/mulle-core/mulle-mmap) | 🇧🇿 Memory mapped file access
+| [mulle-core/mulle-rbtree-debug](https://github.com/mulle-core/mulle-rbtree-debug) | 🍫 mulle-rbtree-debug organizes data in a red/black tree
+| [mulle-core/mulle-sprintf](https://github.com/mulle-core/mulle-sprintf) | 🔢 An extensible sprintf function supporting stdarg and mulle-vararg
+| [mulle-core/mulle-time](https://github.com/mulle-core/mulle-time) | 🕕 Simple time types with arithmetic on timespec and timeval
 
 > #### Add another constituent to the amalgamation
 >
 > ``` bash
 > mulle-sde dependency add --amalgamated \
 >                          --fetchoptions "clibmode=copy" \
->                          --address mulle-core/mulle-container-debug \
+>                          --address src/mulle-container-debug \
 >                          clib:mulle-c/mulle-container-debug
 > ```
 >
