@@ -7,7 +7,7 @@
  * from C++ to C while maintaining the original mulle-dtostr API.
  */
 
-#include "mulle-dtostr.h"
+#include "_mulle-dtostr.h"
 
 #include <assert.h>
 #include <stdint.h>
@@ -134,6 +134,22 @@ static struct significand_result write_significand(char* temp_buffer, uint64_t v
    return( result);
 }
 
+/* Number of decimal digits in `value`, which must not be zero here.
+ */
+static int   decimal_digit_count( uint64_t value)
+{
+   int   n;
+
+   n = 1;
+   while( value >= 10)
+   {
+      value /= 10;
+      n++;
+   }
+   return( n);
+}
+
+
 static size_t write_mulle(char* buffer, uint64_t dec_sig, int dec_exp) {
   char                      temp[32];
   struct significand_result sig;
@@ -145,12 +161,17 @@ static size_t write_mulle(char* buffer, uint64_t dec_sig, int dec_exp) {
   /* Write significand to temp buffer (no leading zeros, trailing zeros stripped) */
   sig = write_significand( temp, dec_sig);
   
-  /* Calculate actual exponent: decompose gives exp such that value = sig * 10^exp
-   * where sig is a 16 or 17-digit integer. The first significant digit written
-   * by write_significand represents the highest order digit of dec_sig */
-  actual_exp = dec_sig >= 10000000000000000ULL 
-               ? dec_exp + 16  /* 17-digit: first digit has weight 10^16 */
-               : dec_exp + 15; /* 16-digit: first digit has weight 10^15 */
+  /* decompose gives exp such that value = dec_sig * 10^exp. The leading digit
+   * of dec_sig therefore has weight 10^(digits - 1), which puts the value at
+   * d.ddd * 10^(exp + digits - 1).
+   *
+   * Note that this is the digit count of dec_sig and not sig.length, as
+   * write_significand has stripped the trailing zeroes off the latter. Also
+   * note that dec_sig is not always 16 or 17 digits wide, the shortcut in
+   * mulle_dtostr_decompose can return fewer, as it does for the smallest
+   * subnormal where dec_sig is 5.
+   */
+  actual_exp = dec_exp + decimal_digit_count( dec_sig) - 1;
   
   /* Choose shortest format */
   if( actual_exp >= -4 && actual_exp <= 6)
@@ -206,20 +227,21 @@ static size_t write_mulle(char* buffer, uint64_t dec_sig, int dec_exp) {
     buffer[ sig.length + 5] = '\0';
     return( sig.length + 5);
   }
-  buffer[1] = '.';
-  buffer[2] = 'e';
-  buffer[3] = actual_exp >= 0 ? '+' : '-';
+  /* Single digit significand, so no fraction and no decimal point: "5e-324"
+   */
+  buffer[1] = 'e';
+  buffer[2] = actual_exp >= 0 ? '+' : '-';
   abs_exp = actual_exp >= 0 ? actual_exp : -actual_exp;
   if( abs_exp >= 100)
   {
-    buffer[4] = '0' + (abs_exp / 100);
-    write2digits( buffer + 5, abs_exp % 100);
-    buffer[7] = '\0';
-    return( 7);
+    buffer[3] = '0' + (abs_exp / 100);
+    write2digits( buffer + 4, abs_exp % 100);
+    buffer[6] = '\0';
+    return( 6);
   }
-  write2digits( buffer + 4, abs_exp);
-  buffer[6] = '\0';
-  return( 6);
+  write2digits( buffer + 3, abs_exp);
+  buffer[5] = '\0';
+  return( 5);
 }
 
 struct mulle_dtostr_decimal   mulle_dtostr_decompose(double value) {

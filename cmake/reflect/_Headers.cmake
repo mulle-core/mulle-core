@@ -352,7 +352,9 @@ src/mulle-data/mulle-qsort.h
 src/mulle-data/mulle-range.h
 src/mulle-data/xxhash.h
 src/mulle-dlfcn/mulle-dlfcn.h
+src/mulle-dtostr/_mulle-dtostr.h
 src/mulle-dtostr/mulle-dtostr.h
+src/mulle-dtostr/_mulle-strtod.h
 src/mulle-fifo/mulle-fifo.h
 src/mulle-fifo/_mulle-fifo-include.h
 src/mulle-fifo/_mulle-fifo-include-public.h

@@ -82,6 +82,7 @@ src/mulle-data/mulle-qsort.c
 src/mulle-data/mulle-range.c
 src/mulle-dlfcn/mulle-dlfcn.c
 src/mulle-dtostr/mulle-dtostr.c
+src/mulle-dtostr/mulle-strtod.c
 src/mulle-fifo/mulle-fifo.c
 src/mulle-fprintf/mulle-buffer-stdio.c
 src/mulle-fprintf/mulle-fprintf.c
