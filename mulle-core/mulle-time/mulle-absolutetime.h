@@ -42,7 +42,12 @@
 
 // It's simple. mulle_absolutetime_t is a FP number containing seconds as a
 // timestamp relative to the start of system boot (like a diff on `uptime`).
-// It should not "jump" if the computer is put into sleep mode.
+//
+// Suspend semantics: this value is "monotonic while the process runs". On
+// POSIX it is based on CLOCK_MONOTONIC, which typically excludes time spent
+// in system suspend; on Windows it is based on QueryPerformanceCounter, whose
+// behavior during suspend is hardware-dependent. Do not rely on it counting
+// elapsed wall-clock time across a suspend/resume cycle.
 //
 // Arithmetic on mulle_absolutetime_t and mulle_relativetime_t has six useful
 // operations
@@ -144,9 +149,9 @@ static inline mulle_absolutetime_t
 
 
 static inline mulle_absolutetime_t
-   mulle_absolutetime_init_with_s_ns( int tv_sec, long tv_nsec)
+   mulle_absolutetime_init_with_s_ns( time_t tv_sec, long tv_nsec)
 {
-   return( tv_sec + tv_nsec / (double) (1000L*1000*1000));
+   return( (double) tv_sec + tv_nsec / (double) (1000L*1000*1000));
 }
 
 

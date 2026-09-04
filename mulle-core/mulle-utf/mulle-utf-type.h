@@ -48,7 +48,13 @@ typedef uintptr_t  mulle_char7_t;
 
 typedef uint16_t   mulle_utf16_t;
 
-// this is signed, so any function returning an error can return -1
+//
+// mulle_utf32_t is deliberately signed (int32_t). This allows functions like
+// _mulle_utf8_next_utf32character to return -1 as an error/end sentinel
+// without needing a separate out-parameter or a wider return type. Valid
+// Unicode scalar values (0..0x10FFFF) fit comfortably in the positive range.
+// Negative values are never valid code points.
+//
 typedef int32_t   mulle_utf32_t;  //  0 - 0x10FFFF.
 
 

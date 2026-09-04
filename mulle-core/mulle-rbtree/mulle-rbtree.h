@@ -40,7 +40,7 @@
 #include <errno.h>
 
 
-#define MULLE__RBTREE_VERSION   ((0UL << 20) | (1 << 8) | 2)
+#define MULLE__RBTREE_VERSION   ((0UL << 20) | (2 << 8) | 0)
 
 
 //
@@ -131,6 +131,26 @@ static inline struct mulle_allocator    *
    mulle_rbtree_get_allocator( struct mulle_rbtree *a_tree)
 {
    return( a_tree ? _mulle__rbtree_get_allocator( (struct mulle__rbtree *) a_tree) : NULL);
+}
+
+
+MULLE_C_NONNULL_FIRST
+static inline int
+   _mulle_rbtree_is_empty( const struct mulle_rbtree *a_tree)
+{
+   const struct mulle__rbtree   *rb__tree;
+
+   rb__tree = (const struct mulle__rbtree *) a_tree;
+
+   return( _mulle__rbtree_get_root_node( rb__tree)
+           == _mulle__rbtree_get_nil_node( rb__tree));
+}
+
+
+static inline int
+   mulle_rbtree_is_empty( const struct mulle_rbtree *a_tree)
+{
+   return( a_tree ? _mulle_rbtree_is_empty( a_tree) : 1);
 }
 
 

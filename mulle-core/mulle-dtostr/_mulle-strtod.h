@@ -173,7 +173,7 @@ static inline struct mulle__strtod_syntax   mulle__strtod_syntax_make_ch( void)
  * also the decimal point. Returns 1 if the syntax is usable.
  */
 MULLE__DTOSTR_GLOBAL
-int   mulle__strtod_syntax_is_valid( struct mulle__strtod_syntax *syntax);
+int   mulle__strtod_syntax_is_valid( const struct mulle__strtod_syntax *syntax);
 
 
 /*
@@ -193,9 +193,9 @@ int   mulle__strtod_syntax_is_valid( struct mulle__strtod_syntax *syntax);
  */
 MULLE__DTOSTR_GLOBAL
 struct mulle_dtostr_decimal
-   mulle_strtod_parse( char *s,
+   mulle_strtod_parse( const char *s,
                        size_t len,
-                       struct mulle__strtod_syntax *syntax,
+                       const struct mulle__strtod_syntax *syntax,
                        char **endptr);
 
 
@@ -237,9 +237,9 @@ double   mulle_strtod_compose( struct mulle_dtostr_decimal decimal);
  * doubles and the distinguishing information is in the dropped digits.
  */
 MULLE__DTOSTR_GLOBAL
-int   mulle_strtod_scan( char *s,
+int   mulle_strtod_scan( const char *s,
                          size_t len,
-                         struct mulle__strtod_syntax *syntax,
+                         const struct mulle__strtod_syntax *syntax,
                          double *p_value,
                          char **endptr);
 
@@ -247,7 +247,7 @@ int   mulle_strtod_scan( char *s,
 /*
  * Drop-in for libc `strtod`, using the C locale syntax.
  */
-static inline double   mulle_strtod( char *s, char **endptr)
+static inline double   mulle_strtod( const char *s, char **endptr)
 {
    double   value;
 
@@ -263,7 +263,7 @@ static inline double   mulle_strtod( char *s, char **endptr)
 /*
  * Like mulle_strtod but with an explicit length bound, no NUL needed.
  */
-static inline double   mulle_strtod_len( char *s, size_t len, char **endptr)
+static inline double   mulle_strtod_len( const char *s, size_t len, char **endptr)
 {
    double   value;
 

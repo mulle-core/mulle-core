@@ -7,7 +7,7 @@
 
 #if defined( MULLE__SPRINTF_VERSION)
 # ifndef MULLE__SPRINTF_VERSION_MIN
-#  define MULLE__SPRINTF_VERSION_MIN  ((4UL << 20) | (0 << 8) | 1)
+#  define MULLE__SPRINTF_VERSION_MIN  ((4UL << 20) | (1 << 8) | 0)
 # endif
 # ifndef MULLE__SPRINTF_VERSION_MAX
 #  define MULLE__SPRINTF_VERSION_MAX  ((5UL << 20) | (0 << 8) | 0)

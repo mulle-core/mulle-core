@@ -83,7 +83,7 @@ static inline int   mulle_pointerpair_is_invalid( struct mulle_pointerpair pair)
 MULLE_C_NONNULL_SECOND
 static inline struct mulle_pointerpair
    mulle_pointerpair_retain( struct mulle_pointerpair pair,
-                             struct mulle_container_keyvaluecallback *callback,
+                             const struct mulle_container_keyvaluecallback *callback,
                              struct mulle_allocator *allocator)
 {
    struct mulle_pointerpair   new_pair;
@@ -101,7 +101,7 @@ static inline struct mulle_pointerpair
 MULLE_C_NONNULL_SECOND
 static inline
 void  mulle_pointerpair_release( struct mulle_pointerpair pair,
-                                 struct mulle_container_keyvaluecallback *callback,
+                                 const struct mulle_container_keyvaluecallback *callback,
                                  struct mulle_allocator *allocator)
 {
    (*callback->keycallback.release)( &callback->keycallback, pair.key, allocator);
@@ -128,12 +128,12 @@ static inline int   _mulle_pointerpair_compare_pointer_key( struct mulle_pointer
                                                             struct mulle_pointerpair *b,
                                                             void *userinfo)
 {
-   char   *s_a = a->key;
-   char   *s_b = b->key;
+   uintptr_t  v_a = (uintptr_t) a->key;
+   uintptr_t  v_b = (uintptr_t) b->key;
 
    MULLE_C_UNUSED( userinfo);
 
-   return( (int) (s_a - s_b));
+   return( (v_a > v_b) - (v_a < v_b));
 }
 
 
@@ -146,7 +146,7 @@ static inline int   _mulle_pointerpair_compare_intptr_key( struct mulle_pointerp
 
    MULLE_C_UNUSED( userinfo);
 
-   return( (int) (v_a - v_b));
+   return( (v_a > v_b) - (v_a < v_b));
 }
 
 
@@ -279,7 +279,7 @@ uintptr_t
    _mulle_pointerpair_find_in_range_callback( struct mulle_pointerpair *buf,
                                               struct mulle_pointerpair search,
                                               struct mulle_range range,
-                                              struct mulle_container_keyvaluecallback *callback);
+                                              const struct mulle_container_keyvaluecallback *callback);
 
 MULLE__CONTAINER_GLOBAL
 uintptr_t

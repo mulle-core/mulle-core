@@ -43,11 +43,11 @@
 //
 // this also does not do any error checking, the UTF8 string must be perfect
 //
-mulle_utf16_t   *_mulle_ascii_convert_to_utf16( char *src,
+mulle_utf16_t   *_mulle_ascii_convert_to_utf16( const char *src,
                                                 size_t len,
                                                 mulle_utf16_t *dst)
 {
-   char   *sentinel;
+   const char   *sentinel;
    char   _c;
 
    sentinel = &src[ len];
@@ -64,11 +64,11 @@ mulle_utf16_t   *_mulle_ascii_convert_to_utf16( char *src,
 //
 // this also does not do any error checking, the ASCII string must be perfect
 //
-mulle_utf32_t   *_mulle_ascii_convert_to_utf32( char *src,
+mulle_utf32_t   *_mulle_ascii_convert_to_utf32( const char *src,
                                                 size_t len,
                                                 mulle_utf32_t *dst)
 {
-   char   *sentinel;
+   const char   *sentinel;
    char   _c;
 
    sentinel = &src[ len];
@@ -86,12 +86,12 @@ mulle_utf32_t   *_mulle_ascii_convert_to_utf32( char *src,
 //
 // this does not do any error checking, the ASCII string must be perfect
 //
-void   mulle_ascii_bufferconvert_to_utf16( char *src,
+void   mulle_ascii_bufferconvert_to_utf16( const char *src,
                                            size_t len,
                                            void *buffer,
                                            mulle_utf_add_bytes_function_t *addbytes)
 {
-   char            *sentinel;
+   const char            *sentinel;
    char            _c;
    mulle_utf16_t   x;
 
@@ -114,12 +114,12 @@ void   mulle_ascii_bufferconvert_to_utf16( char *src,
 //
 // this does not do any error checking, the ASCII string must be perfect
 //
-void  mulle_ascii_bufferconvert_to_utf32( char *src,
+void  mulle_ascii_bufferconvert_to_utf32( const char *src,
                                           size_t len,
                                           void *buffer,
                                           mulle_utf_add_bytes_function_t *addbytes)
 {
-   char            *sentinel;
+   const char            *sentinel;
    char            _c;
    mulle_utf32_t   x;
 

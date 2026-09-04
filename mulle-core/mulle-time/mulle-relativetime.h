@@ -41,7 +41,9 @@
 typedef mulle_timeinterval_t   mulle_relativetime_t;
 
 
-// this gives elapsed seconds since the load of the program
+// this gives elapsed seconds since the load of the program.
+// Same failure policy as mulle_timeinterval_now_monotonic: a failed clock
+// call returns 0.0.
 MULLE__TIME_GLOBAL
 mulle_relativetime_t   mulle_relativetime_now( void);
 
@@ -62,17 +64,17 @@ static inline void   mulle_relativetime_init( mulle_relativetime_t *p,
 
 
 static inline mulle_relativetime_t
-   mulle_relativetime_make_with_s_ns( int tv_sec, long tv_nsec)
+   mulle_relativetime_make_with_s_ns( time_t tv_sec, long tv_nsec)
 {
-   return( tv_sec + tv_nsec / (double) (1000L*1000*1000));
+   return( (double) tv_sec + tv_nsec / (double) (1000L*1000*1000));
 }
 
 
 // deprecated naming
 static inline mulle_relativetime_t
-   mulle_relativetime_init_with_s_ns( int tv_sec, long tv_nsec)
+   mulle_relativetime_init_with_s_ns( time_t tv_sec, long tv_nsec)
 {
-   return( tv_sec + tv_nsec / (double) (1000L*1000*1000));
+   return( (double) tv_sec + tv_nsec / (double) (1000L*1000*1000));
 }
 
 

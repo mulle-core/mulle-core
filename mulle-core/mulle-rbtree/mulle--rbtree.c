@@ -65,9 +65,9 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************
  *
- * Red-black trees are difficult to explain without lots of diagrams, so little 
- * attempt is made to document this code.  However, an excellent discussion can 
- * be found in the following book, which was used as the reference for writing 
+ * Red-black trees are difficult to explain without lots of diagrams, so little
+ * attempt is made to document this code.  However, an excellent discussion can
+ * be found in the following book, which was used as the reference for writing
  * this implementation:
  *
  *   Introduction to Algorithms
@@ -117,10 +117,15 @@ void   _mulle__rbtree_init_with_options( struct mulle__rbtree *a_tree,
    // so possibly extend node_extra for alignment
    // assert( extra && (options & mulle_rbtree_option_use_extra))
    // we'll let it slide...
+   // extra is the total node size including alignment of the extra area
+   // _mulle_rbnode_get_extra returns &dummy.payload, so this computes
+   // offsetof( payload) + node_extra_size, which IS the total node size needed
    extra = &((char *) _mulle_rbnode_get_extra( &dummy))[ node_extra_size] - (char *) &dummy;
+   if( extra < sizeof( struct mulle_rbnode))
+      extra = sizeof( struct mulle_rbnode);
 
    _mulle_storage_init( &a_tree->_nodes,
-                        sizeof( struct mulle_rbnode) + extra,
+                        extra,
                         alignof( struct mulle_rbnode),
                         32,
                         allocator);
@@ -284,9 +289,9 @@ void   _mulle__rbtree_mark_node_as_dirty( struct mulle__rbtree *a_tree,
 // the left side is now
 //
 //          P                                 T
-//         / \                               / \     gcc is fing stupid
+//         / \                               / \
 //        A  [T]              ->           <P>  C
-//           / \                           / \       gcc is fing stupid
+//           / \                           / \
 //         <B>   C                        A  [B]
 //
 // P is the node being rotated.    T has taken P's place.
@@ -335,9 +340,9 @@ static void   _mulle__rbtree_left_rotate_node( struct mulle__rbtree *a_tree,
 
 
 //         P                                   T
-//        / \                                 / \         gcc is fing stupid
+//        / \                                 / \
 //       T   C                 ->            A   P
-//      / \                                     / \       gcc is fing stupid
+//      / \                                     / \
 //     A   B                                   B   C
 //
 // P is the node being rotated.     T has taken P's place.
@@ -352,7 +357,7 @@ static void   _mulle__rbtree_right_rotate_node( struct mulle__rbtree *a_tree,
                                                 struct mulle_rbnode *p)
 {
    struct mulle_rbnode   *t;
-   
+
    _mulle__rbtree_set_node_marked( a_tree,  p);
 
    t   = p->_left;
@@ -363,9 +368,9 @@ static void   _mulle__rbtree_right_rotate_node( struct mulle__rbtree *a_tree,
 
    mulle_rb_node_set_left( p, t->_right, a_tree);
    _mulle__rbtree_set_node_marked( a_tree,  t->_right);
-   
+
    mulle_rb_node_reparent( p, t, a_tree);
-   
+
    t->_right  = p;
    p->_parent = t;
    _mulle__rbtree_set_node_marked( a_tree,  p->_parent);
@@ -398,10 +403,9 @@ static void   _mulle__rbtree_right_rotate_node( struct mulle__rbtree *a_tree,
 //
 // this code works with 'x' being the nil_node, because we are free to clobber
 // the parent pointer. It's hacky...
-MULLE__RBTREE_GLOBAL
 MULLE_C_NONNULL_FIRST_SECOND
-void   _mulle__rbtree_black_black_fixup( struct mulle__rbtree *a_tree,
-                                         struct mulle_rbnode *x)
+static void   _mulle__rbtree_black_black_fixup( struct mulle__rbtree *a_tree,
+                                                struct mulle_rbnode *x)
 {
    struct mulle_rbnode   *w;
 
@@ -508,9 +512,9 @@ void   _mulle__rbtree_black_black_fixup( struct mulle__rbtree *a_tree,
 // Here is a tree where we want to delete 2
 //
 //           10(B)
-//          /     \                 gcc is fing stupid
+//          /     \
 //       5(R)     15(R)
-//      /   \     /   \             gcc is fing stupid
+//      /   \     /   \
 //   2(B)  7(B) 12(B) 17(B)
 //
 // Root (10) is black (B).
@@ -530,9 +534,9 @@ void   _mulle__rbtree_black_black_fixup( struct mulle__rbtree *a_tree,
 //
 // Step 2: Remove node 2(B) → Before fixup
 //           10(B)
-//          /     \              gcc is fing stupid
+//          /     \
 //       5(R)     15(R)
-//         \      /   \          gcc is fing stupid
+//         \      /   \
 //         7(B)  12(B) 17(B)
 //
 // Node 2 (black) removed, replaced with nil_node (black leaf).
@@ -546,9 +550,9 @@ void   _mulle__rbtree_black_black_fixup( struct mulle__rbtree *a_tree,
 //
 // We recolor:
 //           10(B)
-//          /     \              gcc is fing stupid
+//          /     \
 //       5(B)     15(R)
-//         \      /   \          gcc is fing stupid
+//         \      /   \
 //        7(R)  12(B) 17(B)
 //
 // All paths:
@@ -562,23 +566,23 @@ void   _mulle__rbtree_black_black_fixup( struct mulle__rbtree *a_tree,
 // Here is a tree where we want to delete node 5
 //
 //           10(B)
-//          /     \              gcc is fing stupid
+//          /     \
 //       5(R)     15(R)
-//      /   \     /   \          gcc is fing stupid
+//      /   \     /   \
 //   2(B)  7(B) 12(B) 17(B)
 //
 //
 //           10(B)
-//          /     \              gcc is fing stupid
+//          /     \
 //       7(R)     15(R)
-//      /         /   \          gcc is fing stupid
+//      /         /   \
 //   2(B)      12(B) 17(B)
 //
 //
 //           10(B)
-//          /     \              gcc is fing stupid
+//          /     \
 //       7(B)     15(R)
-//      /         /   \          gcc is fing stupid
+//      /         /   \
 //   2(R)      12(B) 17(B)
 //
 MULLE__RBTREE_GLOBAL
@@ -612,7 +616,7 @@ void _mulle__rbtree_remove_node(struct mulle__rbtree *a_tree,
    // (It's the leftmost leaf on the right branch)
    //
    // Example: Deleting a_node            Becomes: y (successor) takes its place
-   //          /    \                              /      \    gcc is fing stupid
+   //          /    \                              /      \
    //        ...   ...                           ...      ...
    //
    if( a_node->_left == nil_node || a_node->_right == nil_node)
@@ -628,7 +632,7 @@ void _mulle__rbtree_remove_node(struct mulle__rbtree *a_tree,
    // x will move up to take y's spot after removal.
    //
    // Example: y with one child          After: x moves up
-   //          / \                              / \         gcc is fing stupid
+   //          / \                              / \
    //        x   empty                       empty   empty
    //
    if( y->_left != nil_node)
@@ -641,7 +645,7 @@ void _mulle__rbtree_remove_node(struct mulle__rbtree *a_tree,
    // Connect x directly to y's parent, effectively cutting y out of the tree.
    //
    // Example: Parent of y               After removal:
-   //          /      \                         /      \    gcc is fing stupid
+   //          /      \                         /      \
    //         y      ...                       x      ...
    //
    // Note: Even if x is the empty node, updating its parent is okay and sometimes needed for fixes.
@@ -671,7 +675,7 @@ void _mulle__rbtree_remove_node(struct mulle__rbtree *a_tree,
    // y takes over the original node's children and color.
    //
    // Example: Original a_node           Becomes: y in its place
-   //          /    \                           / \    gcc is fing stupid
+   //          /    \                           / \
    //         L      R                         L   R
    //
    if( y != a_node)
@@ -719,27 +723,8 @@ void _mulle__rbtree_remove_node(struct mulle__rbtree *a_tree,
    // If the tree uses "dirty" flags for tracking changes (like for recalculating sizes),
    // mark the affected parts as needing update.
 
-#ifdef USE_CHATGPT_FIX
-   if( a_tree->_options & mulle_rbtree_option_use_dirty)
-   {
-      // The original parent of a_node saw a child change if a_node wasn't root.
-      if( a_node->_parent != nil_node)
-         _mulle__rbtree_mark_node_as_dirty( a_tree, a_node->_parent);
-
-      // If we swapped in successor y, y's own parent also lost a child (y -> x),
-      // and must be marked dirty even when x == nil_node.
-      if( y != a_node && y->_parent != nil_node)
-         _mulle__rbtree_mark_node_as_dirty( a_tree, y->_parent);
-
-      // Mark y (now carrying a_node's children) so its new subtree gets recomputed.
-      if( y != a_node && y != nil_node)
-         _mulle__rbtree_mark_node_as_dirty( a_tree, y);
-
-      // If x is a real node, mark it too to propagate up that side.
-      if( x != nil_node)
-         _mulle__rbtree_mark_node_as_dirty( a_tree, x);
-   }
-#else
+   // If the tree uses "dirty" flags for tracking changes (like for recalculating sizes),
+   // mark the affected parts as needing update.
    if( a_tree->_options & mulle_rbtree_option_use_dirty)
    {
       // Mark the original parent's branch as changed
@@ -757,7 +742,6 @@ void _mulle__rbtree_remove_node(struct mulle__rbtree *a_tree,
       if( x != nil_node)
          _mulle__rbtree_mark_node_as_dirty( a_tree, x);
    }
-#endif
 
    // Actually free the memory of the original node we wanted to delete
    _mulle__rbtree_free_node( a_tree, a_node);
@@ -782,8 +766,8 @@ void _mulle__rbtree_remove_node(struct mulle__rbtree *a_tree,
 }
 
 
-void   _mulle__rbtree_red_red_fixup( struct mulle__rbtree *a_tree,
-                                     struct mulle_rbnode *x)
+static void   _mulle__rbtree_red_red_fixup( struct mulle__rbtree *a_tree,
+                                            struct mulle_rbnode *x)
 {
    struct mulle_rbnode   *y;
 
@@ -798,7 +782,7 @@ void   _mulle__rbtree_red_red_fixup( struct mulle__rbtree *a_tree,
          // Case 1: Uncle is red – recolor
          //
          //        G                             G
-         //       / \                           / \         gcc is fing stupid
+         //       / \                           / \
          //      P   U     ->                  B   B
          //     /                             /
          //    x                             R
@@ -818,7 +802,7 @@ void   _mulle__rbtree_red_red_fixup( struct mulle__rbtree *a_tree,
             // Case 2: Uncle is black, node is right child – rotate left
             //
             //       G                           G
-            //      / \                         / \         gcc is fing stupid
+            //      / \                         / \
             //     P   U      -->              x   U
             //      \                         /
             //       x                       P
@@ -832,9 +816,9 @@ void   _mulle__rbtree_red_red_fixup( struct mulle__rbtree *a_tree,
             // Case 3: Uncle is black, node is left child – rotate right
             //
             //         G                          P
-            //        / \       -->              / \        gcc is fing stupid
+            //        / \       -->              / \
             //       P   U                      x   G
-            //      /                                \      gcc is fing stupid
+            //      /                                \
             //     x                                  U
             //
             _mulle__rbtree_set_node_black( a_tree, x->_parent);
@@ -852,9 +836,9 @@ void   _mulle__rbtree_red_red_fixup( struct mulle__rbtree *a_tree,
          // Case 1: Uncle is red – recolor
          //
          //         G                           G
-         //        / \                         / \       gcc is fing stupid
+         //        / \                         / \
          //       U   P     ->                B   B
-         //            \                           \     gcc is fing stupid
+         //            \                           \
          //             x                           R
          if( _mulle_rbnode_is_red( y))
          {
@@ -869,9 +853,9 @@ void   _mulle__rbtree_red_red_fixup( struct mulle__rbtree *a_tree,
             // Case 2: Uncle is black, node is left child – rotate right
             //
             //         G                           G
-            //        / \                         / \    gcc is fing stupid
+            //        / \                         / \
             //       U   P        -->            U   x
-            //          /                             \  gcc is fing stupid
+            //          /                             \
             //         x                               P
             if( x == x->_parent->_left)
             {
@@ -882,7 +866,7 @@ void   _mulle__rbtree_red_red_fixup( struct mulle__rbtree *a_tree,
             // Case 3: Uncle is black, node is right child – rotate left
             //
             //         G                             P
-            //        / \                           / \     gcc is fing stupid
+            //        / \                           / \
             //       U   P         -->             G   x
             //            \                       /
             //             x                     U

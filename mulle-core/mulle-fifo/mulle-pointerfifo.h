@@ -37,6 +37,10 @@
 
 #include "include.h"
 
+#include <assert.h>
+#include <stddef.h>
+#include <stdint.h>
+
 
 /*
  * FIFO: single consumer thread / single producer thread only
@@ -53,11 +57,12 @@ struct mulle_pointerfifo
 };
 
 
-static inline void   _mulle_pointerfifo_init( struct mulle_pointerfifo *p, 
+static inline void   _mulle_pointerfifo_init( struct mulle_pointerfifo *p,
                                               unsigned int size,
                                               struct mulle_allocator *allocator)
 {
    assert( size >= 2);
+   assert( (size_t) size <= (size_t) -1 / sizeof( mulle_atomic_pointer_t));
 
    p->write     = 0;
    p->read      = 0;
@@ -78,7 +83,11 @@ static inline void   mulle_pointerfifo_init( struct mulle_pointerfifo *p,
 
 static inline void   _mulle_pointerfifo_done( struct mulle_pointerfifo *p)
 {
-   mulle_allocator_free( p->allocator, p->storage);
+   if( p->storage)
+   {
+      mulle_allocator_free( p->allocator, p->storage);
+      p->storage = NULL;
+   }
 }
 
 
@@ -132,8 +141,11 @@ static inline void   *mulle_pointerfifo_read( struct mulle_pointerfifo *p)
 
 
 static inline int   _mulle_pointerfifo_write( struct mulle_pointerfifo *p,
-                                                 void *pointer)
+                                              void *pointer)
 {
+   if( ! pointer)
+      return( -2);
+
    if( _mulle_pointerfifo_get_count( p) == p->size)
       return( -1);
 

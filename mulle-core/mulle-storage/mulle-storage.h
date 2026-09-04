@@ -45,7 +45,7 @@
  *
  *  version:  major, minor, patch
  */
-#define MULLE__STORAGE_VERSION  ((0UL << 20) | (0 << 8) | 6)
+#define MULLE__STORAGE_VERSION  ((0UL << 20) | (1 << 8) | 0)
 
 
 static inline unsigned int   mulle_storage_get_version_major( void)
@@ -81,10 +81,15 @@ struct mulle_storage
 /**
  * Initialize the storage with the given parameters.
  *
+ * Memory is handed out in fixed buckets of `capacity` elements.
+ *
  * @param alloc The storage allocator.
  * @param sizeof_struct The size of the structure to be stored.
  * @param alignof_struct The alignment of the structure to be stored.
- * @param capacity The initial capacity of the storage.
+ * @param capacity Bucket size. A larger value means fewer system allocations
+ *                 while growing and a cheaper `_done`, but the permanent
+ *                 high-water mark rises in `capacity`-sized steps. Pick
+ *                 roughly the expected number of live nodes.
  * @param allocator The allocator to be used for memory management.
  */
 MULLE_C_NONNULL_FIRST
@@ -173,7 +178,7 @@ static inline void
    _mulle_structqueue_assert_pointer( &alloc->_structs, p);
 
 #if DEBUG
-   mulle_memset_uint32( p, 0xDEADDEAD,_mulle_structqueue_get_element_size( &alloc->_structs));
+   mulle_memset_uint32( p, 0xDEADDEAD, _mulle_structqueue_get_element_size( &alloc->_structs));
 #endif
    allocator = mulle_structqueue_get_allocator( &alloc->_structs);
    mulle__pointerarray_add( &alloc->_freed, p, allocator);
@@ -188,7 +193,7 @@ static inline void
  */
 MULLE_C_NONNULL_FIRST
 static inline void *
-   _mulle_storage_copy( struct mulle_storage *alloc, void *q)
+   _mulle_storage_copy( struct mulle_storage *alloc, const void *q)
 {
    void   *p;
 
@@ -229,7 +234,7 @@ static inline struct mulle_allocator *
  * @return The count of active elements in the storage.
  */
 MULLE_C_NONNULL_FIRST
-static inline unsigned int
+static inline size_t
    _mulle_storage_get_count( struct mulle_storage *alloc)
 {
    return( _mulle_structqueue_get_count( &alloc->_structs) -
@@ -242,7 +247,7 @@ static inline unsigned int
  * @param alloc The storage allocator.
  * @return The count of active elements in the storage, or 0 if the storage is NULL.
  */
-static inline unsigned int
+static inline size_t
    mulle_storage_get_count( struct mulle_storage *alloc)
 {
    return( alloc ? _mulle_storage_get_count( alloc) : 0);
@@ -268,7 +273,8 @@ static inline size_t
  * @param alloc The storage allocator.
  * @param sizeof_struct The size of the structure to be stored.
  * @param alignof_struct The alignment of the structure to be stored.
- * @param capacity The initial capacity of the storage.
+ * @param capacity Bucket size: fewer system allocations when larger, at the
+ *                 cost of a coarser permanent high-water mark.
  * @param allocator The allocator to be used for memory management.
  */
 static inline void
@@ -353,7 +359,7 @@ static inline void
  * @return A pointer to the newly allocated and copied element.
  */
 static inline void *
-   mulle_storage_copy( struct mulle_storage *alloc, void *q)
+   mulle_storage_copy( struct mulle_storage *alloc, const void *q)
 {
    if( ! alloc || ! q)
       return NULL;
@@ -364,6 +370,7 @@ static inline void *
 
 
 #include "mulle-indexedstorage.h"
+#include "mulle-arena.h"
 
 /*
  * The versioncheck header can be generated with

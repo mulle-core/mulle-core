@@ -32,7 +32,7 @@
 #include <string.h>
 
 
-#define MULLE__MMAP_VERSION  ((1UL << 20) | (0 << 8) | 1)
+#define MULLE__MMAP_VERSION  ((1UL << 20) | (1 << 8) | 0)
 
 
 static inline unsigned int   mulle_mmap_get_version_major( void)
@@ -230,7 +230,7 @@ size_t   mulle_mmap_get_system_pagesize( void);
 
 // File operations - platform specific implementations  
 MULLE__MMAP_GLOBAL
-mulle_mmap_file_t   mulle_mmap_file_open( char *path,
+mulle_mmap_file_t   mulle_mmap_file_open( const char *path,
                                           enum mulle_mmap_accessmode mode);
 
 MULLE__MMAP_GLOBAL
@@ -413,7 +413,7 @@ static inline int   mulle_mmap_is_empty( struct mulle_mmap *p)
 
 static inline int   _mulle_mmap_is_writable( struct mulle_mmap *p)
 {
-   return( p->accessmode_ == mulle_mmap_write);
+   return( p->accessmode_ & mulle_mmap_write);
 }
 
 static inline int   mulle_mmap_is_writable( struct mulle_mmap *p)
@@ -509,7 +509,7 @@ static inline void   *mulle_mmap_get_bytes( struct mulle_mmap *p)
  */
 MULLE__MMAP_GLOBAL
 int    _mulle_mmap_map_file_range( struct mulle_mmap *p,
-                                   char *path,
+                                   const char *path,
                                    size_t offset,
                                    size_t length);
 
@@ -526,19 +526,31 @@ int    _mulle_mmap_map_file_range( struct mulle_mmap *p,
  * The entire file is mapped.
  */
 static inline int   _mulle_mmap_map_file( struct mulle_mmap *p,
-                                          char *path)
+                                          const char *path)
 {
    return( _mulle_mmap_map_file_range( p, path, 0, (size_t) -1));
 }
 
 
 static inline int   mulle_mmap_map_file( struct mulle_mmap *p,
-                                         char *path)
+                                         const char *path)
 {
    if( ! p)
       return( 0);
 
    return( _mulle_mmap_map_file( p, path));
+}
+
+
+static inline int   mulle_mmap_map_file_range( struct mulle_mmap *p,
+                                               const char *path,
+                                               size_t offset,
+                                               size_t length)
+{
+   if( ! p)
+      return( 0);
+
+   return( _mulle_mmap_map_file_range( p, path, offset, length));
 }
 
 

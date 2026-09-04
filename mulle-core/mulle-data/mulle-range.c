@@ -35,6 +35,7 @@
 #include "mulle-range.h"
 
 #include <assert.h>
+#include <limits.h>
 
 
 int   mulle_range_intersects( struct mulle_range range,
@@ -49,7 +50,7 @@ int   mulle_range_intersects( struct mulle_range range,
    end2      = mulle_range_get_max( other);
    min       = (end1 < end2) ? end1 : end2;
    location  = (range.location > other.location) ? range.location : other.location;
-   return( min >= location);
+   return( min > location);
 }
 
 
@@ -113,17 +114,20 @@ struct mulle_range   mulle_range_union( struct mulle_range range,
 // buf, as it could overflow.
 //
 //
-unsigned int   _mulle_range_hole_bsearch( struct mulle_range *buf,
-                                          unsigned int n,
-                                          uintptr_t search_location)
+uintptr_t   _mulle_range_hole_bsearch( struct mulle_range *buf,
+                                       uintptr_t n,
+                                       uintptr_t search_location)
 {
-   int                   first;
-   int                   last;
-   int                   middle;
+   intptr_t              first;
+   intptr_t              last;
+   intptr_t              middle;
    struct mulle_range   *p;
 
+   if( ! buf || ! n)
+      return( 0);
+
    first  = 0;
-   last   = (int) n - 1;
+   last   = (intptr_t) n - 1;
    middle = (first + last) / 2;
 
    while( first <= last)
@@ -150,12 +154,12 @@ unsigned int   _mulle_range_hole_bsearch( struct mulle_range *buf,
 
 // find
 struct mulle_range   *mulle_range_contains_bsearch( struct mulle_range *buf,
-                                                    unsigned int n,
+                                                    uintptr_t n,
                                                     struct mulle_range search)
 {
-   int                  first;
-   int                  last;
-   int                  middle;
+   intptr_t             first;
+   intptr_t             last;
+   intptr_t             middle;
    struct mulle_range   *p;
 
    if( ! mulle_range_is_valid( search))
@@ -165,7 +169,7 @@ struct mulle_range   *mulle_range_contains_bsearch( struct mulle_range *buf,
       return( 0);
 
    first  = 0;
-   last   = (int) n - 1;
+   last   = (intptr_t) n - 1;
    middle = (first + last) / 2;
 
    while( first <= last)
@@ -190,12 +194,12 @@ struct mulle_range   *mulle_range_contains_bsearch( struct mulle_range *buf,
 
 // find
 struct mulle_range   *mulle_range_intersects_bsearch( struct mulle_range *buf,
-                                                      unsigned int n,
+                                                      uintptr_t n,
                                                       struct mulle_range search)
 {
-   int                  first;
-   int                  last;
-   int                  middle;
+   intptr_t             first;
+   intptr_t             last;
+   intptr_t             middle;
    struct mulle_range   *p;
 
    if( ! mulle_range_is_valid( search))
@@ -205,7 +209,7 @@ struct mulle_range   *mulle_range_intersects_bsearch( struct mulle_range *buf,
       return( 0);
 
    first  = 0;
-   last   = (int) n - 1;
+   last   = (intptr_t) n - 1;
    middle = (first + last) / 2;
 
    while( first <= last)

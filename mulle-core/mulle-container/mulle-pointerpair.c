@@ -70,10 +70,10 @@ void   mulle_pointerpair_qsort_r( struct mulle_pointerpair *buf,
       return;
 
    if( compare == _mulle_pointerpair_compare_pointer_key)
-      _mulle_pointerpair_qsort_compare_string_key( buf, n, userinfo);
+      _mulle_pointerpair_qsort_compare_pointer_key( buf, n, userinfo);
    else
       if( compare == _mulle_pointerpair_compare_string_key)
-         _mulle_pointerpair_qsort_compare_pointer_key( buf, n, userinfo);
+         _mulle_pointerpair_qsort_compare_string_key( buf, n, userinfo);
       else
          _mulle_qsort_r_inline( buf,
                                 n,
@@ -87,7 +87,7 @@ uintptr_t
    _mulle_pointerpair_find_in_range_callback( struct mulle_pointerpair *buf,
                                               struct mulle_pointerpair search,
                                               struct mulle_range range,
-                                              struct mulle_container_keyvaluecallback *callback)
+                                              const struct mulle_container_keyvaluecallback *callback)
 {
    struct mulle_pointerpair   *p;
    struct mulle_pointerpair   *sentinel;

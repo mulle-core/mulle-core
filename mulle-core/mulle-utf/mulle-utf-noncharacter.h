@@ -77,7 +77,7 @@ static inline int  mulle_utf16_is_bomcharacter( mulle_utf16_t c)
 
 static inline int   mulle_utf32_is_surrogatecharacter( mulle_utf32_t c)
 {
-   return( c >= 0xD800 && c <= 0xE000);
+   return( c >= 0xD800 && c < 0xE000);
 }
 
 
@@ -93,10 +93,13 @@ static inline int   mulle_utf32_is_lowsurrogatecharacter( mulle_utf32_t c)
 }
 
 
-// somewhat arbitrary
+// A character is invalid if it's a surrogate (always illegal in UTF-8/UTF-32)
+// or a noncharacter (rejected when FORBID_NON_CHARACTERS is set).
 static inline int   mulle_utf32_is_invalidcharacter( mulle_utf32_t c)
 {
-   return( mulle_utf32_is_noncharacter( c));   // e.g. utf-16 surrogate pair
+   if( mulle_utf32_is_surrogatecharacter( c))
+      return( 1);
+   return( mulle_utf32_is_noncharacter( c));
 }
 
 

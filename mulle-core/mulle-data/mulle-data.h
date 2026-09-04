@@ -39,6 +39,7 @@
 
 #include <stddef.h>
 #include <stdint.h>
+#include <string.h>
 #include <assert.h>
 
 
@@ -47,7 +48,7 @@
  *
  *  version:  major, minor, patch
  */
-#define MULLE__DATA_VERSION  ((0UL << 20) | (5 << 8) | 2)
+#define MULLE__DATA_VERSION  ((0UL << 20) | (6 << 8) | 0)
 
 
 static inline unsigned int   mulle_data_get_version_major( void)
@@ -207,11 +208,16 @@ static inline uintptr_t   mulle_data_hash( struct mulle_data data)
 /**
  * Computes a chained hash value for the given `mulle_data` struct.
  *
- * This function computes a chained hash value for the byte data contained in the `mulle_data` struct. The hash is computed using either a 32-bit or 64-bit hash function, depending on the size of the `uintptr_t` type. The hash value is chained with the provided `hash` parameter.
+ * This function computes a chained hash value for the byte data contained in
+ * the `mulle_data` struct. The hash is computed using either a 32-bit or
+ * 64-bit hash function, depending on the size of the `uintptr_t` type.
+ * Pass `mulle_data_make_invalid()` (bytes==NULL) to finalise and retrieve the
+ * hash.
  *
  * @param data The `mulle_data` struct to compute the hash for.
- * @param hash The initial hash value to chain with.
- * @return The computed chained hash value.
+ * @param state_p Pointer to the caller-owned state (initialise to NULL).
+ * @return The computed hash value when finalised, or `(uintptr_t)-1` while
+ *         in progress.
  */
 static inline uintptr_t   mulle_data_hash_chained( struct mulle_data data, void **state_p)
 {
@@ -256,6 +262,65 @@ static inline struct mulle_data   mulle_data_subdata( struct mulle_data data,
 MULLE__DATA_GLOBAL
 void   *mulle_data_search_data( struct mulle_data haystack,
                                 struct mulle_data needle);
+
+
+/**
+ * Compares two `mulle_data` structs for equality.
+ *
+ * Two data values are equal if they have the same length and identical bytes.
+ * Two invalid (NULL bytes) data values are considered equal.
+ * An invalid data is never equal to a valid data.
+ *
+ * @param a The first `mulle_data` struct.
+ * @param b The second `mulle_data` struct.
+ * @return 1 if equal, 0 otherwise.
+ */
+static inline int   mulle_data_equals( struct mulle_data a,
+                                       struct mulle_data b)
+{
+   if( a.length != b.length)
+      return( 0);
+   if( a.bytes == b.bytes)
+      return( 1);
+   if( ! a.bytes || ! b.bytes)
+      return( 0);
+   return( ! memcmp( a.bytes, b.bytes, a.length));
+}
+
+
+/**
+ * Lexicographically compares two `mulle_data` structs.
+ *
+ * Returns a negative value if `a < b`, zero if `a == b`, or a positive value
+ * if `a > b`. Comparison is done byte by byte; if one is a prefix of the
+ * other, the shorter one is "less". Invalid (NULL bytes) data compares less
+ * than any valid data. Two invalid data values compare equal.
+ *
+ * @param a The first `mulle_data` struct.
+ * @param b The second `mulle_data` struct.
+ * @return < 0, 0, or > 0.
+ */
+static inline int   mulle_data_compare( struct mulle_data a,
+                                        struct mulle_data b)
+{
+   size_t   min_len;
+   int      result;
+
+   if( ! a.bytes)
+      return( b.bytes ? -1 : 0);
+   if( ! b.bytes)
+      return( 1);
+
+   min_len = a.length < b.length ? a.length : b.length;
+   result  = min_len ? memcmp( a.bytes, b.bytes, min_len) : 0;
+   if( result)
+      return( result);
+   if( a.length < b.length)
+      return( -1);
+   if( a.length > b.length)
+      return( 1);
+   return( 0);
+}
 
 
 #ifdef __has_include

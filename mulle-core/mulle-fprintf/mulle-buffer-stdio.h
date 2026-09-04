@@ -37,6 +37,7 @@
 
 #include "include.h"
 
+#include <stdio.h>
 
 // only needed for windows (for off_t)
 #ifdef _WIN32
@@ -81,13 +82,39 @@
  *  w+  Open the stream for reading and writing.  The buffer contents are truncated (i.e., '\0' is placed in the first byte of the buffer).
  *  a+  Append; open the stream for reading and writing, with the initial buffer position set to the first null byte.
  *
- * Unfortunately in a cross-platform scenario (at least darwin and linux,
- * the fmemopen interface is super flakey and unpredictable when it comes
- * to seeking and writing in various modes).
+ *  Ownership and size follow libc fmemopen():
+ *   - buf != NULL: the caller provides at least `size` bytes and retains
+ *     ownership; dispose of it after the stream is closed.
+ *   - buf == NULL: mulle allocates `size` bytes; ownership transfers to the
+ *     buffer and it is freed automatically when the stream is closed.
+ *  In both cases the stream is FIXED at `size` bytes (it never grows), exactly
+ *  like fmemopen(). The returned handle is heap-allocated, so it must be
+ *  released with `mulle_buffer_fclose` (which frees the buffer itself).
+ *
+ *  For a GROWABLE in-memory stream, use a plain `mulle_buffer` instead of
+ *  fmemopen:
+ *   - `mulle_buffer_create()`      -> heap buffer, grows; release with
+ *                                    `mulle_buffer_fclose` (it frees the struct).
+ *   - `struct mulle_buffer b; mulle_buffer_init( &b, 0, NULL)  -> embedded/stack
+ *                                    buffer, grows; manage with `mulle_buffer_done`.
+ *                                    Do NOT pass it to `mulle_buffer_fclose`,
+ *                                    which would free() a stack address.
+ *  Both interoperate with the `mulle_buffer_functions` vtable for
+ *  read/write/seek.
+ *
+ *  Unfortunately in a cross-platform scenario (at least darwin and linux,
+ *  the fmemopen interface is super flakey and unpredictable when it comes
+ *  to seeking and writing in various modes).
  */
 MULLE__FPRINTF_GLOBAL
 void   *mulle_buffer_fmemopen( void *buf, size_t size, const char *mode);
 
+//
+// Closes an in-memory stream and frees the buffer struct itself
+// (`mulle_buffer_destroy`). The handle must have been heap-allocated
+// (e.g. via mulle_buffer_fmemopen or mulle_buffer_create); do NOT pass an
+// embedded/stack `mulle_buffer`, that would free() a stack address.
+//
 MULLE__FPRINTF_GLOBAL
 int    mulle_buffer_fclose( void *buffer);
 
@@ -115,18 +142,6 @@ int     mulle_buffer_fputc( int c, void *buffer);
 MULLE__FPRINTF_GLOBAL
 int     mulle_buffer_fputs( const char *s, void *buffer);
 
-///* Windows lacks off_t */
-//#ifndef MULLE_BUFFER_OFF_T_NO_DEFINE
-//# if defined(  _WIN32) && ! defined( __GNUC__)
-//#  ifdef _WIN64
-////typedef long   off_t; // seems to be long too, weird
-//#  else
-//typedef long   off_t;
-//#  endif
-//# endif
-//#endif
-//
-
 /**
  * This function is a fake for use in code that accepts fseek as callback
  * pointers. This is slightly obscure.
@@ -139,8 +154,11 @@ int     mulle_buffer_fputs( const char *s, void *buffer);
 MULLE__FPRINTF_GLOBAL
 int     mulle_buffer_fseek( void *buffer, long seek, int mode);
 
+// Named mulle_buffer_stdio_lseek (not mulle_buffer_lseek) to avoid conflict
+// with the type-safe static inline mulle_buffer_lseek in mulle-buffer.h.
+// This is the void* adapter for the mulle_buffer_stdio_functions table.
 MULLE__FPRINTF_GLOBAL
-off_t   mulle_buffer_lseek( void *buffer, off_t seek, int mode);
+off_t   mulle_buffer_stdio_lseek( void *buffer, off_t seek, int mode);
 
 MULLE__FPRINTF_GLOBAL
 long    mulle_buffer_ftell( void *buffer);
@@ -241,6 +259,8 @@ int   mulle_buffer_init_with_filepath( struct mulle_buffer *buffer,
 
 
 // read specified amount of bytes from FILE
+// Returns the number of bytes read, or 0 with errno set on error
+// (fp == NULL yields EINVAL). The buffer must be initialized.
 MULLE__FPRINTF_GLOBAL
 size_t   mulle_buffer_fread_FILE( struct mulle_buffer *buffer,
                                   size_t size,
@@ -248,6 +268,9 @@ size_t   mulle_buffer_fread_FILE( struct mulle_buffer *buffer,
                                   FILE *fp);
 
 // read remaining bytes from FILE
+// Returns the number of bytes read (0 for an empty file), with errno == 0 on
+// success. On failure returns 0 with errno set. Non-seekable streams (pipes,
+// sockets) are not supported and report an error via errno.
 MULLE__FPRINTF_GLOBAL
 size_t   mulle_buffer_fread_FILE_all( struct mulle_buffer *buffer,
                                       FILE *fp);
@@ -269,4 +292,62 @@ size_t   mulle_buffer_fread_FILE_all( struct mulle_buffer *buffer,
       for( int  name ## __j = 0;    /* break protection */                    \
            name ## __j < 1;                                                   \
            name ## __j++)
+
+
+//
+// FLUSHABLE TO FILE *
+//
+// The flushable buffer core lives in mulle-buffer. These convenience macros
+// bind it to a FILE * via fwrite, so a mulle-buffer user does not need
+// stdio.h for the flushable layer alone.
+//
+
+/**
+ * Defines a macro that creates a `mulle_flushablebuffer` instance and a loop to use it.
+ *
+ * This macro creates a static `mulle_flushablebuffer` instance with a 128-byte internal
+ * buffer, and a `fwrite` flusher function that writes to the provided `FILE*`. It then
+ * defines a loop that uses this buffer, flushing it when the loop completes.
+ *
+ * The final flush result is intentionally discarded. If you need to detect a
+ * failed flush (see `mulle_flushablebuffer_done`), initialize the
+ * flushablebuffer yourself and call `mulle_flushablebuffer_done` manually,
+ * rather than using this convenience macro.
+ *
+ * @param name The name to use for the `mulle_flushablebuffer` instance and loop variables.
+ * @param fp The `FILE*` to write the buffer contents to.
+ */
+//
+// Flush to FILE *
+//
+#define _mulle_flushablebuffer_chars_to_struct( len) \
+   ((len + sizeof( struct mulle_flushablebuffer) - 1) / sizeof( struct mulle_flushablebuffer))
+
+static inline size_t   _mulle_flushablebuffer_fwrite( void *buf,
+                                                      size_t one,
+                                                      size_t len,
+                                                      void *userinfo)
+{
+   return( fwrite( buf, one, len, (FILE *) userinfo));
+}
+
+#define mulle_flushablebuffer_do_FILE( name, fp)                                                     \
+   for( struct mulle_flushablebuffer                                                                 \
+            name ## __alloca[ _mulle_flushablebuffer_chars_to_struct( MULLE_FLUSHABLEBUFFER_DEFAULT_CAPACITY)], \
+            name ## __storage = _mulle_flushablebuffer_static_data( name ## __alloca,                 \
+                                                                    sizeof( name ## __alloca),        \
+                                                                    _mulle_flushablebuffer_fwrite,    \
+                                                                    (fp)),                            \
+            *name ## __i = NULL;                                                                       \
+         ! name ## __i;                                                                               \
+         name ## __i = ( (void) mulle_flushablebuffer_done( &name ## __storage), (void *) 0x1)        \
+       )                                                                                              \
+                                                                                                     \
+       MULLE_C_CONFINED_LOOP                                                                           \
+       for( struct mulle_buffer                                                                        \
+             *name = (struct mulle_buffer *) &name ## __storage,                                       \
+             *name ## __j = 0;    /* break protection */                                               \
+             name ## __j < (struct mulle_buffer *) 1;                                                  \
+             name ## __j++)
+
 #endif

@@ -13,6 +13,7 @@
 #define _mulle__storage__provide_h__
 
 
+#include "mulle-arena.h"
 #include "mulle-indexedstorage.h"
 
 

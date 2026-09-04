@@ -40,18 +40,40 @@
 
 #include <errno.h>
 
-
+//
+// Maps a "hash" to a value.
+// The "hash" is fully sizeof(intptr_t) so you can use it to index via void *!
+//
+// Slot protocol:
+//
+//   'hash' is the claim token. A slot is claimed by CASing 'hash' from
+//   MULLE_CONCURRENT_NO_HASH to the key's hash, so there is exactly one
+//   claimer per slot for the lifetime of the storage. Only a thread that
+//   sees its own hash in the slot may CAS 'value'. That's what keeps a
+//   thread from ever writing its value into another key's slot.
+//
+//   | hash     | value            | meaning
+//   |----------|------------------|----------------------------------------
+//   | NO_HASH  | NO_POINTER       | virgin
+//   | NO_HASH  | anything else    | unreachable (only the claimer writes value)
+//   | h        | NO_POINTER       | claimed, fill in flight
+//   | h        | live pointer     | live entry
+//   | any      | REDIRECT         | frozen by a migration
+//
+// 'hash' is kept in a mulle_atomic_pointer_t (holding an intptr_t), because
+// it is CASed and read concurrently.
+//
 struct _mulle_concurrent_hashvaluepair
 {
-   intptr_t                 hash;
+   mulle_atomic_pointer_t   hash;    // intptr_t, MULLE_CONCURRENT_NO_HASH == unclaimed
    mulle_atomic_pointer_t   value;
 };
 
 
 struct _mulle_concurrent_hashmapstorage
 {
-   mulle_atomic_pointer_t   n_hashs;  // with possibly empty values
-   uintptr_t                mask;     // easier to read from debugger if void * size
+   mulle_atomic_pointer_t   n_hashs;       // claimed slots (live)
+   uintptr_t                mask;          // easier to read from debugger if void * size
 
    struct _mulle_concurrent_hashvaluepair  entries[ 1];
 };
@@ -89,9 +111,9 @@ struct mulle_concurrent_hashmap
 #pragma mark - various functions, no parameter checks
 
 MULLE__CONCURRENT_GLOBAL
-int  _mulle_concurrent_hashmap_init( struct mulle_concurrent_hashmap *map,
-                                     unsigned int size,
-                                     struct mulle_allocator *allocator);
+void  _mulle_concurrent_hashmap_init( struct mulle_concurrent_hashmap *map,
+                                      unsigned int size,
+                                      struct mulle_allocator *allocator);
 MULLE__CONCURRENT_GLOBAL
 void  _mulle_concurrent_hashmap_done( struct mulle_concurrent_hashmap *map);
 
@@ -109,36 +131,24 @@ int  _mulle_concurrent_hashmap_insert( struct mulle_concurrent_hashmap *map,
                                        intptr_t hash,
                                        void *value);
 
-MULLE__CONCURRENT_GLOBAL
-int  _mulle_concurrent_hashmap_patch( struct mulle_concurrent_hashmap *map,
-                                      intptr_t hash,
-                                      void *value,
-                                      void *expect);
 
 MULLE__CONCURRENT_GLOBAL
 void  *_mulle_concurrent_hashmap_lookup( struct mulle_concurrent_hashmap *map,
                                          intptr_t hash);
-
-MULLE__CONCURRENT_GLOBAL
-int  _mulle_concurrent_hashmap_remove( struct mulle_concurrent_hashmap *map,
-                                       intptr_t hash,
-                                       void *value);
 
 
 
 // Returns:
 //   0      : OK
 //   EINVAL : invalid argument
-//   ENOMEM : out of memory
 //
-static inline int
+static inline void
    mulle_concurrent_hashmap_init( struct mulle_concurrent_hashmap *map,
                                   unsigned int size,
                                   struct mulle_allocator *allocator)
 {
-   if( ! map)
-      return( EINVAL);
-   return( _mulle_concurrent_hashmap_init( map, size, allocator));
+   assert( map);
+   _mulle_concurrent_hashmap_init( map, size, allocator);
 }
 
 
@@ -164,7 +174,7 @@ static inline unsigned int
 // Return value (rval):
 //
 //     MULLE_CONCURRENT_NO_POINTER      : means it did insert
-//     MULLE_CONCURRENT_INVALID_POINTER : error (check errno)
+//     MULLE_CONCURRENT_INVALID_POINTER : error (errno is EINVAL or EEXIST)
 //     other                            : value that was already registered
 //
 // Do not use hash=0
@@ -178,7 +188,6 @@ void   *mulle_concurrent_hashmap_register( struct mulle_concurrent_hashmap *map,
 //   0      : OK, inserted
 //   EEXIST : detected duplicate
 //   EINVAL : invalid argument
-//   ENOMEM : must be out of memory
 //
 // Do not use hash=0
 // Do not use value=0 or value=INTPTR_MIN
@@ -187,30 +196,6 @@ MULLE__CONCURRENT_GLOBAL
 int   mulle_concurrent_hashmap_insert( struct mulle_concurrent_hashmap *map,
                                        intptr_t hash,
                                        void *value);
-
-// ****WARNING*** EXPERIMENTAL: COULD BE BUGGY NOT AS WELL TESTED AS THE
-//                              OTHER FUNCTIONS
-//
-// This function is supposed to change the value of an existing entry.
-//
-// expect must be != value
-//
-// Return value (rval):
-//   0      : OK, patched
-//   EEXIST : found entry with other expected value
-//   ENOENT : no entry found
-//   EINVAL : invalid argument
-//   ENOMEM : must be out of memory
-//
-// Do not use hash=0
-// Do not use value=0 or value=INTPTR_MIN
-//
-MULLE__CONCURRENT_GLOBAL
-int   mulle_concurrent_hashmap_patch( struct mulle_concurrent_hashmap *map,
-                                       intptr_t hash,
-                                       void *value,
-                                       void *expect);
-
 
 
 // if rval == NULL, not found
@@ -225,15 +210,39 @@ static inline void
 }
 
 
-// if rval == 0, removed
-// rval == ENOENT, not found (hash/value pair does not exist (anymore))
-// rval == EINVAL, parameter has invalid value
-// rval == ENOMEM, must be out of memory
 
+//
+// WARNING: SINGLE-THREADED ONLY.
+//
+// Unconditionally replace the value of an existing entry. There is no CAS,
+// no migration concern, and no concurrency contract. Calling this while
+// another thread accesses the map is undefined behavior.
+//
+// Use during single-threaded setup/teardown phases only (e.g. universe
+// is winding down or not yet published).
+//
 MULLE__CONCURRENT_GLOBAL
-int   mulle_concurrent_hashmap_remove( struct mulle_concurrent_hashmap *map,
-                                       intptr_t hash,
-                                       void *value);
+int  _mulle_concurrent_hashmap_patch( struct mulle_concurrent_hashmap *map,
+                                      intptr_t hash,
+                                      void *value);
+
+//
+// WARNING: SINGLE-THREADED ONLY.
+//
+// Remove a previously registered entry by clearing its value to NULL. The
+// hash claim stays in place (probe chains remain intact), so lookup will
+// return NULL for this hash afterwards. The slot can be repopulated later
+// with _mulle_concurrent_hashmap_patch.
+//
+// Calling this while another thread accesses the map is undefined behavior.
+// Use during single-threaded setup/teardown phases only.
+//
+static inline int
+   _mulle_concurrent_hashmap_remove( struct mulle_concurrent_hashmap *map,
+                                     intptr_t hash)
+{
+   return( _mulle_concurrent_hashmap_patch( map, hash, NULL));
+}
 
 
 #pragma mark - limited multi-threaded
@@ -252,8 +261,9 @@ int  _mulle_concurrent_hashmapenumerator_next( struct mulle_concurrent_hashmapen
                                                void **value);
 
 //
-// the specific retuned enumerator is only useable for the calling thread
-// if you remove stuff from the map, the enumerator will be unhappy and
+// The specific returned enumerator is only usable by the calling thread.
+// Enumerating a NULL map produces an empty enumerator.
+// If you remove stuff from the map, the enumerator will be unhappy and
 // stop (but will tell you). If the map grows, the rover is equally unhappy.
 //
 static inline struct mulle_concurrent_hashmapenumerator
@@ -291,6 +301,8 @@ static inline void
 {
    MULLE_C_UNUSED( rover);
 }
+
+
 
 
 #pragma mark - enumerator conveniences

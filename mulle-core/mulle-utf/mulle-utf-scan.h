@@ -55,16 +55,19 @@
 //    2  : is long long but has trailing garbage
 //    3  : is unsigned long long but has trailing garbage
 //
+// fuzzed
 MULLE__UTF_GLOBAL
 int   _mulle_utf8_scan_longlong_decimal( char **p_s,
                                          size_t len,
                                          long long *p_value);
 
+// fuzzed
 MULLE__UTF_GLOBAL
 int   _mulle_utf16_scan_longlong_decimal( mulle_utf16_t **p_s,
                                           size_t len,
                                           long long *p_value);
 
+// fuzzed
 MULLE__UTF_GLOBAL
 int   _mulle_utf32_scan_longlong_decimal( mulle_utf32_t **p_s,
                                           size_t len,

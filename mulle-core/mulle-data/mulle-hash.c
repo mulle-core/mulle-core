@@ -42,19 +42,19 @@
 #include <string.h>
 // lots of other code snipped
 
-uint32_t   _mulle_hash_32( void *bytes, size_t length)
+uint32_t   _mulle_hash_32( const void *bytes, size_t length)
 {
    return( XXH32( bytes, length, 0));
 }
 
 
-uint64_t   _mulle_hash_64( void *bytes, size_t length)
+uint64_t   _mulle_hash_64( const void *bytes, size_t length)
 {
    return( XXH64( bytes, length, 0));
 }
 
 
-uint32_t   mulle_hash_chained_32( void *bytes, size_t length, void **state_p)
+uint32_t   mulle_hash_chained_32( const void *bytes, size_t length, void **state_p)
 {
    XXH32_state_t  *state;
    XXH32_hash_t   hash;
@@ -66,7 +66,8 @@ uint32_t   mulle_hash_chained_32( void *bytes, size_t length, void **state_p)
    if( ! state)
    {
       state = XXH32_createState();
-      assert( state);
+      if( ! state)
+         return( (uint32_t) -1);
 
       XXH32_reset( state, 0);
 
@@ -92,7 +93,7 @@ uint32_t   mulle_hash_chained_32( void *bytes, size_t length, void **state_p)
 }
 
 
-uint64_t   mulle_hash_chained_64( void *bytes, size_t length, void **state_p)
+uint64_t   mulle_hash_chained_64( const void *bytes, size_t length, void **state_p)
 {
    XXH64_state_t  *state;
    XXH64_hash_t   hash;
@@ -104,7 +105,8 @@ uint64_t   mulle_hash_chained_64( void *bytes, size_t length, void **state_p)
    if( ! state)
    {
       state = XXH64_createState();
-      assert( state);
+      if( ! state)
+         return( (uint64_t) -1);
 
       XXH64_reset( state, 0);
 

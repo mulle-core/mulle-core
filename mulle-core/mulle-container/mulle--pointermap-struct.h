@@ -76,7 +76,9 @@
 #endif
 
 
-
+// Sentinel: notakey (default: mulle_not_a_pointer = INTPTR_MIN).
+//           Configurable via keycallback. Cannot be stored as a key.
+//
 struct mulle__pointermap
 {
    MULLE__POINTERMAP_BASE;
@@ -238,12 +240,12 @@ void  _mulle__pointermap_shrink_if_needed( struct mulle__pointermap *map,
 MULLE__CONTAINER_GLOBAL
 MULLE_C_NONNULL_FIRST
 void   *_mulle__pointermap_get( struct mulle__pointermap *map,
-                                void *key);
+                                const void *key);
 
 
 // returns NULL because that's the notfound *value*!
 static inline void   *mulle__pointermap_get( struct mulle__pointermap *map,
-                                             void *key)
+                                             const void *key)
 {
    if( ! map)
       return( NULL);

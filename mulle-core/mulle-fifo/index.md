@@ -3,53 +3,71 @@
 
 ## 1. Introduction & Purpose
 
-mulle-fifo is a high-performance, lock-free producer/consumer FIFO (First-In-First-Out) queue for multi-threaded applications. It provides a collection of fixed-size FIFOs (8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192 entries) plus a dynamically-sized variant. Designed for dual-thread configurations with one producer and one consumer, it minimizes synchronization overhead while maintaining thread-safe pointer passing. This is a foundational utility in the mulle-concurrent ecosystem for building producer-consumer patterns, task queues, and work stealing schedulers.
+mulle-fifo is a bounded, non-blocking producer/consumer FIFO (First-In-First-Out)
+queue for `void *` pointers. It provides a collection of fixed-size FIFOs
+(4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192 entries) plus a
+dynamically-sized variant. It is designed for exactly one producer thread and
+one consumer thread (SPSC). This is a foundational utility in the
+mulle-concurrent ecosystem for building producer-consumer patterns and task
+hand-off.
 
 ## 2. Key Concepts & Design Philosophy
 
 **Design Principles:**
 
-- **Single Producer/Single Consumer:** Optimized for exactly one thread writing and one reading, avoiding complex locking.
+- **Single Producer/Single Consumer:** Exactly one thread may write and one
+  thread may read. Calls from additional threads are forbidden; they are not
+  merely serialized internally, they corrupt the state.
 
-- **Lock-Free Operations:** Uses atomic compare-and-swap and memory barriers instead of mutexes for minimal overhead.
+- **Non-Blocking:** Both read and write return immediately; they never block,
+  never grow the storage, and never allocate.
 
-- **Fixed or Dynamic Size:** Pre-sized FIFOs for compile-time optimization, or dynamic sizing for runtime flexibility.
+- **Fixed or Dynamic Size:** Pre-sized FIFOs with storage embedded in the
+  struct, or dynamic sizing with a caller-supplied allocator.
 
-- **Non-Blocking:** Both read and write operations return immediately; never block the caller.
+- **No NULL Support:** NULL cannot be stored (a write of NULL fails with
+  `-2`); a read returning NULL means the FIFO is empty.
 
-- **No NULL Support:** Cannot store NULL pointers (NULL indicates empty).
+- **Relaxed Atomics:** The internal counter and storage slots are accessed
+  with sequentially consistent atomic operations (see mulle-thread). A
+  successful `write` publishes both the pointer value and the contents of
+  the pointed-to object; a subsequent `read` that observes the pointer may
+  safely dereference it. No additional barriers are required on either side.
 
-- **Memory Barriers:** Provides both fast and barrier-protected versions for different usage scenarios.
-
-- **Atomic Counting:** Thread-safe count queries via atomic operations.
+**Naming convention:** Functions prefixed with an underscore do not check
+their fifo argument for NULL. The dynamic FIFO additionally offers
+same-named wrappers without the underscore that tolerate a NULL fifo. The
+fixed FIFOs only have the underscore-prefixed functions.
 
 ## 3. Core API & Data Structures
 
 ### 3.1 Fixed-Size FIFOs
 
-Available sizes: 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192 entries.
+Available sizes: 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192
+entries. In the names below, replace `N` with the size.
 
 #### Type
 
-**`struct mulle__pointerfifoN`** (where N is size, e.g., `mulle__pointerfifo64`)
+**`struct mulle__pointerfifoN`** (e.g. `struct mulle__pointerfifo64`)
 
 - **Purpose:** Fixed-size FIFO queue holding void pointers.
 - **Internal:**
   - `n`: Atomic count of entries.
   - `write`: Write position (producer only).
   - `read`: Read position (consumer only).
-  - `storage`: Array of atomic pointers.
+  - `storage`: Array of N atomic pointers, embedded in the struct.
 
 #### Lifecycle Functions
 
 **`void _mulle__pointerfifoN_init(struct mulle__pointerfifoN *p)`**
 
-- **Purpose:** Initialize FIFO for use.
-- **Idempotent:** Safe to call on uninitialized or reused memory.
+- **Purpose:** Initialize FIFO for use. Must complete before producer or
+  consumer start.
 
 **`void _mulle__pointerfifoN_done(struct mulle__pointerfifoN *p)`**
 
-- **Purpose:** Cleanup (typically no-op; provided for API completeness).
+- **Purpose:** Cleanup. This is a no-op, as the storage is embedded in the
+  struct.
 
 #### Read Operations
 
@@ -57,13 +75,7 @@ Available sizes: 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192 entries.
 
 - **Purpose:** Read one pointer from FIFO (consumer side).
 - **Returns:** Pointer (non-NULL), or NULL if FIFO empty.
-- **Barrier:** No memory barrier (fast path).
 - **Thread Safety:** Consumer-only; only one thread may call.
-
-**`void *_mulle__pointerfifoN_read_barrier(struct mulle__pointerfifoN *p)`**
-
-- **Purpose:** Read with memory barrier.
-- **Use:** When pointer points to data that was written from another thread.
 
 #### Write Operations
 
@@ -73,22 +85,17 @@ Available sizes: 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192 entries.
 - **Parameters:**
   - `p`: FIFO queue.
   - `pointer`: Non-NULL pointer to enqueue.
-- **Returns:** 0 on success, -1 if FIFO full.
-- **Barrier:** No memory barrier (fast path).
+- **Returns:** 0 on success, -1 if FIFO full, -2 if `pointer` is NULL.
 - **Thread Safety:** Producer-only; only one thread may call.
-
-**`int _mulle__pointerfifoN_write_barrier(struct mulle__pointerfifoN *p, void *pointer)`**
-
-- **Purpose:** Write with memory barrier.
-- **Use:** When pointer points to data that will be read from another thread.
 
 #### Inspection
 
 **`unsigned int _mulle__pointerfifoN_get_count(struct mulle__pointerfifoN *p)`**
 
-- **Purpose:** Get approximate number of entries in FIFO.
-- **Thread Safety:** Safe to call from either thread.
-- **Note:** Count is approximate due to atomic operations; may be off-by-one temporarily.
+- **Purpose:** Get the number of entries in the FIFO.
+- **Thread Safety:** Safe to call from any thread.
+- **Note:** Single atomic read of the shared counter; exact at the moment of
+  the read, but possibly stale by the time the caller acts on it.
 
 ### 3.2 Dynamic-Size FIFO
 
@@ -97,30 +104,33 @@ Available sizes: 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192 entries.
 **`struct mulle_pointerfifo`**
 
 - **Purpose:** Runtime-sized FIFO queue.
-- **Flexibility:** Size specified at initialization.
+- **Internal:** Like the fixed FIFO, plus `size`, `allocator` and a
+  heap-allocated `storage` array.
 
 #### Lifecycle Functions
 
 **`void _mulle_pointerfifo_init(struct mulle_pointerfifo *p, unsigned int size, struct mulle_allocator *allocator)`**
 
-- **Purpose:** Initialize dynamic FIFO with specified size.
+- **Purpose:** Initialize dynamic FIFO with room for `size` pointers.
 - **Parameters:**
   - `p`: Uninitialized FIFO.
-  - `size`: Capacity (>= 2).
-  - `allocator`: Memory allocator for storage.
+  - `size`: Capacity (>= 2, enforced with `assert`).
+  - `allocator`: Memory allocator for storage; NULL selects the default
+    allocator. Allocation failure follows the mulle-allocator contract: the
+    allocator's `fail` function is called, which by default aborts.
 
 **`void mulle_pointerfifo_init(struct mulle_pointerfifo *p, unsigned int size, struct mulle_allocator *allocator)`** (NULL-safe)
 
-- **Purpose:** Safe wrapper that checks NULL.
+- **Purpose:** Wrapper that tolerates a NULL `p`.
 
 **`void _mulle_pointerfifo_done(struct mulle_pointerfifo *p)`**
 
-- **Purpose:** Free FIFO storage.
-- **Must Call:** To avoid memory leaks.
+- **Purpose:** Free FIFO storage. Pointers still in the FIFO are not freed.
+  Safe to call more than once. Re-initialize before reuse.
 
 **`void mulle_pointerfifo_done(struct mulle_pointerfifo *p)`** (NULL-safe)
 
-- **Purpose:** Safe wrapper that checks NULL.
+- **Purpose:** Wrapper that tolerates a NULL `p`.
 
 #### Read/Write Operations
 
@@ -129,62 +139,84 @@ Available sizes: 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192 entries.
 - **Purpose:** Read pointer (consumer).
 - **Returns:** Pointer or NULL if empty.
 
-**`void *_mulle_pointerfifo_read_barrier(struct mulle_pointerfifo *p)`**
+**`void *mulle_pointerfifo_read(struct mulle_pointerfifo *p)`** (NULL-safe)
 
-- **Purpose:** Read with memory barrier.
+- **Purpose:** Wrapper that returns NULL for a NULL `p`.
 
 **`int _mulle_pointerfifo_write(struct mulle_pointerfifo *p, void *pointer)`**
 
 - **Purpose:** Write pointer (producer).
-- **Returns:** 0 on success, -1 if full.
+- **Returns:** 0 on success, -1 if full, -2 if `pointer` is NULL.
 
-**`int _mulle_pointerfifo_write_barrier(struct mulle_pointerfifo *p, void *pointer)`**
+**`int mulle_pointerfifo_write(struct mulle_pointerfifo *p, void *pointer)`** (NULL-safe)
 
-- **Purpose:** Write with memory barrier.
+- **Purpose:** Wrapper that returns -1 for a NULL `p`.
+
+The dynamic FIFO has the same publication guarantees as the fixed FIFO.
 
 #### Inspection
 
 **`unsigned int _mulle_pointerfifo_get_count(struct mulle_pointerfifo *p)`**
 
-- **Purpose:** Get approximate entry count.
+- **Purpose:** Get the number of entries (same semantics as the fixed
+  `get_count`).
+
+**`unsigned int mulle_pointerfifo_get_count(struct mulle_pointerfifo *p)`** (NULL-safe)
+
+- **Purpose:** Wrapper that returns 0 for a NULL `p`.
 
 ## 4. Performance Characteristics
 
-- **Read Time:** O(1) per operation, typically 2-3 CPU cycles (uncontended).
-- **Write Time:** O(1) per operation, typically 2-3 CPU cycles (uncontended).
-- **Memory:** Fixed FIFO: Compile-time known; Dynamic: allocator-dependent.
-- **Contention:** Minimal with single producer/consumer; count updates use atomic CAS.
+- **Read/Write Time:** O(1) per operation; no locks, no system calls, no
+  allocation.
+- **Memory:** Fixed FIFO: the storage (N pointers) is embedded in the struct.
+  Dynamic: one allocation of `size` pointers at init.
+- **Contention:** The shared counter `n` is updated atomically by both sides
+  on every operation, which causes cache-line hand-over between the two
+  threads. This is a known design limitation for an SPSC queue.
 - **Latency:** Non-blocking; no OS scheduler involvement.
 
 **Scalability:**
-- Single pair (1 producer, 1 consumer): Optimal performance.
-- Multiple producers/consumers: Use separate FIFO pairs or external locking.
+- Single pair (1 producer, 1 consumer): supported configuration.
+- Multiple producers/consumers: forbidden; use separate FIFOs or external
+  locking.
 
 ## 5. AI Usage Recommendations & Patterns
 
 ### Best Practices:
 
-1. **Enforce Single Producer/Consumer:** Only one thread should call write, one should call read.
+1. **Enforce Single Producer/Consumer:** Only one thread may call write, one
+   may call read. `init` before the threads start, `done` after they stop.
 
-2. **Use Barrier Variants When Needed:** If pointer references external data, use `*_barrier` variants.
+2. **Check Return Values:** Writes fail with -1 when full; decide on a
+   retry/backoff or drop policy. Writes of NULL fail with -2.
 
-3. **Check Return Values:** Always check write return for full conditions; handle gracefully.
+3. **Size Appropriately:** The FIFO never grows. Pick a capacity that
+   absorbs your burst, or handle the full case.
 
-4. **Size Appropriately:** Choose fixed size that won't overflow; or use dynamic with generous capacity.
+4. **Drain Before Done:** Remaining pointers are not freed by `done`.
 
-5. **Drain Before Done:** Ensure all entries consumed before calling `*_done()`.
+5. **Publication:** A successful `write` publishes both the pointer and the
+   contents of the pointed-to object. A subsequent `read` that returns the
+   pointer may safely dereference it. No additional barriers or special
+   read variants are needed.
 
 ### Common Pitfalls:
 
-1. **Storing NULL:** Cannot store NULL; use sentinel or wrapper structure.
+1. **Storing NULL:** Rejected with -2; use a sentinel or wrapper if you need
+   an "empty" value.
 
-2. **Multiple Threads per Side:** Multiple producers or consumers corrupt state; use mutex wrapping if needed.
+2. **Multiple Threads per Side:** Corrupts state; this is a contract
+   violation, not something the FIFO detects.
 
-3. **Ignoring Full Writes:** Silently discarded writes if FIFO full; queue can deadlock waiting.
+3. **Ignoring Full Writes:** The FIFO never blocks; a dropped write is gone
+   unless the caller retries.
 
-4. **Memory Ordering Confusion:** Forgetting `*_barrier` when pointer references external memory causes races.
+4. **Memory Ordering:** All internal atomics are sequentially consistent.
+   Dereference of dequeued pointers is safe without additional barriers.
 
-5. **Size Too Small:** Fixed-size FIFO with insufficient capacity drops data.
+5. **Use After Done:** Dynamic `done` frees the storage. It is idempotent,
+   but reading/writing a finished FIFO is an error; re-initialize first.
 
 ## 6. Integration Examples
 
@@ -193,183 +225,154 @@ Available sizes: 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192 entries.
 ```c
 #include <mulle-fifo/mulle-fifo.h>
 #include <stdio.h>
-#include <string.h>
 
-struct mulle__pointerfifo64 work_queue;
+struct mulle__pointerfifo64   work_queue;
 
-void producer_task(void) {
-    const char *tasks[] = {"task1", "task2", "task3", NULL};
-    
-    _mulle__pointerfifo64_init(&work_queue);
-    
-    for (int i = 0; tasks[i]; i++) {
-        char *task = malloc(strlen(tasks[i]) + 1);
-        strcpy(task, tasks[i]);
-        
-        if (_mulle__pointerfifo64_write(&work_queue, task) != 0) {
-            fprintf(stderr, "Queue full!\n");
-            free(task);
-        }
-    }
-}
+int   main( void)
+{
+   char   *task;
 
-void consumer_task(void) {
-    char *task;
-    
-    while ((task = _mulle__pointerfifo64_read(&work_queue)) != NULL) {
-        printf("Processing: %s\n", task);
-        free(task);
-    }
-    
-    _mulle__pointerfifo64_done(&work_queue);
-}
+   _mulle__pointerfifo64_init( &work_queue);
 
-int main() {
-    producer_task();
-    consumer_task();
-    return 0;
+   if( _mulle__pointerfifo64_write( &work_queue, "task1") == 0)
+      printf( "queued\n");
+
+   while( (task = _mulle__pointerfifo64_read( &work_queue)) != NULL)
+      printf( "Processing: %s\n", task);
+
+   _mulle__pointerfifo64_done( &work_queue);
+
+   return( 0);
 }
 ```
 
-### Example 2: Dynamic FIFO with Larger Capacity
+### Example 2: Dynamic FIFO with Runtime Capacity
 
 ```c
 #include <mulle-fifo/mulle-fifo.h>
 #include <stdio.h>
 
-struct mulle_pointerfifo event_queue;
+int   main( void)
+{
+   struct mulle_pointerfifo   event_queue;
+   void                       *event;
+   unsigned int               i;
 
-int main() {
-    mulle_pointerfifo_init(&event_queue, 1000, NULL);
-    
-    // Enqueue events
-    for (int i = 1; i <= 100; i++) {
-        void *event = (void *)(intptr_t)i;
-        
-        if (mulle_pointerfifo_write(&event_queue, event) != 0) {
-            fprintf(stderr, "Queue full at event %d\n", i);
-            break;
-        }
-    }
-    
-    printf("Queued: %u events\n", 
-           mulle_pointerfifo_get_count(&event_queue));
-    
-    // Dequeue and process
-    void *event;
-    int count = 0;
-    while ((event = mulle_pointerfifo_read(&event_queue)) != NULL) {
-        int event_id = (intptr_t)event;
-        printf("Event: %d\n", event_id);
-        count++;
-    }
-    
-    printf("Processed: %d events\n", count);
-    
-    mulle_pointerfifo_done(&event_queue);
-    
-    return 0;
+   mulle_pointerfifo_init( &event_queue, 1000, NULL);
+
+   for( i = 1; i <= 100; i++)
+   {
+      if( mulle_pointerfifo_write( &event_queue, (void *) (uintptr_t) i) != 0)
+      {
+         fprintf( stderr, "Queue full at event %u\n", i);
+         break;
+      }
+   }
+
+   printf( "Queued: %u events\n", mulle_pointerfifo_get_count( &event_queue));
+
+   while( (event = mulle_pointerfifo_read( &event_queue)) != NULL)
+      printf( "Event: %lu\n", (unsigned long) (uintptr_t) event);
+
+   mulle_pointerfifo_done( &event_queue);
+
+   return( 0);
 }
 ```
 
-### Example 3: Work Stealing Pattern
+### Example 3: Producer/Consumer Threads
 
 ```c
 #include <mulle-fifo/mulle-fifo.h>
-#include <mulle-thread/mulle-thread.h>
 #include <stdio.h>
 
-typedef struct {
-    int work_id;
-    int complexity;
-} WorkItem;
+static struct mulle__pointerfifo128   queue;
 
-struct mulle__pointerfifo128 work_queue;
+static mulle_thread_rval_t   producer( void *arg)
+{
+   intptr_t   i;
 
-void *worker_thread(void *arg) {
-    int thread_id = (intptr_t)arg;
-    WorkItem *work;
-    int processed = 0;
-    
-    while ((work = _mulle__pointerfifo128_read(&work_queue)) != NULL) {
-        printf("Thread %d: Processing work %d (complexity %d)\n",
-               thread_id, work->work_id, work->complexity);
-        processed++;
-        free(work);
-    }
-    
-    printf("Thread %d: Processed %d items\n", thread_id, processed);
-    
-    return NULL;
+   for( i = 1; i <= 20; i++)
+      while( _mulle__pointerfifo128_write( &queue, (void *) i) == -1)
+         mulle_thread_yield();
+
+   mulle_thread_return();
 }
 
-int main() {
-    _mulle__pointerfifo128_init(&work_queue);
-    
-    // Enqueue work
-    for (int i = 1; i <= 20; i++) {
-        WorkItem *work = malloc(sizeof(WorkItem));
-        work->work_id = i;
-        work->complexity = (i % 5) + 1;
-        
-        _mulle__pointerfifo128_write(&work_queue, work);
-    }
-    
-    printf("Queued %u work items\n", 
-           _mulle__pointerfifo128_get_count(&work_queue));
-    
-    // Simulate consumer
-    worker_thread((void *)0);
-    
-    _mulle__pointerfifo128_done(&work_queue);
-    
-    return 0;
+int   main( void)
+{
+   mulle_thread_t   producer_thread;
+   void             *pointer;
+   unsigned int     count;
+
+   _mulle__pointerfifo128_init( &queue);
+   mulle_thread_create( producer, NULL, &producer_thread);
+
+   count = 0;
+   while( count < 20)
+   {
+      pointer = _mulle__pointerfifo128_read( &queue);
+      if( ! pointer)
+      {
+         mulle_thread_yield();
+         continue;
+      }
+      printf( "Got %ld\n", (long) (intptr_t) pointer);
+      ++count;
+   }
+
+   mulle_thread_join( producer_thread);
+   _mulle__pointerfifo128_done( &queue);
+
+   return( 0);
 }
 ```
 
-### Example 4: Memory Barrier Usage
+### Example 4: Publication Safety (pointer dereference)
 
 ```c
 #include <mulle-fifo/mulle-fifo.h>
-#include <string.h>
+#include <stdio.h>
 
-typedef struct {
-    char data[64];
-} Message;
+struct message
+{
+   char   text[ 64];
+};
 
-struct mulle__pointerfifo32 message_queue;
+static struct mulle__pointerfifo32   queue;
+static struct message                messages[ 8];
 
-void send_message(const char *msg) {
-    Message *message = malloc(sizeof(Message));
-    strncpy(message->data, msg, sizeof(message->data) - 1);
-    
-    // Use barrier because pointer references external data
-    if (_mulle__pointerfifo32_write_barrier(&message_queue, message) != 0) {
-        free(message);
-    }
+void   send_messages( void)
+{
+   unsigned int   i;
+
+   for( i = 0; i < 8; i++)
+   {
+      snprintf( messages[ i].text, sizeof( messages[ i].text),
+                "message %u", i);
+      while( _mulle__pointerfifo32_write( &queue, &messages[ i]) == -1)
+         mulle_thread_yield();
+   }
 }
 
-void receive_message(void) {
-    Message *message;
-    
-    // Use barrier because we access data pointed to by dequeued pointer
-    while ((message = _mulle__pointerfifo32_read_barrier(&message_queue)) != NULL) {
-        printf("Received: %s\n", message->data);
-        free(message);
-    }
-}
+void   receive_messages( void)
+{
+   struct message   *message;
+   unsigned int     count;
 
-int main() {
-    _mulle__pointerfifo32_init(&message_queue);
-    
-    send_message("Hello");
-    send_message("World");
-    
-    receive_message();
-    
-    _mulle__pointerfifo32_done(&message_queue);
-    
-    return 0;
+   count = 0;
+   while( count < 8)
+   {
+      /* plain read: seq_cst atomics guarantee pointee visibility */
+      message = _mulle__pointerfifo32_read( &queue);
+      if( ! message)
+      {
+         mulle_thread_yield();
+         continue;
+      }
+      printf( "Received: %s\n", message->text);
+      ++count;
+   }
 }
 ```
 
@@ -378,45 +381,45 @@ int main() {
 ```c
 #include <mulle-fifo/mulle-fifo.h>
 #include <stdio.h>
-#include <unistd.h>
 
-struct mulle__pointerfifo256 task_queue;
+static struct mulle__pointerfifo256   task_queue;
 
-int main() {
-    _mulle__pointerfifo256_init(&task_queue);
-    
-    // Simulate task generation
-    for (int i = 0; i < 100; i++) {
-        void *task = (void *)(intptr_t)(i + 1);
-        
-        if (_mulle__pointerfifo256_write(&task_queue, task) == 0) {
-            unsigned int count = _mulle__pointerfifo256_get_count(&task_queue);
-            if (count % 10 == 0) {
-                printf("Queue depth: %u\n", count);
-            }
-        } else {
-            printf("Queue full at task %d\n", i + 1);
-            break;
-        }
-    }
-    
-    // Simulate task consumption
-    while (1) {
-        void *task = _mulle__pointerfifo256_read(&task_queue);
-        if (!task) break;
-        
-        unsigned int remaining = _mulle__pointerfifo256_get_count(&task_queue);
-        printf("Processed task %p, remaining: %u\n", task, remaining);
-    }
-    
-    _mulle__pointerfifo256_done(&task_queue);
-    
-    return 0;
+int   main( void)
+{
+   void          *task;
+   unsigned int  i;
+
+   _mulle__pointerfifo256_init( &task_queue);
+
+   for( i = 1; i <= 100; i++)
+   {
+      if( _mulle__pointerfifo256_write( &task_queue, (void *) (uintptr_t) i) == 0)
+      {
+         if( _mulle__pointerfifo256_get_count( &task_queue) % 10 == 0)
+            printf( "Queue depth: %u\n",
+                    _mulle__pointerfifo256_get_count( &task_queue));
+      }
+      else
+      {
+         printf( "Queue full at task %u\n", i);
+         break;
+      }
+   }
+
+   while( (task = _mulle__pointerfifo256_read( &task_queue)) != NULL)
+      printf( "Processed %lu, remaining: %u\n",
+              (unsigned long) (uintptr_t) task,
+              _mulle__pointerfifo256_get_count( &task_queue));
+
+   _mulle__pointerfifo256_done( &task_queue);
+
+   return( 0);
 }
 ```
 
 ## 7. Dependencies
 
 Direct dependencies:
-- `mulle-thread`: Atomic operations and memory barriers
+- `mulle-thread`: sequentially consistent atomic operations
+- `mulle-allocator`: storage allocation for the dynamic FIFO
 - `mulle-c11`: C11 compatibility and utility macros

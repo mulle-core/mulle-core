@@ -19,6 +19,7 @@ mulle-core/mulle-buffer/mulle--buffer.c
 mulle-core/mulle-buffer/mulle-buffer.c
 mulle-core/mulle-buffer/mulle-flushablebuffer.c
 mulle-core/mulle-concurrent/mulle-concurrent-hashmap.c
+mulle-core/mulle-concurrent/mulle-concurrent-hashtable.c
 mulle-core/mulle-concurrent/mulle-concurrent-pointerarray.c
 mulle-core/mulle-concurrent/mulle-concurrent-pointerset.c
 mulle-core/mulle-container-debug/mulle--array-debug.c

@@ -41,8 +41,8 @@
 //  Slot values:
 //    NULL              (MULLE_CONCURRENT_NO_POINTER)      - empty
 //    INTPTR_MIN        (MULLE_CONCURRENT_INVALID_POINTER) - REDIRECT (migration)
-//    (void *) -1       (MULLE_CONCURRENT_TOMBSTONE)       - removed
-//    anything else                                        - live pointer
+//    INTPTR_MAX        (MULLE_CONCURRENT_TOMBSTONE_POINTER) - removed
+//    anything else                                          - live pointer
 //
 #ifndef mulle_concurrent_pointerset_h__
 #define mulle_concurrent_pointerset_h__
@@ -96,13 +96,13 @@ struct mulle_concurrent_pointerset
 
 MULLE__CONCURRENT_GLOBAL
 int  _mulle_concurrent_pointerset_init( struct mulle_concurrent_pointerset *set,
-                                        unsigned int size,
+                                        size_t size,
                                         struct mulle_allocator *allocator);
 MULLE__CONCURRENT_GLOBAL
 void  _mulle_concurrent_pointerset_done( struct mulle_concurrent_pointerset *set);
 
 MULLE__CONCURRENT_GLOBAL
-unsigned int  _mulle_concurrent_pointerset_get_size( struct mulle_concurrent_pointerset *set);
+size_t  _mulle_concurrent_pointerset_get_size( struct mulle_concurrent_pointerset *set);
 
 MULLE__CONCURRENT_GLOBAL
 void  *_mulle_concurrent_pointerset_register( struct mulle_concurrent_pointerset *set,
@@ -125,7 +125,7 @@ int  _mulle_concurrent_pointerset_remove( struct mulle_concurrent_pointerset *se
 
 static inline int
    mulle_concurrent_pointerset_init( struct mulle_concurrent_pointerset *set,
-                                     unsigned int size,
+                                     size_t size,
                                      struct mulle_allocator *allocator)
 {
    if( ! set)
@@ -142,7 +142,7 @@ static inline void
 }
 
 
-static inline unsigned int
+static inline size_t
    mulle_concurrent_pointerset_get_size( struct mulle_concurrent_pointerset *set)
 {
    return( set ? _mulle_concurrent_pointerset_get_size( set) : 0);
@@ -153,7 +153,7 @@ static inline struct mulle_allocator *
    mulle_concurrent_pointerset_get_allocator( struct mulle_concurrent_pointerset *set)
 {
    return( set
-           ? (struct mulle_allocator *) _mulle_atomic_pointer_read( &set->allocator)
+           ? (struct mulle_allocator *) _mulle_atomic_pointer_read_relaxed( &set->allocator)
            : NULL);
 }
 
@@ -190,7 +190,8 @@ void  *mulle_concurrent_pointerset_register( struct mulle_concurrent_pointerset 
 //   0      : inserted
 //   EEXIST : already present
 //   EINVAL : invalid argument
-//   ENOMEM : out of memory
+//
+// Allocation is fail-fast (success or abort), see README "Memory allocation".
 //
 MULLE__CONCURRENT_GLOBAL
 int   mulle_concurrent_pointerset_insert( struct mulle_concurrent_pointerset *set,
@@ -210,7 +211,8 @@ static inline int
 //   0      : removed
 //   ENOENT : not found
 //   EINVAL : invalid argument
-//   ENOMEM : out of memory
+//
+// Allocation is fail-fast (success or abort), see README "Memory allocation".
 //
 MULLE__CONCURRENT_GLOBAL
 int   mulle_concurrent_pointerset_remove( struct mulle_concurrent_pointerset *set,
@@ -222,8 +224,8 @@ int   mulle_concurrent_pointerset_remove( struct mulle_concurrent_pointerset *se
 struct mulle_concurrent_pointerset_enumerator
 {
    struct mulle_concurrent_pointerset   *set;
-   unsigned int                          index;
-   unsigned int                          mask;
+   uintptr_t                            index;
+   uintptr_t                            mask;
 };
 
 MULLE__CONCURRENT_GLOBAL
@@ -231,6 +233,8 @@ int  _mulle_concurrent_pointerset_enumerator_next( struct mulle_concurrent_point
                                                    void **ptr);
 
 
+// Enumerating a NULL set produces an empty enumerator. The enumerator itself
+// is only usable by the calling thread.
 static inline struct mulle_concurrent_pointerset_enumerator
    mulle_concurrent_pointerset_enumerate( struct mulle_concurrent_pointerset *set)
 {
@@ -247,7 +251,6 @@ static inline struct mulle_concurrent_pointerset_enumerator
 //  1          : OK, *ptr filled
 //  0          : done
 //  ECANCELED  : mutation detected
-//  ENOMEM     : out of memory
 //
 static inline int
    mulle_concurrent_pointerset_enumerator_next( struct mulle_concurrent_pointerset_enumerator *rover,
@@ -272,17 +275,17 @@ MULLE__CONCURRENT_GLOBAL
 void          *mulle_concurrent_pointerset_lookup_any( struct mulle_concurrent_pointerset *set);
 
 MULLE__CONCURRENT_GLOBAL
-unsigned int   mulle_concurrent_pointerset_count( struct mulle_concurrent_pointerset *set);
+size_t   mulle_concurrent_pointerset_count( struct mulle_concurrent_pointerset *set);
 
 
-#define mulle_concurrent_pointerset_for( name, ptr)                                                                              \
-   assert( sizeof( ptr) == sizeof( void *));                                                                                     \
-   for( struct mulle_concurrent_pointerset_enumerator                                                                            \
-           rover__ ## ptr = mulle_concurrent_pointerset_enumerate( name),                                                        \
-           *rover__ ## ptr ## __i = (void *) 0;                                                                                  \
-        ! rover__ ## ptr ## __i;                                                                                                  \
-        rover__ ## ptr ## __i = (mulle_concurrent_pointerset_enumerator_done( &rover__ ## ptr),                                  \
-                                 (void *) 1))                                                                                     \
+#define mulle_concurrent_pointerset_for( name, ptr)                                                \
+   assert( sizeof( ptr) == sizeof( void *));                                                       \
+   for( struct mulle_concurrent_pointerset_enumerator                                              \
+           rover__ ## ptr = mulle_concurrent_pointerset_enumerate( name),                          \
+           *rover__ ## ptr ## __i = (void *) 0;                                                    \
+        ! rover__ ## ptr ## __i;                                                                   \
+        rover__ ## ptr ## __i = (mulle_concurrent_pointerset_enumerator_done( &rover__ ## ptr),    \
+                                 (void *) 1))                                                      \
       while( _mulle_concurrent_pointerset_enumerator_next( &rover__ ## ptr, (void **) &ptr) == 1)
 
 

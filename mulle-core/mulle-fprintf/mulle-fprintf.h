@@ -48,7 +48,7 @@
  *
  *  version:  major, minor, patch
  */
-#define MULLE__FPRINTF_VERSION  ((0UL << 20) | (3 << 8) | 4)
+#define MULLE__FPRINTF_VERSION  ((0UL << 20) | (4 << 8) | 0)
 
 
 static inline unsigned int   mulle_fprintf_get_version_major( void)
@@ -76,23 +76,23 @@ uint32_t   mulle_fprintf_get_version( void);
 #include <stdarg.h>
 
 MULLE__FPRINTF_GLOBAL
-int   mulle_printf( char *format, ...);
+int   mulle_printf( const char *format, ...);
 
 MULLE__FPRINTF_GLOBAL
-int   mulle_fprintf( FILE *fp, char *format, ...);
+int   mulle_fprintf( FILE *fp, const char *format, ...);
 
 MULLE__FPRINTF_GLOBAL
-int   mulle_vfprintf( FILE *fp, char *format, va_list args);
+int   mulle_vfprintf( FILE *fp, const char *format, va_list args);
 
 MULLE__FPRINTF_GLOBAL
-int   mulle_mvfprintf( FILE *fp, char *format, mulle_vararg_list arguments);
+int   mulle_mvfprintf( FILE *fp, const char *format, mulle_vararg_list arguments);
 
-static inline int   mulle_vprintf( char *format, va_list args)
+static inline int   mulle_vprintf( const char *format, va_list args)
 {
    return( mulle_vfprintf( stdout, format, args));
 }
 
-static inline int   mulle_mvprintf( char *format, mulle_vararg_list arguments)
+static inline int   mulle_mvprintf( const char *format, mulle_vararg_list arguments)
 {
    return( mulle_mvfprintf( stdout, format, arguments));
 }
@@ -105,25 +105,19 @@ static inline int   mulle_fputc( int c, FILE *fp)
 }
 
 
-static inline int   mulle_putc( int c, FILE *fp)
-{
-   return( putc( c, fp));
-}
-
-
 static inline int   mulle_putchar( int c)
 {
    return( putchar( c));
 }
 
 
-static inline int   mulle_fputs( char *s, FILE *fp)
+static inline int   mulle_fputs( const char *s, FILE *fp)
 {
    return( fputs( s, fp));
 }
 
 
-static inline int   mulle_puts( char *s)
+static inline int   mulle_puts( const char *s)
 {
    return( puts( s));
 }

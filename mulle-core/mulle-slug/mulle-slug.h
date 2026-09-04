@@ -44,7 +44,7 @@
  *
  *  version:  major, minor, patch
  */
-#define MULLE__SLUG_VERSION  ((0UL << 20) | (1 << 8) | 1)
+#define MULLE__SLUG_VERSION  ((0UL << 20) | (2 << 8) | 0)
 
 
 static inline uint32_t   mulle_slug_get_version_major( void)
@@ -71,12 +71,21 @@ uint32_t   mulle_slug_get_version( void);
 
 //
 // you get an allocated string back, that you need to mulle_free
+// non-transliterable characters (CJK, Arabic, etc.) are dropped
 //
 MULLE__SLUG_GLOBAL
-char   *mulle_utf8_slugify( char *s);
+char   *mulle_utf8_slugify( const char *s);
+
+//
+// you get an allocated string back, that you need to mulle_free
+// non-transliterable letters (CJK, Arabic, etc.) are passed through as UTF-8
+//
+MULLE__SLUG_GLOBAL
+char   *mulle_utf8_slugify_utf8( const char *s);
 
 //
 // you get a struct mulle_utf8data, whose characters you need to mulle_free
+// NOTE: the returned length includes the trailing NUL byte
 //
 MULLE__SLUG_GLOBAL
 struct mulle_utf8data   mulle_utf8data_slugify( struct mulle_utf8data  data,
@@ -84,9 +93,22 @@ struct mulle_utf8data   mulle_utf8data_slugify( struct mulle_utf8data  data,
 
 
 // adds slugified string to buffer, useful for building up an html page
+// non-transliterable characters are dropped (ASCII-only output)
 MULLE__SLUG_GLOBAL
 void  mulle_buffer_add_slugified_utf8data( struct mulle_buffer *buffer,
                                            struct mulle_utf8data data);
+
+// adds slugified string to buffer, non-transliterable letters are kept as UTF-8
+MULLE__SLUG_GLOBAL
+void  mulle_buffer_add_utf8_slugified_utf8data( struct mulle_buffer *buffer,
+                                                struct mulle_utf8data data);
+
+// adds slugified string to buffer with a custom delimiter
+MULLE__SLUG_GLOBAL
+void  mulle_buffer_add_slugified_utf8data_with_delimiter( struct mulle_buffer *buffer,
+                                                          struct mulle_utf8data data,
+                                                          char delimiter);
+
 //
 // You can slugify into an existing buffer. You can use an alloca buffer
 // here and then get a) a max sized string and b) no mallocs
@@ -94,6 +116,19 @@ void  mulle_buffer_add_slugified_utf8data( struct mulle_buffer *buffer,
 MULLE__SLUG_GLOBAL
 void  mulle_buffer_slugify_utf8data( struct mulle_buffer *buffer,
                                      struct mulle_utf8data data);
+
+//
+// Convenience functions that slugify into a caller-provided buffer.
+// Returns dst on success, NULL if dst_len is 0.
+// src_len can be (size_t) -1 for NUL-terminated strings.
+//
+MULLE__SLUG_GLOBAL
+char  *mulle_slugify( char *dst, size_t dst_len, const char *src, size_t src_len);
+
+MULLE__SLUG_GLOBAL
+char  *mulle_slugify_with_delimiter( char *dst, size_t dst_len,
+                                     const char *src, size_t src_len,
+                                     char delimiter);
 /*
  * The versioncheck header can be generated with
  * mulle-project-dependency-versions, but it is optional.

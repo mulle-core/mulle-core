@@ -49,7 +49,7 @@ uint32_t   mulle_fprintf_get_version( void)
 }
 
 
-int   mulle_printf( char *format, ...)
+int   mulle_printf( const char *format, ...)
 {
    va_list   args;
    int       rval;
@@ -62,7 +62,7 @@ int   mulle_printf( char *format, ...)
 }
 
 
-int   mulle_fprintf( FILE *fp, char *format, ...)
+int   mulle_fprintf( FILE *fp, const char *format, ...)
 {
    va_list   args;
    int       rval;
@@ -75,7 +75,7 @@ int   mulle_fprintf( FILE *fp, char *format, ...)
 }
 
 
-int   mulle_vfprintf( FILE *fp, char *format, va_list args)
+int   mulle_vfprintf( FILE *fp, const char *format, va_list args)
 {
    struct mulle_buffer            *buffer;
    struct mulle_flushablebuffer   flushable_buffer;
@@ -85,16 +85,16 @@ int   mulle_vfprintf( FILE *fp, char *format, va_list args)
 
    if( ! fp || ! format)
    {
-   	errno = EINVAL;
+      errno = EINVAL;
       return( -1);
    }
 
    mulle_flushablebuffer_init_with_static_bytes( &flushable_buffer,
-                                                 storage,
-                                                 sizeof( storage),
-                                                 (mulle_flushablebuffer_flusher_t *) fwrite,
-                                                 fp,
-                                                 NULL);
+                                                  storage,
+                                                  sizeof( storage),
+                                                  _mulle_flushablebuffer_fwrite,
+                                                  fp,
+                                                  NULL);
 
    buffer = mulle_flushablebuffer_as_buffer( &flushable_buffer);
    rval   = mulle_buffer_vsprintf( buffer, format, args);
@@ -104,7 +104,7 @@ int   mulle_vfprintf( FILE *fp, char *format, va_list args)
 }
 
 
-int   mulle_mvfprintf( FILE *fp, char *format, mulle_vararg_list arguments)
+int   mulle_mvfprintf( FILE *fp, const char *format, mulle_vararg_list arguments)
 {
    struct mulle_buffer            *buffer;
    struct mulle_flushablebuffer   flushable_buffer;
@@ -114,15 +114,16 @@ int   mulle_mvfprintf( FILE *fp, char *format, mulle_vararg_list arguments)
 
    if( ! fp || ! format)
    {
-   	errno = EINVAL;
+      errno = EINVAL;
       return( -1);
    }
 
-   mulle_flushablebuffer_init( &flushable_buffer,
-                               storage,
-                               sizeof( storage),
-                               (mulle_flushablebuffer_flusher_t *) fwrite,
-                               fp);
+   mulle_flushablebuffer_init_with_static_bytes( &flushable_buffer,
+                                                  storage,
+                                                  sizeof( storage),
+                                                  _mulle_flushablebuffer_fwrite,
+                                                  fp,
+                                                  NULL);
 
    buffer = mulle_flushablebuffer_as_buffer( &flushable_buffer);
    rval   = mulle_buffer_mvsprintf( buffer, format, arguments);

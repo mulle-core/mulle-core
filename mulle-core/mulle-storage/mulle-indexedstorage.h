@@ -58,7 +58,7 @@ struct mulle_indexedstorage
  * @param alloc The indexed storage allocator.
  * @param sizeof_struct The size of the structure to be stored.
  * @param alignof_struct The alignment of the structure to be stored.
- * @param capacity The initial capacity of the storage.
+ * @param capacity Initial array capacity; the array grows (realloc) as needed.
  * @param allocator The allocator to be used for memory management.
  */
 MULLE_C_NONNULL_FIRST
@@ -137,9 +137,9 @@ static inline void
    assert( mulle__pointerarray_find( &alloc->_freed, index_1) == mulle_not_found_e);
 
 #if DEBUG
-   memset( _mulle_structarray_get( &alloc->_structs, (unsigned int) (uintptr_t) index),
-           0xFD,
-           _mulle_structarray_get_element_size( &alloc->_structs));
+   mulle_memset_uint32( _mulle_structarray_get( &alloc->_structs, (unsigned int) (uintptr_t) index),
+                        0xDEADDEAD,
+                        _mulle_structarray_get_element_size( &alloc->_structs));
 #endif
 
    allocator = mulle_structarray_get_allocator( &alloc->_structs);
@@ -195,7 +195,7 @@ static inline struct mulle_allocator *
  * @return The count of active elements in the indexed storage.
  */
 MULLE_C_NONNULL_FIRST
-static inline unsigned int
+static inline size_t
    _mulle_indexedstorage_get_count( struct mulle_indexedstorage *alloc)
 {
    return( _mulle_structarray_get_count( &alloc->_structs) -
@@ -208,10 +208,23 @@ static inline unsigned int
  * @param alloc The indexed storage allocator.
  * @return The count of active elements in the indexed storage, or 0 if the storage is NULL.
  */
-static inline unsigned int
+static inline size_t
    mulle_indexedstorage_get_count( struct mulle_indexedstorage *alloc)
 {
    return( alloc ? _mulle_indexedstorage_get_count( alloc) : 0);
+}
+
+/**
+ * Get the size of each element in the indexed storage.
+ *
+ * @param alloc The indexed storage allocator.
+ * @return The element size in bytes.
+ */
+MULLE_C_NONNULL_FIRST
+static inline size_t
+   _mulle_indexedstorage_get_element_size( struct mulle_indexedstorage *alloc)
+{
+   return( _mulle_structarray_get_element_size( &alloc->_structs));
 }
 
 

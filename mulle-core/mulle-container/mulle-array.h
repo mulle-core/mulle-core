@@ -66,7 +66,7 @@ struct mulle_array
 
 
 #define MULLE_ARRAY_DATA( storage, count, xcallback, xallocator) \
-   ((struct mulle_pointerarray)                                  \
+   ((struct mulle_array)                                         \
    {                                                             \
       ._storage         = (storage),                             \
       ._curr            = (storage),                             \
@@ -611,6 +611,8 @@ static inline char
 static inline int   mulle_array_member( struct mulle_array *array,
                                         void *p)
 {
+   if( ! array)
+      return( 0);
    return( mulle__array_member( (struct mulle__array *) array, p, array->callback));
 }
 

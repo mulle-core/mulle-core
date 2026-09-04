@@ -111,8 +111,9 @@ void   *mulle_buffer_fmemopen( void *bytes, size_t length, const char *mode)
       {
       case 'b'  : bits    &= ~MULLE_BUFFER_IS_TEXT;
                   continue;
-      case '+'  : bits    &= ~MULLE_BUFFER_IS_READONLY|MULLE_BUFFER_IS_WRITEONLY;
-                  truncate = 1;
+      case '+'  : if( (bits & MULLE_BUFFER_IS_WRITEONLY) && ! append)
+                     truncate = 1;
+                  bits    &= ~(MULLE_BUFFER_IS_READONLY|MULLE_BUFFER_IS_WRITEONLY);
                   continue;
       case '\0' : goto done_parse;
       default   : goto error_einval;
@@ -199,7 +200,9 @@ size_t    mulle_buffer_fread( void *dst, size_t size, size_t nmemb, void *buffer
    // on linux we get 4 bytes back (not sure what subsequent bytes are)
    // we do the linux thing 
 
-   bytes_to_read   = size * nmemb;
+   bytes_to_read   = mulle_allocator_size_multiply( ((struct mulle_buffer *) buffer)->_allocator,
+                                                    size,
+                                                    nmemb);
    bytes_available = mulle_buffer_remaining_length( buffer);
    bytes_to_copy   = (bytes_to_read > bytes_available) ? bytes_available : bytes_to_read;
 
@@ -372,7 +375,9 @@ size_t    mulle_buffer_fwrite( void *src, size_t size, size_t nmemb, void *buffe
    if( ! size) // catches division by zero
       goto zero;
 
-   bytes_to_write = size * nmemb;
+   bytes_to_write = mulle_allocator_size_multiply( ((struct mulle_buffer *) buffer)->_allocator,
+                                                   size,
+                                                   nmemb);
    dst            = mulle_buffer_advance( buffer, bytes_to_write);
 
    // ain't doing partial writes, except if inflexible, then it gets weird
@@ -412,7 +417,7 @@ int   mulle_buffer_fclose( void *buffer)
 }
 
 
-off_t   mulle_buffer_lseek( void *buffer, off_t offset, int mode)
+off_t   mulle_buffer_stdio_lseek( void *buffer, off_t offset, int mode)
 {
    int    rval;
    long   seek;
@@ -468,33 +473,99 @@ static off_t   mulle_FILE_lseek( void *buffer, off_t offset, int mode)
 }
 
 // what can I do ? Seem this is only used with Windows gcc matrix ?
+// On non-Windows these map to the real libc functions. On Windows there is no
+// fmemopen, so the vtable slot returns an error instead of aborting.
 #if defined( _WIN32)
-static void   *fmemopen( void *string, size_t size, const char *mode)
+static void   *mulle_FILE_fmemopen( void *buffer, size_t size, const char *mode)
 {
-   fprintf( stderr, "Sorry but there is no fmemopen on windows. Use mulle_buffer_fmemopen instead\n");
-   abort();
-
-   MULLE_C_UNUSED( string);
+   errno = EINVAL;
+   MULLE_C_UNUSED( buffer);
    MULLE_C_UNUSED( size);
    MULLE_C_UNUSED( mode);
+   return( NULL);
+}
+#else
+static void   *mulle_FILE_fmemopen( void *buffer, size_t size, const char *mode)
+{
+   return( fmemopen( buffer, size, mode));
 }
 #endif
 
 
+//
+// Typed wrappers so the vtable slots have matching signatures instead of
+// casting libc functions between incompatible types (which is undefined
+// behavior in strict C).
+//
+
+static size_t   mulle_FILE_fread( void *dst, size_t size, size_t nmemb, void *fp)
+{
+   return( fread( dst, size, nmemb, (FILE *) fp));
+}
+
+
+static size_t   mulle_FILE_fwrite( void *src, size_t size, size_t nmemb, void *fp)
+{
+   return( fwrite( src, size, nmemb, (FILE *) fp));
+}
+
+
+static int   mulle_FILE_fclose( void *fp)
+{
+   return( fclose( (FILE *) fp));
+}
+
+
+static int   mulle_FILE_fflush( void *fp)
+{
+   return( fflush( (FILE *) fp));
+}
+
+
+static int   mulle_FILE_fgetc( void *fp)
+{
+   return( fgetc( (FILE *) fp));
+}
+
+
+static int   mulle_FILE_fputc( int c, void *fp)
+{
+   return( fputc( c, (FILE *) fp));
+}
+
+
+static int   mulle_FILE_fputs( const char *s, void *fp)
+{
+   return( fputs( s, (FILE *) fp));
+}
+
+
+static int   mulle_FILE_fseek( void *fp, long seek, int mode)
+{
+   return( fseek( (FILE *) fp, seek, mode));
+}
+
+
+static long   mulle_FILE_ftell( void *fp)
+{
+   return( ftell( (FILE *) fp));
+}
+
+
 struct mulle_buffer_stdio_functions   mulle_stdio_functions =
 {
-   .fread    = (size_t (*)(void *, size_t, size_t, void *)) fread,
-   .fwrite   = (size_t (*)(void *, size_t, size_t, void *)) fwrite,
+   .fread    = mulle_FILE_fread,
+   .fwrite   = mulle_FILE_fwrite,
 
-   .fmemopen = (void * (*)(void *, size_t, const char *)) fmemopen,
-   .fclose   = (int (*)(void *)) fclose,
+   .fmemopen = mulle_FILE_fmemopen,
+   .fclose   = mulle_FILE_fclose,
 
-   .fflush   = (int (*)(void *)) fflush,
-   .fgetc    = (int (*)(void *)) fgetc,
-   .fputc    = (int (*)(int,  void *)) fputc,
-   .fputs    = (int (*)(const char *, void *)) fputs,
-   .fseek    = (int (*)(void *, long int,  int)) fseek,
-   .ftell    = (long int (*)(void *)) ftell,
+   .fflush   = mulle_FILE_fflush,
+   .fgetc    = mulle_FILE_fgetc,
+   .fputc    = mulle_FILE_fputc,
+   .fputs    = mulle_FILE_fputs,
+   .fseek    = mulle_FILE_fseek,
+   .ftell    = mulle_FILE_ftell,
 
    .lseek    = mulle_FILE_lseek,
 };
@@ -515,7 +586,7 @@ struct mulle_buffer_stdio_functions   mulle_buffer_functions =
    .fseek    = mulle_buffer_fseek,
    .ftell    = mulle_buffer_ftell,
 
-   .lseek    = mulle_buffer_lseek
+   .lseek    = mulle_buffer_stdio_lseek
 };
 
 
@@ -532,8 +603,7 @@ int   mulle_buffer_init_with_filepath( struct mulle_buffer *buffer,
                                        int mode,
                                        struct mulle_allocator *allocator)
 {
-   FILE     *fp;
-   size_t   rval;
+   FILE   *fp;
 
    // lets do this first, if the fopen later fails its not a problem
    // but buffer will be consistenly inited
@@ -557,10 +627,13 @@ int   mulle_buffer_init_with_filepath( struct mulle_buffer *buffer,
       return( errno);
    }
 
-   rval = mulle_buffer_fread_FILE_all( buffer, fp);
+   mulle_buffer_fread_FILE_all( buffer, fp);
    fclose( fp);
 
-   return( (rval == 0 && errno != EFBIG) ? errno : 0);
+   // fread_FILE_all sets errno to 0 on success (including empty files) and
+   // leaves a nonzero errno on failure, so this reports the actual error
+   // without leaking a stale errno from an unrelated earlier call.
+   return( errno);
 }
 
 
@@ -569,10 +642,11 @@ size_t   mulle_buffer_fread_FILE( struct mulle_buffer *buffer,
                                   size_t nmem,
                                   FILE *fp)
 {
-   void     *space;
-   size_t   rval;
+   void           *space;
+   size_t         bytes_to_read;
+   size_t         rval;
 
-   if( ! buffer)
+   if( ! buffer || ! fp)
    {
       errno = EINVAL;
       return( 0);
@@ -584,8 +658,10 @@ size_t   mulle_buffer_fread_FILE( struct mulle_buffer *buffer,
       return( 0);
    }
 
-   space = mulle_buffer_guarantee( buffer, nmem * size);
-   rval  = fread( space, 1, nmem * size, fp);
+   bytes_to_read = mulle_allocator_size_multiply( buffer->_allocator, size, nmem);
+
+   space = mulle_buffer_guarantee( buffer, bytes_to_read);
+   rval  = fread( space, 1, bytes_to_read, fp);
    mulle_buffer_advance( buffer, rval);
    return( rval);
 }
@@ -596,11 +672,24 @@ size_t   mulle_buffer_fread_FILE_all( struct mulle_buffer *buffer,
 {
    long   current_pos;
    long   file_size;
+   size_t rval;
+
+   if( ! buffer || ! fp)
+   {
+      errno = EINVAL;
+      return( 0);
+   }
+
+   // Reset errno so a successful (possibly empty) read is distinguishable
+   // from a failure, and so callers never see a stale errno.
+   errno = 0;
 
    current_pos = ftell( fp);
    if( current_pos == -1)
       return( 0);
 
+   // Non-seekable streams (pipes, sockets) fail here; ftell/fseek leave errno
+   // set (e.g. ESPIPE) and we return 0.
    if( fseek( fp, 0, SEEK_END) == -1)
       return( 0);
    file_size = ftell( fp);
@@ -622,6 +711,10 @@ size_t   mulle_buffer_fread_FILE_all( struct mulle_buffer *buffer,
    if( fseek( fp, current_pos, SEEK_SET) == -1)
       return( 0);
 
-   return( mulle_buffer_fread_FILE( buffer, 1, file_size, fp));
+   if( file_size == 0)
+      return( 0);   // successful empty read, errno stays 0
+
+   rval = mulle_buffer_fread_FILE( buffer, 1, file_size, fp);
+   return( rval);
 }
 

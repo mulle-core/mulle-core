@@ -60,7 +60,7 @@
 #endif
 
 
-#define MULLE__ALLOCATOR_VERSION  ((8UL << 20) | (0 << 8) | 1)
+#define MULLE__ALLOCATOR_VERSION  ((8UL << 20) | (1 << 8) | 0)
 
 
 /**
@@ -127,12 +127,12 @@ void   mulle_allocation_fail( struct mulle_allocator *allocator,
 // NO_RETURN really but....
 MULLE__ALLOCATOR_GLOBAL
 int   mulle_allocator_no_aba_abort( void *aba,
-                       void (*free)( void *, void *),
-                       void *block,
-                       void *owner);
+                                    void (*free)( void *, void *),
+                                    void *block,
+                                    void *owner);
 
 
-# pragma mark - Petty Accessors
+// # pragma mark - Petty Accessors
 typedef int   mulle_allocator_aba_t( void *,
                                      void (*f)( void *, void *),
                                      void *,
@@ -146,7 +146,7 @@ typedef int   mulle_allocator_aba_t( void *,
  * @return 1 if the allocator is the `mulle_stdlib_nofree_allocator` instance, 0 otherwise.
  */
 MULLE__ALLOCATOR_GLOBAL
-int   mulle_allocator_is_stdlib_allocator( struct mulle_allocator *p);
+int   mulle_allocator_is_stdlib_allocator( const struct mulle_allocator *p);
 
 
 
@@ -196,7 +196,52 @@ static inline void   mulle_allocator_set_fail( struct mulle_allocator *p,
 
 
 
-# pragma mark - Vectoring
+
+// # pragma mark - Size computation with underflow checking
+
+//
+// Used by consumers of this library, not by mulle_allocator itself.
+//
+// Checked size_t multiplication for allocation size calculations.
+// If the product overflows, calls allocator->fail (which does not return).
+// This prevents wrapped-around sizes from reaching the allocator, where they
+// would silently produce an undersized allocation.
+//
+// These functions will move to mulle-allocator eventually.
+//
+static inline size_t
+   mulle_allocator_size_multiply( struct mulle_allocator *allocator,
+                                  size_t a,
+                                  size_t b)
+{
+   if( a && b > (size_t) -1 / a)
+      mulle_allocation_fail( allocator, NULL, (size_t) -1);
+   return( a * b);
+}
+
+
+//
+// To be used by consumers of this library, not by mulle_allocator itself.
+//
+// Checked size_t addition for allocation size calculations.
+// If the sum overflows, calls allocator->fail (which does not return).
+//
+static inline size_t
+   mulle_allocator_size_add( struct mulle_allocator *allocator,
+                             size_t a,
+                             size_t b)
+{
+   size_t  total;
+
+   total = a + b;
+   if( total < a)
+      mulle_allocation_fail( allocator, NULL, (size_t) -1);
+   return( total);
+}
+
+
+
+// # pragma mark - Vectoring
 
 
 MULLE_C_NONNULL_RETURN
@@ -205,7 +250,8 @@ static inline void   *
 {
    void   *q;
 
-   assert( size);
+   if( MULLE_C_UNLIKELY( ! size))
+      (*p->fail)( p, NULL, 0);
 
    q = (*p->realloc)( NULL, size, p);
    if( MULLE_C_UNLIKELY( ! q))
@@ -220,7 +266,10 @@ static inline void   *
 {
    void   *q;
 
-   assert( n && size);
+   // zero size is a programmers error, catch it in all builds
+   if( MULLE_C_UNLIKELY( ! n || ! size))
+      (*p->fail)( p, NULL, 0);
+   assert( size <= SIZE_MAX / n);  // overflow check
 
    q = (*p->calloc)( n, size, p);
    if( MULLE_C_UNLIKELY( ! q))
@@ -230,8 +279,8 @@ static inline void   *
 
 
 //
-// this reallocs, but doesn't free. If you pass in size 0, you risk failing.
-// you can pass in block 0 for malloc
+// this reallocs, but doesn't free. If you pass in size 0, you get a failure.
+// you can pass in block NULL for malloc
 //
 MULLE_C_NONNULL_RETURN
 static inline void *
@@ -239,7 +288,9 @@ static inline void *
 {
    void   *q;
 
-   assert( size);
+   // zero-size is a programming error, catch it in all builds
+   if( MULLE_C_UNLIKELY( ! size))
+      (*p->fail)( p, NULL, 0);
 
    q = (*p->realloc)( block, size, p);
    if( MULLE_C_UNLIKELY( ! q))
@@ -247,6 +298,20 @@ static inline void *
    return( q);
 }
 
+
+MULLE__ALLOCATOR_GLOBAL
+MULLE_C_NONNULL_RETURN
+void *  _mulle_allocator_reallocarray( struct mulle_allocator *p,
+                                       void *block,
+                                       size_t n,
+                                       size_t size);
+
+
+MULLE__ALLOCATOR_GLOBAL
+void *  _mulle_allocator_reallocarray_strict( struct mulle_allocator *p,
+                                              void *block,
+                                              size_t n,
+                                              size_t size);
 
 static inline void   _mulle_allocator_free( struct mulle_allocator *p,
                                             void *block)
@@ -301,7 +366,7 @@ void   _mulle_allocator_invalidate( struct mulle_allocator *p);
  */
 static inline void   mulle_allocator_assert( struct mulle_allocator *p)
 {
-   assert( (p ? p : &mulle_allocator_default));
+   // don't assert the allocator itself, it may be NULL (meaning the default)
    assert( (p ? p : &mulle_allocator_default)->calloc);
    assert( (p ? p : &mulle_allocator_default)->realloc);
    assert( (p ? p : &mulle_allocator_default)->free);
@@ -311,7 +376,7 @@ static inline void   mulle_allocator_assert( struct mulle_allocator *p)
 }
 
 
-# pragma mark - API
+// # pragma mark - API
 
 /**
  * Allocates a block of memory of the specified size using the given allocator.
@@ -400,6 +465,56 @@ static inline void   *mulle_allocator_realloc_strict( struct mulle_allocator *p,
 }
 
 
+/**
+ * Reallocates a block of memory for an array of `n` elements of `size` bytes
+ * using the given allocator.
+ *
+ * If the `p` parameter is `NULL`, the default allocator (`mulle_default_allocator`)
+ * will be used.
+ *
+ * @param p The allocator to use for the reallocation. Can be `NULL` to use the
+ *          default allocator.
+ * @param block The block of memory to reallocate.
+ * @param n The number of elements in the array.
+ * @param size The size of each element, in bytes.
+ * @return A pointer to the reallocated block of memory, or `NULL` if the
+ *         reallocation failed.
+ */
+MULLE_C_NONNULL_RETURN
+static inline void   *mulle_allocator_reallocarray( struct mulle_allocator *p,
+                                                    void *block,
+                                                    size_t n,
+                                                    size_t size)
+{
+   return( _mulle_allocator_reallocarray( p ? p : &mulle_allocator_default, block, n, size));
+}
+
+
+
+/**
+ * Reallocates a block of memory for an array of `n` elements of `size` bytes
+ * using the given allocator. This is the strict variant: if `n` or `size` is
+ * zero, the block is freed and `NULL` is returned.
+ *
+ * If the `p` parameter is `NULL`, the default allocator (`mulle_default_allocator`)
+ * will be used.
+ *
+ * @param p The allocator to use for the reallocation. Can be `NULL` to use the
+ *          default allocator.
+ * @param block The block of memory to reallocate.
+ * @param n The number of elements in the array.
+ * @param size The size of each element, in bytes.
+ * @return A pointer to the reallocated block of memory, or `NULL` if the block
+ *         was freed.
+ */
+static inline void   *mulle_allocator_reallocarray_strict( struct mulle_allocator *p,
+                                                    void *block,
+                                                    size_t n,
+                                                    size_t size)
+{
+   return( _mulle_allocator_reallocarray_strict( p ? p : &mulle_allocator_default, block, n, size));
+}
+
 
 /**
  * Frees a block of memory using the given allocator.
@@ -462,7 +577,7 @@ static inline void   mulle_allocator_fail( struct mulle_allocator *p,
 
 
 
-# pragma mark - Convenience API
+// # pragma mark - Convenience API
 
 /**
  * Allocates a block of memory of the specified size using the default allocator.
@@ -519,6 +634,28 @@ static inline void   *mulle_realloc( void *block, size_t size)
 
 
 /**
+ * Reallocates a block of memory for an array of `n` elements of `size` bytes
+ * using the default allocator.
+ *
+ * This function is a convenience wrapper around `_mulle_allocator_reallocarray()`
+ * that uses the default allocator (`mulle_default_allocator`).
+ *
+ * @param block The block of memory to reallocate.
+ * @param n The number of elements in the array.
+ * @param size The size of each element, in bytes.
+ * @return A pointer to the reallocated block of memory, or `NULL` if the reallocation
+ *         failed.
+ */
+MULLE_C_NONNULL_RETURN
+static inline void   *mulle_reallocarray( void *block, size_t n, size_t size)
+{
+   return( _mulle_allocator_reallocarray( &mulle_allocator_default, block, n, size));
+}
+
+
+
+
+/**
  * Reallocates the specified block of memory to the given size using the default allocator.
  *
  * This function is a strict version of `mulle_realloc()` that will return `NULL` if the
@@ -534,6 +671,27 @@ static inline void   *mulle_realloc( void *block, size_t size)
 static inline void   *mulle_realloc_strict( void *block, size_t size)
 {
    return( _mulle_allocator_realloc_strict( &mulle_allocator_default, block, size));
+}
+
+
+
+/**
+ * Reallocates a block of memory for an array of `n` elements of `size` bytes
+ * using the default allocator. This is the strict variant: if `n` or `size` is
+ * zero, the block is freed and `NULL` is returned.
+ *
+ * This function is a convenience wrapper around `_mulle_allocator_reallocarray_strict()`
+ * that uses the default allocator (`mulle_default_allocator`).
+ *
+ * @param block The block of memory to reallocate.
+ * @param n The number of elements in the array.
+ * @param size The size of each element, in bytes.
+ * @return A pointer to the reallocated block of memory, or `NULL` if the block
+ *         was freed.
+ */
+static inline void   *mulle_reallocarray_strict( void *block, size_t n, size_t size)
+{
+   return( _mulle_allocator_reallocarray_strict( &mulle_allocator_default, block, n, size));
 }
 
 
@@ -566,7 +724,7 @@ static inline int   mulle_abafree( void *block)
 }
 
 
-# pragma mark - strdup convenience
+// # pragma mark - strdup convenience
 
 /**
  * Duplicates the specified string using the given allocator.
@@ -583,10 +741,10 @@ static inline int   mulle_abafree( void *block)
  */
 MULLE__ALLOCATOR_GLOBAL
 MULLE_C_NONNULL_RETURN
-char   *_mulle_allocator_strdup( struct mulle_allocator *p, char *s);
+char   *_mulle_allocator_strdup( struct mulle_allocator *p, const char *s);
 
 
-# pragma mark - strdup API
+// # pragma mark - strdup API
 
 /**
  * Duplicates the specified string using the given allocator.
@@ -600,10 +758,10 @@ char   *_mulle_allocator_strdup( struct mulle_allocator *p, char *s);
  * @param s The string to duplicate.
  * @return A newly allocated string that is a copy of `s`, or `NULL` if s was NULL
  */
-static inline char   *mulle_allocator_strdup( struct mulle_allocator *p, char *s)
+static inline char   *mulle_allocator_strdup( struct mulle_allocator *p, const char *s)
 {
    if( ! s)
-      return( s);
+      return( NULL);
    return( _mulle_allocator_strdup( p ? p : &mulle_allocator_default, s));
 }
 
@@ -618,7 +776,7 @@ static inline char   *mulle_allocator_strdup( struct mulle_allocator *p, char *s
  * @return A newly allocated string that is a copy of `s`
  *
  */
-static inline char   *mulle_strdup( char *s)
+static inline char   *mulle_strdup( const char *s)
 {
    return( mulle_allocator_strdup( &mulle_allocator_default, s));
 }

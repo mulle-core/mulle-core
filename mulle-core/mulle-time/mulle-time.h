@@ -35,7 +35,7 @@
 #ifndef mulle_time_h__
 #define mulle_time_h__
 
-#define MULLE__TIME_VERSION	((1UL << 20) | (3 << 8) | 1)
+#define MULLE__TIME_VERSION	((1UL << 20) | (3 << 8) | 2)
 
 
 #include "mulle-timetype.h"

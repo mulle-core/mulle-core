@@ -79,6 +79,12 @@
 #define TOMBSTONE_VALUE  MULLE_CONCURRENT_TOMBSTONE_POINTER
 
 
+static inline uintptr_t   mulle_pointer_hash( void *ptr)
+{
+   return( (uintptr_t) ptr);
+}
+
+
 static const struct _mulle_concurrent_pointersetstorage   mulle_concurrent_empty_pointersetstorage =
 {
    (void *) -1,   // n_used = const sentinel
@@ -87,32 +93,19 @@ static const struct _mulle_concurrent_pointersetstorage   mulle_concurrent_empty
 };
 
 
-// Scramble pointer bits to spread across table slots.
-// Pointers are often aligned (low bits zero), so we mix.
-static inline unsigned int   _pointerset_hash( void *ptr)
-{
-   uintptr_t   x;
-
-   x = (uintptr_t) ptr;
-   x ^= x >> 16;
-   x *= 0x45d9f3bUL;
-   x ^= x >> 16;
-   return( (unsigned int) x);
-}
-
-
 #pragma mark - storage alloc/free
 
+MULLE_C_NONNULL_RETURN
 static struct _mulle_concurrent_pointersetstorage *
-   _mulle_concurrent_alloc_pointersetstorage( unsigned int n,
+   _mulle_concurrent_alloc_pointersetstorage( size_t n,
                                               struct mulle_allocator *allocator)
 {
    struct _mulle_concurrent_pointersetstorage  *p;
 
-   assert( n >= 2 && (n & (n - 1)) == 0);  // power of 2
-
    if( n < 4)
       n = 4;
+
+   assert( (n & (n - 1)) == 0);  // power of 2
 
    p = _mulle_allocator_calloc( allocator, 1,
          sizeof( struct _mulle_concurrent_pointersetstorage) +
@@ -123,12 +116,12 @@ static struct _mulle_concurrent_pointersetstorage *
 }
 
 
-static unsigned int
+static size_t
    _mulle_concurrent_pointersetstorage_get_max_n_used( struct _mulle_concurrent_pointersetstorage *p)
 {
-   unsigned int   size;
+   size_t   size;
 
-   size = (unsigned int) p->mask + 1;
+   size = (size_t) p->mask + 1;
    return( size - (size >> 1));   // 50% load
 }
 
@@ -140,16 +133,18 @@ static int
                                                void *ptr)
 {
    void          *found;
-   unsigned int   index;
+   uintptr_t     index;
+
 #ifndef NDEBUG
-   unsigned int   sentinel;
-   sentinel = _pointerset_hash( ptr) + (unsigned int) p->mask + 1;
+   uintptr_t   sentinel;
+
+   sentinel = mulle_pointer_hash( ptr) + (uintptr_t) p->mask + 1;
 #endif
 
-   index = _pointerset_hash( ptr);
+   index = mulle_pointer_hash( ptr);
    for(;;)
    {
-      found = _mulle_atomic_pointer_read( &p->entries[ index & (unsigned int) p->mask]);
+      found = _mulle_atomic_pointer_read_relaxed( &p->entries[ index & (uintptr_t) p->mask]);
       if( found == MULLE_CONCURRENT_NO_POINTER)
          return( 0);
       if( found == ptr)
@@ -171,20 +166,20 @@ static void *
                                                  void *ptr)
 {
    void          *found;
-   unsigned int   index;
+   uintptr_t     index;
 #ifndef NDEBUG
-   unsigned int   sentinel;
-   sentinel = _pointerset_hash( ptr) + (unsigned int) p->mask + 1;
+   uintptr_t   sentinel;
+   sentinel = mulle_pointer_hash( ptr) + (uintptr_t) p->mask + 1;
 #endif
 
    assert( ptr != MULLE_CONCURRENT_NO_POINTER);
    assert( ptr != MULLE_CONCURRENT_INVALID_POINTER);
    assert( ptr != TOMBSTONE_VALUE);
 
-   index = _pointerset_hash( ptr);
+   index = mulle_pointer_hash( ptr);
    for(;;)
    {
-      found = _mulle_atomic_pointer_read( &p->entries[ index & (unsigned int) p->mask]);
+      found = _mulle_atomic_pointer_read_relaxed( &p->entries[ index & (uintptr_t) p->mask]);
 
       if( found == ptr)
          return( ptr);   // already present
@@ -192,13 +187,13 @@ static void *
       if( found == MULLE_CONCURRENT_NO_POINTER)
       {
          // try to claim this empty slot
-         found = __mulle_atomic_pointer_cas( &p->entries[ index & (unsigned int) p->mask],
+         found = __mulle_atomic_pointer_cas_relaxed( &p->entries[ index & (uintptr_t) p->mask],
                                              ptr,
                                              MULLE_CONCURRENT_NO_POINTER);
          if( found == MULLE_CONCURRENT_NO_POINTER)
          {
             // claimed: bump n_used
-            _mulle_atomic_pointer_increment( &p->n_used);
+            _mulle_atomic_pointer_increment_relaxed( &p->n_used);
             return( MULLE_CONCURRENT_NO_POINTER);  // inserted
          }
          // lost the CAS — re-examine what's there now
@@ -239,16 +234,16 @@ static int
                                                void *ptr)
 {
    void          *found;
-   unsigned int   index;
+   uintptr_t     index;
 #ifndef NDEBUG
-   unsigned int   sentinel;
-   sentinel = _pointerset_hash( ptr) + (unsigned int) p->mask + 1;
+   uintptr_t     sentinel;
+   sentinel = mulle_pointer_hash( ptr) + (uintptr_t) p->mask + 1;
 #endif
 
-   index = _pointerset_hash( ptr);
+   index = mulle_pointer_hash( ptr);
    for(;;)
    {
-      found = _mulle_atomic_pointer_read( &p->entries[ index & (unsigned int) p->mask]);
+      found = _mulle_atomic_pointer_read_relaxed( &p->entries[ index & (uintptr_t) p->mask]);
 
       if( found == MULLE_CONCURRENT_NO_POINTER)
          return( ENOENT);
@@ -258,7 +253,7 @@ static int
 
       if( found == ptr)
       {
-         found = __mulle_atomic_pointer_cas( &p->entries[ index & (unsigned int) p->mask],
+         found = __mulle_atomic_pointer_cas_relaxed( &p->entries[ index & (uintptr_t) p->mask],
                                              TOMBSTONE_VALUE,
                                              ptr);
          if( found == ptr)
@@ -291,7 +286,7 @@ static void
 
    for( ; entry < sentinel; entry++)
    {
-      value = _mulle_atomic_pointer_read( entry);
+      value = _mulle_atomic_pointer_read_relaxed( entry);
       for(;;)
       {
          if( value == MULLE_CONCURRENT_NO_POINTER || value == TOMBSTONE_VALUE)
@@ -303,7 +298,7 @@ static void
          // copy first, then redirect
          _mulle_concurrent_pointersetstorage_register( dst, value);
 
-         actual = __mulle_atomic_pointer_cas( entry, REDIRECT_VALUE, value);
+         actual = __mulle_atomic_pointer_cas_relaxed( entry, REDIRECT_VALUE, value);
          if( actual == value)
             break;
          value = actual;
@@ -315,13 +310,12 @@ static void
 #pragma mark - mulle_concurrent_pointerset
 
 int  _mulle_concurrent_pointerset_init( struct mulle_concurrent_pointerset *set,
-                                        unsigned int size,
+                                        size_t size,
                                         struct mulle_allocator *allocator)
 {
    struct _mulle_concurrent_pointersetstorage   *storage;
 
    assert( EINVAL != 1 && EINVAL != 0);
-   assert( ENOMEM != 1 && ENOMEM != 0);
    assert( ECANCELED != 1 && ECANCELED != 0);
    assert( EBUSY != 1 && EBUSY != 0);
 
@@ -361,16 +355,16 @@ void  _mulle_concurrent_pointerset_done( struct mulle_concurrent_pointerset *set
 }
 
 
-unsigned int  _mulle_concurrent_pointerset_get_size( struct mulle_concurrent_pointerset *set)
+size_t  _mulle_concurrent_pointerset_get_size( struct mulle_concurrent_pointerset *set)
 {
    struct _mulle_concurrent_pointersetstorage   *p;
 
-   p = _mulle_atomic_pointer_read( &set->storage.pointer);
-   return( (unsigned int) p->mask + 1);
+   p = _mulle_atomic_pointer_read_relaxed( &set->storage.pointer);
+   return( (size_t) p->mask + 1);
 }
 
 
-static int
+static void
    _mulle_concurrent_pointerset_migrate_storage( struct mulle_concurrent_pointerset *set,
                                                  struct _mulle_concurrent_pointersetstorage *p)
 {
@@ -379,18 +373,15 @@ static int
    struct _mulle_concurrent_pointersetstorage   *previous;
    struct mulle_allocator                       *allocator;
 
-   allocator = _mulle_atomic_pointer_read( &set->allocator);
+   allocator = _mulle_atomic_pointer_read_relaxed( &set->allocator);
 
    alloced = NULL;
-   q       = _mulle_atomic_pointer_read( &set->next_storage.pointer);
+   q       = _mulle_atomic_pointer_read_relaxed( &set->next_storage.pointer);
    if( q == p)
    {
-      alloced = _mulle_concurrent_alloc_pointersetstorage( ((unsigned int) p->mask + 1) * 2,
+      alloced = _mulle_concurrent_alloc_pointersetstorage( ((size_t) p->mask + 1) * 2,
                                                            allocator);
-      if( MULLE_C_UNLIKELY( ! alloced))
-         return( ENOMEM);
-
-      q = __mulle_atomic_pointer_cas( &set->next_storage.pointer, alloced, p);
+      q = __mulle_atomic_pointer_cas_relaxed( &set->next_storage.pointer, alloced, p);
       if( q != p)
       {
          _mulle_allocator_abafree( allocator, alloced);
@@ -402,11 +393,9 @@ static int
 
    _mulle_concurrent_pointersetstorage_copy( q, p);
 
-   previous = __mulle_atomic_pointer_cas( &set->storage.pointer, q, p);
+   previous = __mulle_atomic_pointer_cas_relaxed( &set->storage.pointer, q, p);
    if( previous == p && ! _mulle_concurrent_pointersetstorage_is_const( previous))
       _mulle_allocator_abafree( allocator, previous);
-
-   return( 0);
 }
 
 
@@ -416,33 +405,25 @@ void  *_mulle_concurrent_pointerset_register( struct mulle_concurrent_pointerset
                                               void *ptr)
 {
    struct _mulle_concurrent_pointersetstorage   *p;
-   unsigned int                                  n;
-   unsigned int                                  max;
+   size_t                                       n;
+   size_t                                       max;
    void                                         *result;
 
 retry:
-   p   = _mulle_atomic_pointer_read( &set->storage.pointer);
+   p   = _mulle_atomic_pointer_read_relaxed( &set->storage.pointer);
    max = _mulle_concurrent_pointersetstorage_get_max_n_used( p);
-   n   = (unsigned int) (uintptr_t) _mulle_atomic_pointer_read( &p->n_used);
+   n   = (size_t) (uintptr_t) _mulle_atomic_pointer_read_relaxed( &p->n_used);
 
    if( n >= max)
    {
-      if( _mulle_concurrent_pointerset_migrate_storage( set, p))
-      {
-         errno = ENOMEM;
-         return( MULLE_CONCURRENT_INVALID_POINTER);
-      }
+      _mulle_concurrent_pointerset_migrate_storage( set, p);
       goto retry;
    }
 
    result = _mulle_concurrent_pointersetstorage_register( p, ptr);
    if( result == MULLE_CONCURRENT_INVALID_POINTER)
    {
-      if( _mulle_concurrent_pointerset_migrate_storage( set, p))
-      {
-         errno = ENOMEM;
-         return( MULLE_CONCURRENT_INVALID_POINTER);
-      }
+      _mulle_concurrent_pointerset_migrate_storage( set, p);
       goto retry;
    }
    return( result);
@@ -467,27 +448,25 @@ int  _mulle_concurrent_pointerset_insert( struct mulle_concurrent_pointerset *se
                                           void *ptr)
 {
    struct _mulle_concurrent_pointersetstorage   *p;
-   unsigned int                                  n;
-   unsigned int                                  max;
+   size_t                                        n;
+   size_t                                        max;
    int                                           rval;
 
 retry:
-   p   = _mulle_atomic_pointer_read( &set->storage.pointer);
+   p   = _mulle_atomic_pointer_read_relaxed( &set->storage.pointer);
    max = _mulle_concurrent_pointersetstorage_get_max_n_used( p);
-   n   = (unsigned int) (uintptr_t) _mulle_atomic_pointer_read( &p->n_used);
+   n   = (size_t) (uintptr_t) _mulle_atomic_pointer_read_relaxed( &p->n_used);
 
    if( n >= max)
    {
-      if( _mulle_concurrent_pointerset_migrate_storage( set, p))
-         return( ENOMEM);
+      _mulle_concurrent_pointerset_migrate_storage( set, p);
       goto retry;
    }
 
    rval = _mulle_concurrent_pointersetstorage_insert( p, ptr);
    if( MULLE_C_UNLIKELY( rval == EBUSY))
    {
-      if( _mulle_concurrent_pointerset_migrate_storage( set, p))
-         return( ENOMEM);
+      _mulle_concurrent_pointerset_migrate_storage( set, p);
       goto retry;
    }
    return( rval);
@@ -510,7 +489,7 @@ int  _mulle_concurrent_pointerset_member( struct mulle_concurrent_pointerset *se
 {
    struct _mulle_concurrent_pointersetstorage   *p;
 
-   p = _mulle_atomic_pointer_read( &set->storage.pointer);
+   p = _mulle_atomic_pointer_read_relaxed( &set->storage.pointer);
    return( _mulle_concurrent_pointersetstorage_member( p, ptr));
 }
 
@@ -522,12 +501,11 @@ int  _mulle_concurrent_pointerset_remove( struct mulle_concurrent_pointerset *se
    int                                           rval;
 
 retry:
-   p    = _mulle_atomic_pointer_read( &set->storage.pointer);
+   p    = _mulle_atomic_pointer_read_relaxed( &set->storage.pointer);
    rval = _mulle_concurrent_pointersetstorage_remove( p, ptr);
    if( MULLE_C_UNLIKELY( rval == EBUSY))
    {
-      if( _mulle_concurrent_pointerset_migrate_storage( set, p))
-         return( ENOMEM);
+      _mulle_concurrent_pointerset_migrate_storage( set, p);
       goto retry;
    }
    return( rval);
@@ -549,21 +527,21 @@ int  mulle_concurrent_pointerset_remove( struct mulle_concurrent_pointerset *set
 
 static int
    _mulle_concurrent_pointerset_search_next( struct mulle_concurrent_pointerset *set,
-                                             unsigned int *expect_mask,
-                                             unsigned int *index,
+                                             uintptr_t *expect_mask,
+                                             uintptr_t *index,
                                              void **p_ptr)
 {
    struct _mulle_concurrent_pointersetstorage   *p;
    void                                         *value;
 
 retry:
-   p = _mulle_atomic_pointer_read( &set->storage.pointer);
-   if( *expect_mask && (unsigned int) p->mask != *expect_mask)
+   p = _mulle_atomic_pointer_read_relaxed( &set->storage.pointer);
+   if( *expect_mask && (uintptr_t) p->mask != *expect_mask)
       return( ECANCELED);
 
-   while( *index <= (unsigned int) p->mask)
+   while( *index <= (uintptr_t) p->mask)
    {
-      value = _mulle_atomic_pointer_read( &p->entries[ *index]);
+      value = _mulle_atomic_pointer_read_relaxed( &p->entries[ *index]);
       (*index)++;
 
       if( value == MULLE_CONCURRENT_NO_POINTER || value == TOMBSTONE_VALUE)
@@ -571,15 +549,14 @@ retry:
 
       if( MULLE_C_UNLIKELY( value == REDIRECT_VALUE))
       {
-         if( _mulle_concurrent_pointerset_migrate_storage( set, p))
-            return( ENOMEM);
+         _mulle_concurrent_pointerset_migrate_storage( set, p);
          goto retry;
       }
 
       if( p_ptr)
          *p_ptr = value;
       if( ! *expect_mask)
-         *expect_mask = (unsigned int) p->mask;
+         *expect_mask = (uintptr_t) p->mask;
       return( 1);
    }
    return( 0);
@@ -589,6 +566,9 @@ retry:
 int  _mulle_concurrent_pointerset_enumerator_next( struct mulle_concurrent_pointerset_enumerator *rover,
                                                    void **ptr)
 {
+   if( ! rover || ! rover->set)
+      return( 0);
+
    return( _mulle_concurrent_pointerset_search_next( rover->set,
                                                      &rover->mask,
                                                      &rover->index,
@@ -598,11 +578,11 @@ int  _mulle_concurrent_pointerset_enumerator_next( struct mulle_concurrent_point
 
 #pragma mark - conveniences
 
-unsigned int  mulle_concurrent_pointerset_count( struct mulle_concurrent_pointerset *set)
+size_t  mulle_concurrent_pointerset_count( struct mulle_concurrent_pointerset *set)
 {
    struct mulle_concurrent_pointerset_enumerator   rover;
-   unsigned int                                     count;
-   int                                              rval;
+   size_t                                          count;
+   int                                             rval;
 
 retry:
    count = 0;
@@ -610,8 +590,13 @@ retry:
    for(;;)
    {
       rval = _mulle_concurrent_pointerset_enumerator_next( &rover, NULL);
-      if( rval == 1) { ++count; continue; }
-      if( ! rval)    break;
+      if( rval == 1)
+      {
+         ++count;
+         continue;
+      }
+      if( ! rval)
+         break;
       mulle_concurrent_pointerset_enumerator_done( &rover);
       goto retry;
    }

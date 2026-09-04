@@ -35,6 +35,8 @@
 #ifndef mulle_timeval_h__
 #define mulle_timeval_h__
 
+#include <assert.h>
+
 #include "mulle-timetype.h"
 
 #include <sys/time.h>
@@ -56,9 +58,14 @@ static inline mulle_timeinterval_t   mulle_time_now( void)
 //
 // struct timeval is what gettimeofday returns
 //
+// All arithmetic and comparison helpers below require canonical inputs:
+// tv_usec in [0, 1e6). This is enforced with assert() in debug builds;
+// release builds (NDEBUG) assume canonical inputs without checking.
 static inline mulle_time_comparison_t   timeval_compare( struct timeval a,
                                                          struct timeval b)
 {
+   assert( a.tv_usec >= 0 && a.tv_usec < (1000*1000));
+   assert( b.tv_usec >= 0 && b.tv_usec < (1000*1000));
    if( a.tv_sec > b.tv_sec)
       return( MulleTimeDescending);
    if( a.tv_sec < b.tv_sec)
@@ -77,6 +84,9 @@ static inline struct timeval   timeval_add( struct timeval a,
    struct timeval   result;
    int              carry;
 
+   assert( a.tv_usec >= 0 && a.tv_usec < (1000*1000));
+   assert( b.tv_usec >= 0 && b.tv_usec < (1000*1000));
+
    result.tv_usec = a.tv_usec + b.tv_usec;
    carry = result.tv_usec >= (1000*1000);
    if( carry)
@@ -91,6 +101,9 @@ static inline struct timeval   timeval_sub( struct timeval a,
 {
    struct timeval   result;
    int               carry;
+
+   assert( a.tv_usec >= 0 && a.tv_usec < (1000*1000));
+   assert( b.tv_usec >= 0 && b.tv_usec < (1000*1000));
 
    result.tv_usec = a.tv_usec - b.tv_usec;
    carry = result.tv_usec < 0;

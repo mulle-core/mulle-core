@@ -100,6 +100,7 @@ mulle-core/reflect/_mulle-core-include-private.h
 #
 set( PROJECT_ONLY_HEADERS
 mulle-core/mulle-dtostr/pow10_table_data.inc
+mulle-core/mulle-slug/decompose-map.inc
 mulle-core/mulle-slug/map.inc
 mulle-core/mulle-unicode/isalphanumeric-bitmap.inc
 mulle-core/mulle-unicode/iscapitalized-bitmap.inc
@@ -249,9 +250,11 @@ mulle-core/mulle-c11/mulle-c11-eval.h
 mulle-core/mulle-c11/mulle-c11-feature.h
 mulle-core/mulle-c11/mulle-c11.h
 mulle-core/mulle-c11/mulle-c11-integer.h
+mulle-core/mulle-c11/mulle-c11-rotate.h
 mulle-core/mulle-c11/mulle-c11-swap.h
 mulle-core/mulle-concurrent/mulle-concurrent.h
 mulle-core/mulle-concurrent/mulle-concurrent-hashmap.h
+mulle-core/mulle-concurrent/mulle-concurrent-hashtable.h
 mulle-core/mulle-concurrent/_mulle-concurrent-include.h
 mulle-core/mulle-concurrent/mulle-concurrent-pointerarray.h
 mulle-core/mulle-concurrent/mulle-concurrent-pointerset.h
@@ -403,6 +406,7 @@ mulle-core/mulle-slug/_mulle-slug-include.h
 mulle-core/mulle-slug/_mulle-slug-provide.h
 mulle-core/mulle-slug/_mulle-slug-versioncheck.h
 mulle-core/mulle-sprintf/mulle-sprintf-character.h
+mulle-core/mulle-sprintf/mulle-sprintf-decimal-jeaiii.h
 mulle-core/mulle-sprintf/mulle-sprintf-escape.h
 mulle-core/mulle-sprintf/mulle-sprintf-fp.h
 mulle-core/mulle-sprintf/mulle-sprintf-function.h
@@ -414,6 +418,7 @@ mulle-core/mulle-sprintf/mulle-sprintf-return.h
 mulle-core/mulle-sprintf/mulle-sprintf-string.h
 mulle-core/mulle-sprintf/_mulle-sprintf-versioncheck.h
 mulle-core/mulle-sprintf/mulle-sscanf.h
+mulle-core/mulle-storage/mulle-arena.h
 mulle-core/mulle-storage/mulle-indexedstorage.h
 mulle-core/mulle-storage/mulle-storage.h
 mulle-core/mulle-storage/_mulle-storage-include.h

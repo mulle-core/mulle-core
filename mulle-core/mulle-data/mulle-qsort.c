@@ -42,13 +42,13 @@
  */
 void   mulle_qsort_r( void *a, size_t n, size_t es, mulle_qsort_r_cmp_t *cmp, void *thunk)
 {
-   if( a)
+   if( a && n && es)
       _mulle_qsort_r_inline( a, n, es, cmp, thunk);
 }
 
-// as we have no mulle-container.c its here
+// version check for mulle-data (where this file actually belongs)
 #ifdef __has_include
-# if __has_include( "_mulle-container-versioncheck.h")
-#  include "_mulle-container-versioncheck.h"
+# if __has_include( "_mulle-data-versioncheck.h")
+#  include "_mulle-data-versioncheck.h"
 # endif
 #endif

@@ -37,7 +37,8 @@
 
 #include "include.h"
 
-#include <assert.h>
+#include <stddef.h>
+#include <stdint.h>
 
 
 /*
@@ -92,10 +93,11 @@ static inline void   *_mulle__pointerfifo64_read( struct mulle__pointerfifo64 *p
 }
 
 //
-// use this unless you only move actual void * sized info around, like 'int'
-// casted to void *. E.g. use this for char * strings, as they are stored 
-// in memory outside of the 4-8 pointer bytes.
+// DEPRECATED: With seq_cst atomics in mulle-thread, the plain _read function
+// now provides full publication guarantees. This barrier variant is retained
+// only for source compatibility and will be removed in a future major version.
 //
+#if 0
 static inline void   *_mulle__pointerfifo64_read_barrier( struct mulle__pointerfifo64 *p)
 {
    void   *pointer;
@@ -114,12 +116,14 @@ static inline void   *_mulle__pointerfifo64_read_barrier( struct mulle__pointerf
 
    return( pointer);
 }
+#endif
 
 
 static inline int   _mulle__pointerfifo64_write( struct mulle__pointerfifo64 *p,
                                                  void *pointer)
 {
-   assert( pointer != NULL);
+   if( ! pointer)
+      return( -2);
 
    if( _mulle__pointerfifo64_get_count( p) == 64)
       return( -1);

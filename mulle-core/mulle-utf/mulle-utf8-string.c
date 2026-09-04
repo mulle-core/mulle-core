@@ -43,7 +43,7 @@
 /*
  * only terminates, does not fill with zero
  */
-char   *mulle_utf8_strncpy( char *dst, size_t len, char *src)
+char   *mulle_utf8_strncpy( char *dst, size_t len, const char *src)
 {
    char   *memo;
    char   *sentinel;
@@ -74,11 +74,13 @@ char   *mulle_utf8_strncpy( char *dst, size_t len, char *src)
 // with BSD...
 // You can't search for '\0' with this function.
 //
-char   *mulle_utf8_strnstr( char *s, size_t len, char *search)
+char   *mulle_utf8_strnstr( const char *s, size_t len, const char *search)
 {
-   char   *p;
-   char   *sentinel;
-   size_t  offset;
+   const char   *sentinel;
+   const char   *candidate;
+   const char   *p;
+   const char   *q;
+   size_t  search_len;
 
    if( ! s || ! search)
       return( NULL);
@@ -86,36 +88,35 @@ char   *mulle_utf8_strnstr( char *s, size_t len, char *search)
    if( len == (size_t) -1)
       len = mulle_utf8_strlen( s);
 
-   offset = mulle_utf8_strlen( search);
-   if( ! offset)
-      return( s);
+   search_len = mulle_utf8_strlen( search);
+   if( ! search_len)
+      return( (char *) s);
 
-   sentinel = &s[ len];
-   p        = search;
+   if( search_len > len)
+      return( NULL);
 
-   // fprintf( stderr, "# s=\"%s\" search=\"%s\" len=%ld, offset=%ld, sentinel=\"%s\"\n",
-   //            s, search, (long) len, (long) offset, sentinel);
+   sentinel = &s[ len - search_len + 1];
 
-   for(;;)
+   for( candidate = s; candidate < sentinel; candidate++)
    {
-      if( s >= sentinel)
-         return( NULL);
+      if( *candidate != *search)
+         continue;
 
-      if( *s++ != *p)
+      p = candidate + 1;
+      q = search + 1;
+      while( *q && *p == *q)
       {
-         p = search;
-         continue;
+         p++;
+         q++;
       }
-
-      if( *++p)
-         continue;
-
-      return( (char *) &s[ -(long) offset]);
+      if( ! *q)
+         return( (char *) candidate);
    }
+   return( NULL);
 }
 
 
-char   *mulle_utf8_strnchr( char *s, size_t len, mulle_utf32_t c)
+char   *mulle_utf8_strnchr( const char *s, size_t len, mulle_utf32_t c)
 {
    char     buf[ 16];
    char     *end;
@@ -134,7 +135,7 @@ char   *mulle_utf8_strnchr( char *s, size_t len, mulle_utf32_t c)
 
    // special code for 'c' == 0 and simplifies other ascii searches
    if( n == 1)
-      return( memchr( s, c, len));
+      return( (char *) memchr( s, c, len));
 
    assert( n < sizeof( buf));
    *end = 0;
@@ -143,9 +144,9 @@ char   *mulle_utf8_strnchr( char *s, size_t len, mulle_utf32_t c)
 }
 
 
-static size_t   _mulle_utf8_strxspn( char *string, char *search, int flag)
+static size_t   _mulle_utf8_strxspn( const char *string, const char *search, int flag)
 {
-   char   *s;
+   const char   *s;
    char   c;
    int    found;
 
@@ -162,23 +163,23 @@ static size_t   _mulle_utf8_strxspn( char *string, char *search, int flag)
 }
 
 
-size_t   mulle_utf8_strspn( char *s, char *search)
+size_t   mulle_utf8_strspn( const char *s, const char *search)
 {
    return( _mulle_utf8_strxspn( s, search, 1));
 }
 
 
-size_t   mulle_utf8_strcspn( char *s, char *search)
+size_t   mulle_utf8_strcspn( const char *s, const char *search)
 {
    return( _mulle_utf8_strxspn( s, search, 0));
 }
 
 
 
-size_t   _mulle_utf8_strnxspn( char *string, size_t length, char *search, int flag)
+size_t   _mulle_utf8_strnxspn( const char *string, size_t length, const char *search, int flag)
 {
-   char   *s;
-   char   *sentinel;
+   const char   *s;
+   const char   *sentinel;
    char   c;
    int    found;
 

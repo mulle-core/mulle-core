@@ -7,7 +7,7 @@
 
 #if defined( MULLE__BUFFER_VERSION)
 # ifndef MULLE__BUFFER_VERSION_MIN
-#  define MULLE__BUFFER_VERSION_MIN  ((5UL << 20) | (1 << 8) | 1)
+#  define MULLE__BUFFER_VERSION_MIN  ((5UL << 20) | (2 << 8) | 0)
 # endif
 # ifndef MULLE__BUFFER_VERSION_MAX
 #  define MULLE__BUFFER_VERSION_MAX  ((6UL << 20) | (0 << 8) | 0)
@@ -23,12 +23,30 @@
 #  endif
 # endif
 #endif
+#if defined( MULLE__UNICODE_VERSION)
+# ifndef MULLE__UNICODE_VERSION_MIN
+#  define MULLE__UNICODE_VERSION_MIN  ((2UL << 20) | (4 << 8) | 14)
+# endif
+# ifndef MULLE__UNICODE_VERSION_MAX
+#  define MULLE__UNICODE_VERSION_MAX  ((3UL << 20) | (0 << 8) | 0)
+# endif
+# if MULLE__UNICODE_VERSION < MULLE__UNICODE_VERSION_MIN || MULLE__UNICODE_VERSION >= MULLE__UNICODE_VERSION_MAX
+#  pragma message("MULLE__UNICODE_VERSION     is " MULLE_C_STRINGIFY_MACRO( MULLE__UNICODE_VERSION))
+#  pragma message("MULLE__UNICODE_VERSION_MIN is " MULLE_C_STRINGIFY_MACRO( MULLE__UNICODE_VERSION_MIN))
+#  pragma message("MULLE__UNICODE_VERSION_MAX is " MULLE_C_STRINGIFY_MACRO( MULLE__UNICODE_VERSION_MAX))
+#  if MULLE__UNICODE_VERSION < MULLE__UNICODE_VERSION_MIN
+#   error "mulle-unicode is too old"
+#  else
+#   error "mulle-unicode is too new"
+#  endif
+# endif
+#endif
 #if defined( MULLE__UTF_VERSION)
 # ifndef MULLE__UTF_VERSION_MIN
-#  define MULLE__UTF_VERSION_MIN  ((5UL << 20) | (2 << 8) | 1)
+#  define MULLE__UTF_VERSION_MIN  ((6UL << 20) | (0 << 8) | 0)
 # endif
 # ifndef MULLE__UTF_VERSION_MAX
-#  define MULLE__UTF_VERSION_MAX  ((6UL << 20) | (0 << 8) | 0)
+#  define MULLE__UTF_VERSION_MAX  ((7UL << 20) | (0 << 8) | 0)
 # endif
 # if MULLE__UTF_VERSION < MULLE__UTF_VERSION_MIN || MULLE__UTF_VERSION >= MULLE__UTF_VERSION_MAX
 #  pragma message("MULLE__UTF_VERSION     is " MULLE_C_STRINGIFY_MACRO( MULLE__UTF_VERSION))

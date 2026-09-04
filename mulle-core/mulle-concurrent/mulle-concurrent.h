@@ -35,12 +35,13 @@
 #ifndef mulle_concurrent_h__
 #define mulle_concurrent_h__
 
-#define MULLE__CONCURRENT_VERSION  ((3UL << 20) | (2 << 8) | 0)
+#define MULLE__CONCURRENT_VERSION  ((4UL << 20) | (0 << 8) | 0)
 
 #include "include.h"
 
 #include "mulle-concurrent-types.h"
 #include "mulle-concurrent-hashmap.h"
+#include "mulle-concurrent-hashtable.h"
 #include "mulle-concurrent-pointerarray.h"
 #include "mulle-concurrent-pointerset.h"
 

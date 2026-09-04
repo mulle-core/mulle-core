@@ -46,6 +46,16 @@
 #include <time.h>
 #include <stdio.h>
 
+#if defined( __ANDROID__)
+# include <sys/syscall.h>
+# if ! defined( __NR_shm_open)
+#  define __NR_shm_open 267
+# endif
+# if ! defined( __NR_shm_unlink)
+#  define __NR_shm_unlink 268
+# endif
+#endif
+
 #if defined( __COSMOPOLITAN__) || defined( __MULLE_COSMOPOLITAN__)
 #include <cosmopolitan/cosmopolitan.h>
 #endif
@@ -129,8 +139,13 @@ struct mulle_mmap_shared_memory   mulle_mmap_alloc_shared_memory( size_t size)
    // Create unique name using PID and timestamp
    snprintf( name, sizeof(name), "/mulle-mmap-%d-%ld", getpid(), (long)time(NULL));
    
-   // Create POSIX shared memory object
+   // Create POSIX shared memory object. Android does not expose shm_open(3)
+   // in its public libc headers; use the Linux syscall there instead.
+#if defined( __ANDROID__)
+   fd = (int) syscall( __NR_shm_open, name, O_RDWR | O_CREAT | O_EXCL, 0600);
+#else
    fd = shm_open( name, O_RDWR | O_CREAT | O_EXCL, 0600);
+#endif
    if( fd == -1)
       return( result);
 
@@ -140,7 +155,11 @@ struct mulle_mmap_shared_memory   mulle_mmap_alloc_shared_memory( size_t size)
    fcntl( fd, F_SETFD, fcntl( fd, F_GETFD) & ~FD_CLOEXEC);
    
    // Unlink immediately - object persists while fd is open
+#if defined( __ANDROID__)
+   syscall( __NR_shm_unlink, name);
+#else
    shm_unlink( name);
+#endif
    
    // Set size
    if( ftruncate( fd, size) == -1)
@@ -240,10 +259,10 @@ size_t   mulle_mmap_get_system_pagesize( void)
 }
 
 
-mulle_mmap_file_t   mulle_mmap_file_open( char *path, 
+mulle_mmap_file_t   mulle_mmap_file_open( const char *path, 
                                           enum mulle_mmap_accessmode mode)
 {
-   return( open( path, mode == mulle_mmap_read ? O_RDONLY : O_RDWR));
+   return( open( path, (mode & mulle_mmap_write) ? O_RDWR : O_RDONLY));
 }
 
 int64_t   mulle_mmap_file_query_size( mulle_mmap_file_t handle)
@@ -280,7 +299,7 @@ int   mulle_mmap_memory_map( mulle_mmap_file_t handle,
    mapping_start = (char *) mmap(
             0, // Don't give hint as to where to map.
             length_to_map,
-            mode == mulle_mmap_read ? PROT_READ : PROT_WRITE,
+            (mode & mulle_mmap_write) ? (PROT_READ | PROT_WRITE) : PROT_READ,
             MAP_SHARED,
             handle,
             aligned_offset);

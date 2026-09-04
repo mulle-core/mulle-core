@@ -66,6 +66,8 @@
 
 #endif
 
+// Sentinel: none. Ordered key-value pair array, index-based access.
+//
 struct mulle__pointerpairarray
 {
    MULLE__POINTERPAIRARRAY_BASE;
@@ -221,6 +223,12 @@ static inline int
 # pragma mark - operations
 
 // intentionally not static inline
+//
+// Returns a pointer to reserved pair storage. Valid until the next
+// realloc-triggering operation (add beyond capacity, grow, guarantee
+// beyond remaining space). Previously obtained element pointers are
+// also invalidated by a realloc.
+//
 MULLE__CONTAINER_GLOBAL
 MULLE_C_NONNULL_FIRST
 struct mulle_pointerpair  *
@@ -443,7 +451,7 @@ MULLE_C_NONNULL_FIRST
 static inline uintptr_t
    _mulle__pointerpairarray_find_callback( struct mulle__pointerpairarray *array,
                                            struct mulle_pointerpair search,
-                                           struct mulle_container_keyvaluecallback *callback)
+                                           const struct mulle_container_keyvaluecallback *callback)
 {
    return( _mulle_pointerpair_find_in_range_callback( array->_storage,
                                                       search,
@@ -455,7 +463,7 @@ static inline uintptr_t
 static inline uintptr_t
    mulle__pointerpairarray_find_callback( struct mulle__pointerpairarray *array,
                                           struct mulle_pointerpair search,
-                                          struct mulle_container_keyvaluecallback *callback)
+                                          const struct mulle_container_keyvaluecallback *callback)
 {
    if( ! array)
       return( mulle_not_found_e);

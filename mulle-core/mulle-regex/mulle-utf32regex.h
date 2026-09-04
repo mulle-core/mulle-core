@@ -54,7 +54,7 @@ struct mulle_utf32regex;
 
 /* may return NULL on failure (malformed regular expression) */
 MULLE__REGEX_GLOBAL
-struct mulle_utf32regex   *mulle_utf32regex_compile( mulle_utf32_t *pattern);
+struct mulle_utf32regex   *mulle_utf32regex_compile( const mulle_utf32_t *pattern);
 
 static inline void   mulle_utf32regex_free( struct mulle_utf32regex *regex)
 {
@@ -65,7 +65,7 @@ static inline void   mulle_utf32regex_free( struct mulle_utf32regex *regex)
 /* returns < 0 on failure, 1 on match, 0 on no match */
 MULLE__REGEX_GLOBAL
 int   mulle_utf32regex_execute( struct mulle_utf32regex *regex,
-                                mulle_utf32_t *src);
+                                const mulle_utf32_t *src);
 
 /* returns < 0 on failure, 0 otherwise
    mulle_utf32regex_substitute, does not truncate. If the output buffer is too
@@ -75,7 +75,7 @@ int   mulle_utf32regex_execute( struct mulle_utf32regex *regex,
  */
 MULLE__REGEX_GLOBAL
 int   mulle_utf32regex_substitute( struct mulle_utf32regex *regex,
-                                   mulle_utf32_t *replacement,
+                                   const mulle_utf32_t *replacement,
                                    mulle_utf32_t *dst,
                                    size_t dst_len,
                                    int zero);
@@ -86,15 +86,15 @@ int   mulle_utf32regex_substitute( struct mulle_utf32regex *regex,
 // convenience for doing compile/match in one step
 //
 MULLE__REGEX_GLOBAL
-mulle_utf32_t   *mulle_utf32_match( mulle_utf32_t *pattern, mulle_utf32_t *src);
+mulle_utf32_t   *mulle_utf32_match( const mulle_utf32_t *pattern, const mulle_utf32_t *src);
 
 // returns malloced buffer, or NULL
 // convenience for doing compile/substitute in one step
 //
 MULLE__REGEX_GLOBAL
-mulle_utf32_t   *mulle_utf32_substitute( mulle_utf32_t *pattern,
-                                         mulle_utf32_t *replacement,
-                                         mulle_utf32_t *src);
+mulle_utf32_t   *mulle_utf32_substitute( const mulle_utf32_t *pattern,
+                                         const mulle_utf32_t *replacement,
+                                         const mulle_utf32_t *src);
 
 // Length of the string that will be substituted in the matched part of the
 // string. This does _not_ include the trailing zero, that
@@ -104,12 +104,12 @@ mulle_utf32_t   *mulle_utf32_substitute( mulle_utf32_t *pattern,
 // You need to add the front and back part yourself.
 MULLE__REGEX_GLOBAL
 size_t   mulle_utf32regex_substitution_length( struct mulle_utf32regex *regex,
-                                               mulle_utf32_t *replacement);
+                                               const mulle_utf32_t *replacement);
 
 // number of bytes(!) needed for the substitution buffer
 static inline size_t
    mulle_utf32regex_substitution_buffer_size( struct mulle_utf32regex *regex,
-                                              mulle_utf32_t *replacement)
+                                              const mulle_utf32_t *replacement)
 {
    size_t   length;
 

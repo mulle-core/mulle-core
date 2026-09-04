@@ -1,7 +1,7 @@
 {
    project =
    {
-      description="🌋 Almagamated library of mulle-core + mulle-concurrent + mulle-c";
+      description="🌋 Amalgamated library of mulle-core + mulle-concurrent + mulle-c";
       domain="github";
       language="c";
       dialect="c";

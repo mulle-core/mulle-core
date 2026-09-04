@@ -116,9 +116,9 @@ int   mulle_char5_encode_character( int c)
 }
 
 
-int   mulle_char5_is_char5string32( char *src, size_t len)
+int   mulle_char5_is_char5string32( const char *src, size_t len)
 {
-   char   *sentinel;
+   const char   *sentinel;
 
    if( ! src)
       return( 0);
@@ -133,7 +133,7 @@ int   mulle_char5_is_char5string32( char *src, size_t len)
    while( src < sentinel)
       switch( mulle_char5_lookup_character( *src++))
       {
-      case 0  : return( 1);   // zero byte, ok fine!
+      case 0  : return( 0);   // zero byte within len can't be encoded
       case -1 : return( 0);   // invalid char
       }
 
@@ -141,9 +141,9 @@ int   mulle_char5_is_char5string32( char *src, size_t len)
 }
 
 
-int   mulle_char5_is_char5string64( char *src, size_t len)
+int   mulle_char5_is_char5string64( const char *src, size_t len)
 {
-   char   *sentinel;
+   const char   *sentinel;
 
    if( ! src)
       return( 0);
@@ -158,7 +158,7 @@ int   mulle_char5_is_char5string64( char *src, size_t len)
    while( src < sentinel)
       switch( mulle_char5_lookup_character( *src++))
       {
-      case 0  : return( 1);
+      case 0  : return( 0);   // zero byte within len can't be encoded
       case -1 : return( 0);
       }
 
@@ -166,10 +166,10 @@ int   mulle_char5_is_char5string64( char *src, size_t len)
 }
 
 
-uint32_t   mulle_char5_encode32( char *src, size_t len)
+uint32_t   mulle_char5_encode32( const char *src, size_t len)
 {
-   char       *s;
-   char       *sentinel;
+   const char       *s;
+   const char       *sentinel;
    char       c;
    int        char5;
    uint32_t   value;
@@ -197,10 +197,10 @@ uint32_t   mulle_char5_encode32( char *src, size_t len)
 }
 
 
-uint64_t   mulle_char5_encode64( char *src, size_t len)
+uint64_t   mulle_char5_encode64( const char *src, size_t len)
 {
-   char       *s;
-   char       *sentinel;
+   const char       *s;
+   const char       *sentinel;
    char       c;
    int        char5;
    uint64_t   value;
@@ -228,10 +228,10 @@ uint64_t   mulle_char5_encode64( char *src, size_t len)
 }
 
 
-uint32_t   mulle_char5_encode32_utf16( mulle_utf16_t *src, size_t len)
+uint32_t   mulle_char5_encode32_utf16( const mulle_utf16_t *src, size_t len)
 {
-   mulle_utf16_t   *s;
-   mulle_utf16_t   *sentinel;
+   const mulle_utf16_t   *s;
+   const mulle_utf16_t   *sentinel;
    int             c;
    int             char5;
    uint32_t        value;
@@ -259,10 +259,10 @@ uint32_t   mulle_char5_encode32_utf16( mulle_utf16_t *src, size_t len)
 }
 
 
-uint64_t   mulle_char5_encode64_utf16( mulle_utf16_t *src, size_t len)
+uint64_t   mulle_char5_encode64_utf16( const mulle_utf16_t *src, size_t len)
 {
-   mulle_utf16_t   *s;
-   mulle_utf16_t   *sentinel;
+   const mulle_utf16_t   *s;
+   const mulle_utf16_t   *sentinel;
    int             c;
    int             char5;
    uint64_t        value;
@@ -290,10 +290,10 @@ uint64_t   mulle_char5_encode64_utf16( mulle_utf16_t *src, size_t len)
 }
 
 
-uint32_t   mulle_char5_encode32_utf32( mulle_utf32_t *src, size_t len)
+uint32_t   mulle_char5_encode32_utf32( const mulle_utf32_t *src, size_t len)
 {
-   mulle_utf32_t   *s;
-   mulle_utf32_t   *sentinel;
+   const mulle_utf32_t   *s;
+   const mulle_utf32_t   *sentinel;
    int             c;
    int             char5;
    uint32_t        value;
@@ -321,10 +321,10 @@ uint32_t   mulle_char5_encode32_utf32( mulle_utf32_t *src, size_t len)
 }
 
 
-uint64_t   mulle_char5_encode64_utf32( mulle_utf32_t *src, size_t len)
+uint64_t   mulle_char5_encode64_utf32( const mulle_utf32_t *src, size_t len)
 {
-   mulle_utf32_t   *s;
-   mulle_utf32_t   *sentinel;
+   const mulle_utf32_t   *s;
+   const mulle_utf32_t   *sentinel;
    int             c;
    int             char5;
    uint64_t        value;

@@ -48,6 +48,20 @@
 // then lop one off, and keep removing and chaining stuff from the original list
 // until we can finally place the whole chain back into an empty list
 //
+// Memory model:
+//
+// * _mulle_concurrent_linkedlist_remove_all performs the seq_cst CAS that
+//   detaches the chain. After it succeeds the chain is *private* to this
+//   thread, so walking and rewriting `_next` below uses plain, non-atomic
+//   accesses on purpose. No atomics are needed or wanted there.
+// * the final seq_cst CAS republishes the retained chain. It is the release
+//   that makes the `tail->_next = prev_chain` fixups visible to whoever
+//   acquires `_head` next. After it succeeds this thread must not touch the
+//   chain again, and it doesn't.
+// * no explicit mulle_atomic_memory_barrier() is needed. The seq_cst CAS
+//   already orders everything before it, and the caller reusing the returned
+//   `entry` is ordered by that same CAS on the next publication.
+//
 struct _mulle_concurrent_linkedlistentry  *
    _mulle_concurrent_linkedlist_remove_one( struct _mulle_concurrent_linkedlist *list)
 {
@@ -95,9 +109,6 @@ struct _mulle_concurrent_linkedlistentry  *
    }
    while( ! _mulle_atomic_pointer_weakcas( &list->_head.pointer, chain, NULL));
 
-   // the contents of this area will get reused now so invalidate
-   // mulle_atomic_memory_barrier();
-
    return( entry);
 }
 
@@ -117,6 +128,10 @@ int
    assert( list);
    assert( callback);
 
+   //
+   // Memory model: deliberately non-atomic throughout. This is only valid if
+   // the caller has exclusive access to the list, see the header.
+   //
    entry = _mulle_atomic_pointer_nonatomic_read( &list->_head.pointer);
    prev  = NULL;
    rval  = 0;

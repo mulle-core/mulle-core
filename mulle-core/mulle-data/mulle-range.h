@@ -46,15 +46,8 @@
 // values and returning an error code.
 // size_t is the "indexing" value for an array
 //
-#ifndef INTPTR_MAX
-//# if defined( _WIN32) || defined( _WIN64)
-   typedef ptrdiff_t  intptr_t
-#  define INTPTR_MIN   PTRDIFF_MIN
-#  define INTPTR_MAX   PTRDIFF_MAX
-//# else
-//# // error "intptr_t and friends are needed for this platform"
-//# endif
-#endif
+// mulle-c11 and <stdint.h> provide intptr_t on all supported platforms.
+//
 
 
 /**
@@ -64,6 +57,34 @@
  * MEMO: It's convenient this to be different to "notakey"
  */
 #define mulle_not_found_e     ((uintptr_t) INTPTR_MAX)
+
+
+//
+// NOTE TO REVIEWERS: mulle_not_found_e is NOT an in-band sentinel.
+//
+// It looks like one, and it has been flagged as one more than once. It isn't,
+// and the INTPTR_MAX ceiling is precisely why:
+//
+//    mulle_range_location_max == mulle_not_found_e - 1
+//
+// mulle_range_is_valid rejects any location above that ceiling, and caps
+// location + length at mulle_not_found_e. So for any *valid* range:
+//
+//    get_first_location() == location            <  mulle_not_found_e
+//    get_last_location()  == location+length-1   <  mulle_not_found_e
+//
+// meaning mulle_not_found_e can only ever come back from those functions for
+// a zero length range. No valid non-empty range can produce it. That is an
+// out-of-band sentinel, which is the opposite of the (uintptr_t)-1 "still
+// hashing" value in the chained hash API, where real data genuinely can
+// collide with the sentinel.
+//
+// Corollary: the ceiling is load bearing. Widening mulle_range to the full
+// uintptr_t span to reclaim the upper half would CREATE the collision that
+// does not currently exist. Do not "fix" it.
+//
+// See test/60-misc/range-sentinel.c, which pins all of the above.
+//
 
 
 //
@@ -613,8 +634,9 @@ int   mulle_range_intersects( struct mulle_range range,
  *
  * This function takes two `mulle_range` values and returns a new `mulle_range`
  * that represents the intersection of the two input ranges. If the two input
- * ranges do not overlap, the returned `mulle_range` will be invalid (i.e.
- * `mulle_range_is_valid(result) == 0`).
+ * ranges do not overlap, the returned `mulle_range` will be empty (i.e.
+ * `result.length == 0`). The empty result is still valid per
+ * `mulle_range_is_valid`.
  *
  * @param range The first `mulle_range` value.
  * @param other The second `mulle_range` value.
@@ -706,16 +728,25 @@ void   mulle_range_subtract_location( struct mulle_range a,
 /**
  * Computes the state of the `mulle_range` `a` after insertion of the `mulle_range` `b`.
  * `b` must be adjacent to or intersect `a` (else 0 is returned).
- * The function returns either one or two result ranges. If two ranges are returned,
- * then `b` created a hole (not part of the result). `result[0]` is the unshifted
- * range and `result[1]` is the shifted range.
+ * The function returns 0 or 2 result ranges. If two ranges are returned,
+ * then `b` splits `a` around the insertion (the inserted portion is not part
+ * of the result). `result[0]` is the prefix (before the insertion) and
+ * `result[1]` is the suffix (shifted by b.length).
  *
- * Example: `a=[0-9] b=[2-3], result[2] = { [0-2], [5-14] }`
+ * Case 2 — `b` starts inside or at the start of `a`:
+ *   Example: `a={0,9} b={2,3}` → `result = { {0,2}, {5,7} }`
+ *   The prefix is the part of `a` before `b`; the suffix is the remainder of
+ *   `a` shifted right by `b.length`.
+ *
+ * Case 3 — `b` starts before `a` but overlaps it:
+ *   Example: `a={2,5} b={0,3}` → `result = { {0,0}, {3,5} }`
+ *   There is no prefix (`result[0]` is zero-length). The whole of `a` is
+ *   relocated to start at `b`'s end, preserving `a.length`.
  *
  * @param a The `mulle_range` to insert `b` into.
  * @param b The `mulle_range` to insert.
  * @param result An array of two `mulle_range` values to store the result.
- * @return The number of `mulle_range` values stored in the `result` array (either 1 or 2).
+ * @return The number of `mulle_range` values stored in the `result` array (0 or 2).
  */
 MULLE__DATA_GLOBAL
 unsigned int   mulle_range_insert( struct mulle_range a,
@@ -741,9 +772,9 @@ unsigned int   mulle_range_insert( struct mulle_range a,
  *         should be inserted.
  */
 MULLE__DATA_GLOBAL
-unsigned int   _mulle_range_hole_bsearch( struct mulle_range *buf,
-                                          unsigned int n,
-                                          uintptr_t search_location);
+uintptr_t   _mulle_range_hole_bsearch( struct mulle_range *buf,
+                                        uintptr_t n,
+                                        uintptr_t search_location);
 
 /**
  * Performs a binary search on the provided `mulle_range` array to find the index
@@ -757,7 +788,7 @@ unsigned int   _mulle_range_hole_bsearch( struct mulle_range *buf,
  */
 MULLE__DATA_GLOBAL
 struct mulle_range   *mulle_range_contains_bsearch( struct mulle_range *buf,
-                                                    unsigned int n,
+                                                    uintptr_t n,
                                                     struct mulle_range search);
 
 /**
@@ -772,15 +803,16 @@ struct mulle_range   *mulle_range_contains_bsearch( struct mulle_range *buf,
  */
 MULLE__DATA_GLOBAL
 struct mulle_range   *mulle_range_intersects_bsearch( struct mulle_range *buf,
-                                                      unsigned int n,
+                                                      uintptr_t n,
                                                       struct mulle_range search);
 
 
-#define mulle_range_for( range, name)                                \
-   for( uintptr_t name          = (range).location,                  \
-                  name ## __end = (range).location + (range).length; \
-        name < name ## __end;                                        \
-        ++name                                                       \
+#define mulle_range_for( range, name)                                                \
+   struct mulle_range   name ## __tmp = range;                                       \
+   for( uintptr_t name          = (name ## __tmp).location,                          \
+                  name ## __end = (name ## __tmp).location + (name ## __tmp).length; \
+        name < name ## __end;                                                        \
+        ++name                                                                       \
       )
 
 #endif

@@ -7,10 +7,10 @@
 
 #if defined( MULLE__UTF_VERSION)
 # ifndef MULLE__UTF_VERSION_MIN
-#  define MULLE__UTF_VERSION_MIN  ((5UL << 20) | (2 << 8) | 1)
+#  define MULLE__UTF_VERSION_MIN  ((6UL << 20) | (0 << 8) | 0)
 # endif
 # ifndef MULLE__UTF_VERSION_MAX
-#  define MULLE__UTF_VERSION_MAX  ((6UL << 20) | (0 << 8) | 0)
+#  define MULLE__UTF_VERSION_MAX  ((7UL << 20) | (0 << 8) | 0)
 # endif
 # if MULLE__UTF_VERSION < MULLE__UTF_VERSION_MIN || MULLE__UTF_VERSION >= MULLE__UTF_VERSION_MAX
 #  pragma message("MULLE__UTF_VERSION     is " MULLE_C_STRINGIFY_MACRO( MULLE__UTF_VERSION))

@@ -42,6 +42,9 @@
 
 
 
+// NOTE: void * (not const void *) is intentional. Changing to const would
+// break all existing comparator function pointers in downstream code and
+// require a major version bump.
 typedef int   mulle_qsort_r_cmp_t( void *a, void *b, void *thunk);
 typedef int   mulle_qsort_cmp_t( void *a, void *b);
 
@@ -55,6 +58,8 @@ static inline void   mulle_qsort_swapfunc(char *a, char *b, size_t es)
 {
    char t;
 
+   if( ! es)
+      return;
    do {
       t = *a;
       *a++ = *b;

@@ -40,7 +40,7 @@
 #include <string.h>
 #include <assert.h>
 
-#define MULLE__LINKEDLIST_VERSION  ((0UL << 20) | (0 << 8) | 8)
+#define MULLE__LINKEDLIST_VERSION  ((0UL << 20) | (1 << 8) | 0)
 
 
 static inline unsigned int   mulle_linkedlist_get_version_major( void)
@@ -299,7 +299,9 @@ static inline int
 }
 
 
-#include "mulle-concurrent-linkedlist.h"
+#ifndef MULLE_LINKEDLIST_NO_CONCURRENT
+# include "mulle-concurrent-linkedlist.h"
+#endif
 
 /*
  * The versioncheck header can be generated with

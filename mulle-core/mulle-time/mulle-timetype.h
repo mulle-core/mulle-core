@@ -56,6 +56,10 @@ typedef enum
 } mulle_time_comparison_t;
 
 
+// Offset in seconds between the Unix epoch (1970-01-01) and the Cocoa
+// reference date (2001-01-01). The calendar epoch used by
+// mulle_timeinterval_now is the Unix epoch, so this constant is only for
+// conversions to/from the Cocoa reference date.
 #define MULLE_TIMEINTERVAL_SINCE_1970            978307200.0
 
 // compatible values
@@ -82,23 +86,58 @@ static inline mulle_timeinterval_t
 }
 
 
-// don't want fmod/-lm in this library, so use fmod adapted from
-// https://stackoverflow.com/questions/26342823/implementation-of-fmod-function
-static mulle_timeinterval_t   mulle_timeinterval_mod( mulle_timeinterval_t value,
-                                                      mulle_timeinterval_t m)
+// don't want fmod/-lm in this library, so use a floor based mod instead.
+// result is in [0, m) for m > 0. NaN values and invalid m return 0.0.
+//
+// Returns nonzero if value is neither NaN nor infinite. Avoids a dependency
+// on math.h: an infinite value is the only one where value - value is not 0.0
+// (it is NaN), and NaN is the only value not equal to itself.
+static inline int   mulle_timeinterval_is_finite( mulle_timeinterval_t value)
 {
-   return( value - (double) (long long) (value / m) * m);
+   return( value == value && value - value == 0.0);
+}
+
+
+static inline mulle_timeinterval_t   mulle_timeinterval_mod( mulle_timeinterval_t value,
+                                                             mulle_timeinterval_t m)
+{
+   mulle_timeinterval_t   quotient;
+   mulle_timeinterval_t   loss;
+   long long              truncated;
+
+   // reject NaN/infinite values and invalid (nonpositive/NaN/infinite) m
+   if( ! mulle_timeinterval_is_finite( value) || ! mulle_timeinterval_is_finite( m)
+       || ! (m > 0.0))
+      return( 0.0);
+
+   // quotient of value / m truncated towards zero, adjusted to floor.
+   // Reject a quotient that does not fit into long long before converting,
+   // as the conversion would be undefined behavior.
+   quotient  = value / m;
+   if( quotient >= 9223372036854775808.0 || quotient < -9223372036854775808.0)
+      return( 0.0);
+   truncated = (long long) quotient;
+   if( (double) truncated > quotient)
+      truncated -= 1;
+
+   loss = value - (double) truncated * m;
+   return( loss);
 }
 
 
 //
 // this returns either the next lowest or the next highest timeinterval that
-// is evenly divisibly by rate. "snaps to reate"
+// is evenly divisible by rate. "snaps to rate"
 // A rate of 0.3 produces the following valid value sequence
 // 0, 0.3, 0.6, 0.9, 1.2, ..., INFINITY
 // Given a 1.0 for value, this will return 0.9 given a 1.1 it will return
 // 1.2.
 //
+// The remainder is measured as a positive distance within the rate bucket,
+// so negative values quantize symmetrically to positive values. Ties round
+// up (away from zero). A nonpositive, NaN or infinite rate is invalid and
+// returns the value unchanged. NaN and infinite values are also returned
+// unchanged.
 //
 static inline mulle_timeinterval_t
    mulle_timeinterval_quantize( mulle_timeinterval_t value,
@@ -107,12 +146,16 @@ static inline mulle_timeinterval_t
    mulle_timeinterval_t   loss;
    mulle_timeinterval_t   quantized;
 
+   if( ! (rate > 0.0) || ! mulle_timeinterval_is_finite( rate)
+       || ! mulle_timeinterval_is_finite( value))
+      return( value);
+
    loss      = mulle_timeinterval_mod( value, rate);
    quantized = value - loss;        // quantize to lower
    if( loss >= rate / 2)            // or quantize to higher
       quantized += rate;
 
-   // quantized may have encurred a small error here due to fmod
+   // quantized may have encurred a small error here due to mod
    return( quantized);
 }
 
@@ -141,11 +184,21 @@ static inline struct mulle_timeintervalrange
 // that don't support it
 
 //
-// TODO: make this a fail, if _GNU_SOURCE is undefined on linux
-//       instead of secretly setting it
+// The inline functions in this header need struct timespec, struct timeval
+// and the CLOCK_* constants, which on glibc require a POSIX feature-test
+// macro. The library's own sources define _GNU_SOURCE before any include.
+//
+// For header-only consumers we only define _GNU_SOURCE here if glibc's
+// feature detection (features.h) has not run yet. Defining it afterwards
+// would silently change feature visibility for the rest of the translation
+// unit and can break glibc itself. Consumers that include other system
+// headers before mulle-time.h must define _GNU_SOURCE (or an equivalent
+// feature-test macro) before their first system header include.
 //
 #ifndef  _GNU_SOURCE
-# define _GNU_SOURCE
+# if ! defined( _FEATURES_H) && ! defined( _POSIX_C_SOURCE)
+#  define _GNU_SOURCE
+# endif
 #endif
 
 #include <time.h>

@@ -46,10 +46,10 @@
 #include <string.h>
 
 
-static int  octal( mulle_utf32_t **src_p)
+static int  octal( const mulle_utf32_t **src_p)
 {
    mulle_utf32_t   buf[ 5];
-   mulle_utf32_t   *src;
+   const mulle_utf32_t   *src;
    mulle_utf32_t   c;
    int             i;
    int             no;
@@ -80,7 +80,7 @@ static int  octal( mulle_utf32_t **src_p)
  *  - mulle_unicode_regex_substitute - perform substitutions after a regexp match
  */
 int   mulle_utf32regex_substitute( struct mulle_utf32regex *rp,
-                                   mulle_utf32_t *src,
+                                   const mulle_utf32_t *src,
                                    mulle_utf32_t *dst,
                                    size_t dst_len,
                                    int zero)
@@ -185,7 +185,7 @@ int   mulle_utf32regex_substitute( struct mulle_utf32regex *rp,
 
 
 size_t   mulle_utf32regex_substitution_length( struct mulle_utf32regex *rp,
-                                               mulle_utf32_t *src)
+                                               const mulle_utf32_t *src)
 {
    regexp          *prog = (regexp *) rp;
    mulle_utf32_t   c;

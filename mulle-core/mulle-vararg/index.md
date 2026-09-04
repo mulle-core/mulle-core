@@ -19,7 +19,7 @@ mulle-vararg is an alternative to standard `<stdarg.h>` for handling variable ar
 
 - **Portable:** Works consistently across 32-bit and 64-bit platforms without recompilation.
 
-- **Manual or Automatic:** Can be used with compiler support (automatic packing) or manually via builder API.
+- **Manual or Automatic:** Can be used with compiler support (automatic packing via the mulle-clang metaABI) or manually via the builder API.
 
 ## 3. Core API & Data Structures
 
@@ -29,24 +29,30 @@ mulle-vararg is an alternative to standard `<stdarg.h>` for handling variable ar
 
 **`mulle_vararg_list`**
 
-- **Purpose:** Opaque iterator for accessing variable arguments.
-- **Internal:** Holds pointer to current position in argument buffer.
+- **Purpose:** Opaque cursor for accessing variable arguments.
+- **Internal:** Holds a pointer to the current position in the argument buffer.
+- **Not compatible** with `stdarg.h`'s `va_list`.
 
 #### Initialization Macros
 
-**`mulle_vararg_start(args, ap)`**
+**`_mulle_vararg_start(args, lvalue)`** — the portable entry point.
 
-- **Purpose:** Initialize argument list from first variadic argument.
+- **Purpose:** Initialize an argument list at the first byte *after* the given lvalue (a struct field or local variable).
 - **Parameters:**
   - `args`: `mulle_vararg_list` to initialize.
-  - `ap`: First variadic argument (name, not address).
-- **Usage:** Call at start of variadic function with last named parameter.
-- **Example:** `mulle_vararg_start(args, format)`
+  - `lvalue`: Any lvalue; the list starts after `sizeof(lvalue)` bytes (with an `int`-sized minimum, per C promotion rules).
+- **Usage:** Use it when you lay out arguments manually (struct fields, builder buffers).
+- **Example:** `_mulle_vararg_start(list, value.a)` starts at the field after `value.a`.
 
-**`mulle_vararg_start_fp(args, ap)`**
+**`_mulle_vararg_start_fp(args, lvalue)`**
 
-- **Purpose:** Initialize argument list when first argument is floating-point.
-- **Handles:** Double alignment adjustment for floating-point first arguments.
+- **Purpose:** Like `_mulle_vararg_start`, but for lists whose first argument is floating point (`double`-sized minimum slot).
+
+**`mulle_vararg_start(args, ap)`** and **`mulle_vararg_start_fp(args, ap)`**
+
+- **Purpose:** Initialize an argument list inside a variadic function, where `ap` is the last named parameter.
+- **⚠️ metaABI only:** These expand to `_mulle_vararg_start(args, _param->ap)` and `_mulle_vararg_start_fp(args, _param->ap)` respectively. They compile **only** under the mulle-clang metaABI (mulle-objc runtime), which injects a `_param` struct pointer, and only when the last named parameter is *literally named* `ap` (the name is used as a macro token).
+- **Portable alternative:** Always prefer `_mulle_vararg_start(args, &last_param)`-style usage (on the lvalue) for code compiled with plain gcc/clang.
 
 #### Integer Argument Access
 
@@ -57,19 +63,22 @@ mulle-vararg is an alternative to standard `<stdarg.h>` for handling variable ar
   - `args`: `mulle_vararg_list` iterator.
   - `type`: C integer type to extract (int, char, long, etc.).
 - **Returns:** Value converted to specified type.
-- **Behavior:** Handles integer promotion (small types promoted to int).
+- **Behavior:** Handles integer promotion (small types read from an `int`-sized slot).
 
 #### Floating-Point Argument Access
 
-**`mulle_vararg_next_double(args)`**
+**`mulle_vararg_next_fp(args, type)`**
 
 - **Purpose:** Read and advance to next floating-point argument.
-- **Returns:** Double precision float (floats promoted to double).
+- **Parameters:**
+  - `args`: `mulle_vararg_list` iterator.
+  - `type`: float, double or long double.
+- **Returns:** Value converted to specified type.
+- **Behavior:** `float` is read from a `double`-sized slot (promotion).
 
-**`mulle_vararg_next_float(args)`**
+**`mulle_vararg_next_double(args)`, `mulle_vararg_next_float(args)`, `mulle_vararg_next_longdouble(args)`**
 
-- **Purpose:** Read and advance to next single-precision float.
-- **Returns:** Float value.
+- Convenience wrappers around `mulle_vararg_next_fp`.
 
 #### Pointer Argument Access
 
@@ -81,52 +90,77 @@ mulle-vararg is an alternative to standard `<stdarg.h>` for handling variable ar
   - `type`: Pointer type (e.g., `void *`, `char *`).
 - **Returns:** Pointer value.
 
-#### Raw Memory Access
+#### Struct and Union Access
 
-**`_mulle_vararg_int_aligned_pointer(args, size, align)`**
+**`mulle_vararg_next_struct(args, type)`** / **`mulle_vararg_next_union(args, type)`**
 
-- **Purpose:** Low-level: Get aligned pointer to next argument and advance.
-- **Parameters:**
-  - `args`: Pointer to `mulle_vararg_list`.
-  - `size`: Argument size in bytes.
-  - `align`: Required alignment.
-- **Returns:** Pointer to argument data.
-- **Note:** Handles integer promotion (< sizeof(int) → int).
+- **Purpose:** Read the next struct/union **by value** (copied out of the buffer).
+
+**`_mulle_vararg_next_struct(args, type)`** / **`_mulle_vararg_next_union(args, type)`**
+
+- **Purpose:** Get a **pointer into** the buffer for the next struct/union (no copy; more efficient, but the data is only valid while the buffer lives).
+
+#### Convenience Read Macros
+
+`mulle_vararg_next_char`, `next_short`, `next_int`, `next_int32`, `next_int64`, `next_long`, `next_longlong`, `next_unsignedchar`, `next_unsignedshort`, `next_unsignedint`, `next_uint32`, `next_uint64`, `next_unsignedlong`, `next_unsignedlonglong` (all delegate to `mulle_vararg_next_integer`).
+
+#### List Management
+
+**`mulle_vararg_copy(dst, src)`** — copy a list cursor (e.g., to iterate twice).
+
+**`mulle_vararg_end(args)`** — end marker (currently a no-op).
+
+**`mulle_vararg_count_pointers(args, first)`** — count a NULL-terminated list of pointer arguments (including `first`).
 
 ### 3.2 `mulle-vararg-builder.h` - Manual Argument Construction
 
-**`struct mulle_vararg_builder`**
+The builder constructs a vararg buffer manually (no compiler support needed) and can hand it to any consumer of `mulle_vararg_list` (e.g. `mulle_mvsprintf`). The API is **macro-based** — there is no builder struct.
 
-- **Purpose:** Build argument buffer manually without compiler support.
-- **Usage:** When compiler does not support mulle-vararg natively.
+#### Buffer Type and Sizing
 
-#### Builder Functions
+**`mulle_vararg_builderbuffer_t`**
 
-**`mulle_vararg_builder_init(buffer, size)`**
+- **Purpose:** Buffer element type (`long double`). Its alignment satisfies the strictest argument alignment (`alignof(long double)`).
+- **Usage:** `mulle_vararg_builderbuffer_t buf[ mulle_vararg_builderbuffer_n( size)];`
 
-- **Purpose:** Initialize builder with output buffer.
-- **Parameters:**
-  - `buffer`: Destination for packed arguments.
-  - `size`: Buffer size in bytes.
-- **Returns:** Initialized builder.
+**`mulle_vararg_builderbuffer_n(n)`**
 
-**`mulle_vararg_builder_add_integer(builder, type, value)`**
+- **Purpose:** Number of `mulle_vararg_builderbuffer_t` elements needed to hold `n` bytes.
 
-- **Purpose:** Add integer argument to buffer.
-- **Behavior:** Respects promotion rules and alignment.
+**Sizing macros:** `mulle_vararg_sizeof_integer(type)`, `mulle_vararg_sizeof_fp(type)`, `mulle_vararg_sizeof_pointer(type)`, `mulle_vararg_sizeof_functionpointer(type)`, `mulle_vararg_sizeof_struct(type)` and matching `mulle_vararg_alignof_*` macros compute the promoted slot size/alignment of an argument. Convenience forms exist: `mulle_vararg_sizeof_int()`, `mulle_vararg_sizeof_long()`, `mulle_vararg_sizeof_float()` (returns `sizeof(double)`), `mulle_vararg_sizeof_double()`, etc.
 
-**`mulle_vararg_builder_add_double(builder, value)`**
+#### Push Macros
 
-- **Purpose:** Add double-precision float to buffer.
+**`mulle_vararg_push_integer(ap, type, value)`**
 
-**`mulle_vararg_builder_add_pointer(builder, value)`**
+- **Purpose:** Push an integer argument.
+- **Behavior:** Respects promotion (small types stored in an `int`-sized slot).
 
-- **Purpose:** Add pointer argument to buffer.
+**`mulle_vararg_push_fp(ap, type, value)`**
 
-**`mulle_vararg_builder_get_data(builder)`**
+- **Purpose:** Push a floating-point argument (`float` stored in a `double`-sized slot).
 
-- **Purpose:** Get pointer to packed argument buffer.
-- **Returns:** Buffer suitable for `mulle_vararg_list_make()`.
+**`mulle_vararg_push_struct(ap, value)`** / **`mulle_vararg_push_union(ap, value)`**
+
+- **Purpose:** Push a struct/union by value.
+
+**`mulle_vararg_push_pointer(ap, value)`** / **`mulle_vararg_push_functionpointer(ap, value)`**
+
+- **Purpose:** Push a pointer / function pointer.
+
+**Convenience push macros:** `mulle_vararg_push_char`, `push_short`, `push_int`, `push_int32`, `push_int64`, `push_long`, `push_longlong`, `push_unsigned*`, `push_uint32`, `push_uint64`, `push_float`, `push_double`, `push_longdouble`.
+
+#### List Creation
+
+**`mulle_vararg_list_make(buf)`**
+
+- **Purpose:** Turn a buffer into a `mulle_vararg_list` pointing at its start. Pass the result to a consumer (e.g. `mulle_mvsprintf`).
+
+**`mulle_vararg_builder_do(name, size)`**
+
+- **Purpose:** Allocate the buffer on the stack and declare the list `name` in one step. Expands to `mulle_alloca_do` from mulle-allocator — requires linking `mulle-allocator`.
+
+**Important:** the caller is responsible for sizing the buffer correctly with the `mulle_vararg_sizeof_*`/`mulle_vararg_alignof_*` macros. There is no bounds checking; an undersized buffer is undefined behavior.
 
 ### 3.3 `mulle-align.h` - Alignment Utilities
 
@@ -138,6 +172,8 @@ mulle-vararg is an alternative to standard `<stdarg.h>` for handling variable ar
   - `align`: Alignment (typically power of 2).
 - **Returns:** Aligned pointer (may be ≥ original).
 
+**`mulle_address_align(p, align)`** — same, on a `uintptr_t`.
+
 ## 4. Argument Layout Examples
 
 ### Example 1: Simple Integer Arguments
@@ -146,8 +182,8 @@ mulle-vararg is an alternative to standard `<stdarg.h>` for handling variable ar
 printf("x=%d", 42)
 
 Argument buffer:
-[0x00] 00000000   (unused - printf first arg is format)
-[0x04] 0000002A   (int 42, promoted from implicit cast)
+[0x00] 00000000   (unused - first named argument slot)
+[0x04] 0000002A   (int 42)
 ```
 
 ### Example 2: Mixed Types with Promotion
@@ -156,9 +192,9 @@ Argument buffer:
 printf("%d %f", (char)'x', (float)0.2)
 
 Argument buffer (32-bit):
-[0x00] 00000078                 (int, char 'x' promoted)
-[0x04] 00000000 
-[0x08] 3fc99999 3fc99999       (double, float promoted)
+[0x00] 00000078                 (int slot, char 'x' promoted)
+[0x04] 00000000
+[0x08] 3fc99999 9999999a       (double slot, float 0.2 promoted)
 ```
 
 ### Example 3: Pointer and Large Integer
@@ -182,195 +218,155 @@ Argument buffer (64-bit):
 
 ### Best Practices:
 
-1. **Use Compiler Integration:** If compiler supports mulle-vararg, use automatic packing.
+1. **Use the builder for construction:** To *construct* a list portably, always use the builder (`mulle_vararg_list_make` + `mulle_vararg_push_*`). Do not invent a builder struct — there is none.
 
-2. **Order Arguments Correctly:** Always initialize with `mulle_vararg_start()` before accessing arguments.
+2. **Initialize correctly:** Use `_mulle_vararg_start(list, lvalue)` with an lvalue (field/local). Use `mulle_vararg_start` only in mulle-clang metaABI code where `_param` is injected.
 
 3. **Type Safety:** Know expected argument types; mismatched reads yield garbage.
 
-4. **Buffer Size:** Builder users must provide sufficiently large buffer (conservative estimate: 128 bytes typical).
+4. **Buffer Size:** Builder users must size the buffer with `mulle_vararg_builderbuffer_n` + the `mulle_vararg_sizeof_*` macros; an undersized buffer is UB.
 
-5. **Alignment Respect:** Trust alignment macros; manual pointer arithmetic risks misalignment.
+5. **Alignment Respect:** Trust the alignment macros; manual pointer arithmetic risks misalignment.
 
 ### Common Pitfalls:
 
 1. **Accessing Arguments Out-of-Order:** Sequential access required; no random access.
 
-2. **Type Mismatch:** Reading with wrong macro (e.g., `next_integer` instead of `next_double`) yields corrupted values.
+2. **Type Mismatch:** Reading with the wrong macro (e.g., `next_integer` instead of `next_fp`) yields corrupted values.
 
-3. **Buffer Overflow (Builder):** Insufficient buffer causes corruption; always validate.
+3. **Buffer Overflow (Builder):** Insufficient buffer causes corruption; always size with the sizing macros.
 
 4. **Assuming Stack Layout:** Not compatible with standard stdarg; don't mix APIs.
 
-5. **Forgetting Promotion Rules:** Small integers are promoted to int; account for this when reading.
+5. **Forgetting Promotion Rules:** Small integers are promoted to int, floats to double; account for this when reading and when sizing buffers.
+
+6. **Using `mulle_vararg_start` in plain C:** It requires the metaABI `_param`; use `_mulle_vararg_start` instead.
 
 ## 7. Integration Examples
 
-### Example 1: Simple Printf-like Function
+### Example 1: Reading a List Built by the Builder (portable)
 
 ```c
 #include <mulle-vararg/mulle-vararg.h>
 #include <stdio.h>
 
-void my_printf(const char *format, ...) {
-    mulle_vararg_list args;
-    mulle_vararg_start(args, format);
-    
-    for (const char *p = format; *p; p++) {
-        if (*p == '%' && *(p + 1)) {
-            p++;
-            switch (*p) {
-                case 'd': {
-                    int val = mulle_vararg_next_integer(args, int);
-                    printf("%d", val);
-                    break;
-                }
-                case 'f': {
-                    double val = mulle_vararg_next_double(args);
-                    printf("%f", val);
-                    break;
-                }
-                case 's': {
-                    const char *s = mulle_vararg_next_pointer(args, const char *);
-                    printf("%s", s);
-                    break;
-                }
-                case '%':
-                    printf("%%");
-                    break;
-            }
-        } else {
-            printf("%c", *p);
-        }
-    }
-}
+int main(void)
+{
+   mulle_vararg_builderbuffer_t  buf[ mulle_vararg_builderbuffer_n(
+                                          mulle_vararg_sizeof_integer( int) +
+                                          mulle_vararg_sizeof_fp( double) +
+                                          mulle_vararg_sizeof_pointer( char *))];
+   mulle_vararg_list             list;
+   mulle_vararg_list             q;
 
-int main() {
-    my_printf("Number: %d, Float: %f, String: %s\n", 42, 3.14, "hello");
-    return 0;
+   list = mulle_vararg_list_make( buf);
+   mulle_vararg_copy( q, list);
+
+   int     i;
+   double  d;
+   char    *s;
+
+   mulle_vararg_push_int( q, 42);
+   mulle_vararg_push_double( q, 3.14);
+   mulle_vararg_push_pointer( q, "hello");
+
+   // read in separate statements: argument evaluation order is unspecified
+   i = mulle_vararg_next_integer( list, int);
+   d = mulle_vararg_next_fp( list, double);
+   s = mulle_vararg_next_pointer( list, char *);
+   printf( "%d %.2f %s\n", i, d, s);
+   return 0;
 }
 ```
 
-### Example 2: Manual Argument Construction with Builder
+### Example 2: Passing a Built List to mulle_mvsprintf
 
 ```c
 #include <mulle-vararg/mulle-vararg.h>
+#include <mulle-sprintf/mulle-sprintf.h>
 #include <stdio.h>
 #include <string.h>
 
-void process_args(const char *format, mulle_vararg_list args) {
-    // Process args built by builder
-    int i = 0;
-    while (format[i]) {
-        if (format[i] == 'd') {
-            int val = mulle_vararg_next_integer(args, int);
-            printf("Integer: %d\n", val);
-        } else if (format[i] == 'f') {
-            double val = mulle_vararg_next_double(args);
-            printf("Float: %f\n", val);
-        }
-        i++;
-    }
-}
+int main(void)
+{
+   mulle_vararg_builderbuffer_t  buf[ mulle_vararg_builderbuffer_n(
+                                          mulle_vararg_sizeof_integer( int) +
+                                          mulle_vararg_sizeof_integer( long))];
+   mulle_vararg_list             list;
+   mulle_vararg_list             q;
+   char                          out[ 64];
 
-int main() {
-    char buffer[256];
-    struct mulle_vararg_builder builder;
-    
-    builder = mulle_vararg_builder_init(buffer, sizeof(buffer));
-    
-    // Build arguments: int, double, int
-    mulle_vararg_builder_add_integer(&builder, int, 42);
-    mulle_vararg_builder_add_double(&builder, 3.14);
-    mulle_vararg_builder_add_integer(&builder, int, 99);
-    
-    mulle_vararg_list args = mulle_vararg_list_make(mulle_vararg_builder_get_data(&builder));
-    
-    process_args("dfd", args);
-    
-    return 0;
+   list = mulle_vararg_list_make( buf);
+   mulle_vararg_copy( q, list);
+   mulle_vararg_push_int( q, 18);
+   mulle_vararg_push_long( q, 48L);
+
+   mulle_mvsprintf( out, "%d %ld", list);
+   printf( "%s\n", out);   // prints: 18 48
+   return 0;
 }
 ```
 
-### Example 3: Mixed Type Processing
+### Example 3: Reading Manually Laid Out Struct Fields (portable)
 
 ```c
 #include <mulle-vararg/mulle-vararg.h>
 #include <stdio.h>
 
-void log_mixed(const char *prefix, ...) {
-    mulle_vararg_list args;
-    mulle_vararg_start(args, prefix);
-    
-    printf("[%s] ", prefix);
-    
-    // Assume format: int, double, char*
-    int count = mulle_vararg_next_integer(args, int);
-    double average = mulle_vararg_next_double(args);
-    const char *label = mulle_vararg_next_pointer(args, const char *);
-    
-    printf("Count: %d, Average: %.2f, Label: %s\n", count, average, label);
-}
+struct parameters
+{
+   int      count;
+   double   average;
+   char     *label;
+};
 
-int main() {
-    log_mixed("DEBUG", 10, 4.5, "measurements");
-    log_mixed("INFO", 25, 7.3, "results");
-    
-    return 0;
+int main(void)
+{
+   struct parameters  params = { 10, 4.5, "measurements" };
+   mulle_vararg_list  list;
+
+   double   average;
+   char     *label;
+
+   // start AFTER the first field: the "varargs" are average and label
+   _mulle_vararg_start( list, params.count);
+
+   average = mulle_vararg_next_fp( list, double);
+   label   = mulle_vararg_next_pointer( list, char *);
+   printf( "Count: %d, Average: %.2f, Label: %s\n", params.count, average, label);
+   return 0;
 }
 ```
 
-### Example 4: Type-Safe Vararg Wrapper
+### Example 4: MetaABI Variadic Function (mulle-clang / mulle-objc only)
 
 ```c
 #include <mulle-vararg/mulle-vararg.h>
 #include <stdio.h>
-#include <stdint.h>
 
-typedef struct {
-    int type;  // 0=int, 1=double, 2=ptr
-    union {
-        int i;
-        double d;
-        void *p;
-    } value;
-} Argument;
+// Compiles only under the mulle-clang metaABI: the compiler injects a
+// `_param` struct pointer, and the last named parameter must be named `ap`.
+void   myprintf( char *ap, ...)
+{
+   mulle_vararg_list   list;
 
-#define MAX_ARGS 16
+   mulle_vararg_start( list, ap);
 
-void call_typed(const char *name, Argument *args, int count) {
-    printf("Function: %s\n", name);
-    
-    for (int i = 0; i < count; i++) {
-        printf("  Arg %d: ", i);
-        switch (args[i].type) {
-            case 0:
-                printf("int=%d\n", args[i].value.i);
-                break;
-            case 1:
-                printf("double=%.2f\n", args[i].value.d);
-                break;
-            case 2:
-                printf("ptr=%p\n", args[i].value.p);
-                break;
-        }
-    }
+   printf( "%d\n", mulle_vararg_next_integer( list, int));
+   printf( "%.1f\n", mulle_vararg_next_fp( list, double));
 }
 
-int main() {
-    Argument args[] = {
-        {0, {.i = 42}},
-        {1, {.d = 3.14}},
-        {2, {.p = (void *)0x12345678}}
-    };
-    
-    call_typed("example", args, 3);
-    
-    return 0;
+int   main( void)
+{
+   myprintf( "x", 18, 48.0);
+   return 0;
 }
 ```
 
-## 7. Dependencies
+## 8. Dependencies
 
-Direct mulle-sde dependencies:
+Direct dependencies (for standalone use):
 - `mulle-c11`: C11 compatibility macros and alignment utilities
+- `mulle-allocator`: provides `mulle_alloca_do` used by `mulle_vararg_builder_do` (only needed if you use that macro; the header includes it unconditionally)
+
+Inside the mulle-core amalgamation, all dependencies are provided by mulle-core itself.

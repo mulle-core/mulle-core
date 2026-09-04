@@ -157,6 +157,8 @@ void   _mulle_rbtree_remove_node( struct mulle_rbtree *a_tree,
    struct mulle__rbtree     *rb__tree = (struct mulle__rbtree *) a_tree;
 
    assert( a_tree);
+   assert( node);
+   assert( ! _mulle__rbtree_is_nil_node( rb__tree, node));
 
    value     = _mulle__rbtree_get_node_value( rb__tree, node);
    allocator = _mulle_rbtree_get_allocator( a_tree);
@@ -179,7 +181,7 @@ int   _mulle_rbtree_remove( struct mulle_rbtree *a_tree, void *a_key)
    node = _mulle__rbtree_find_node( (struct mulle__rbtree *) a_tree,
                                     a_key,
                                     a_tree->comparison);
-   if( ! node)
+   if( _mulle__rbtree_is_nil_node( (struct mulle__rbtree *) a_tree, node))
       return( ENOENT);
 
    _mulle_rbtree_remove_node( a_tree, node);

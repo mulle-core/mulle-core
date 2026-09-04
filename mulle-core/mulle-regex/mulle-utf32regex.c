@@ -233,7 +233,7 @@ static void   regex_set_tail_if_needed( struct comp *co, node *p, node *val);
 
 
 /* convenience, convenience, convenience */
-mulle_utf32_t   *mulle_utf32_match( mulle_utf32_t *pattern, mulle_utf32_t *s)
+mulle_utf32_t   *mulle_utf32_match( const mulle_utf32_t *pattern, const mulle_utf32_t *s)
 {
    regexp    *p;
    mulle_utf32_t   *found;
@@ -251,9 +251,9 @@ mulle_utf32_t   *mulle_utf32_match( mulle_utf32_t *pattern, mulle_utf32_t *s)
 }
 
 
-mulle_utf32_t   *mulle_utf32_substitute( mulle_utf32_t *pattern,
-                                         mulle_utf32_t *replacement,
-                                         mulle_utf32_t *s)
+mulle_utf32_t   *mulle_utf32_substitute( const mulle_utf32_t *pattern,
+                                         const mulle_utf32_t *replacement,
+                                         const mulle_utf32_t *s)
 {
    regexp          *p;
    mulle_utf32_t   *buf;
@@ -328,7 +328,7 @@ struct mulle_range   mulle_utf32regex_range_for_index( struct mulle_utf32regex *
  * Beware that the optimization-preparation code in here knows about some
  * of the structure of the compiled regexp.
  */
-struct mulle_utf32regex   *mulle_utf32regex_compile( mulle_utf32_t *exp)
+struct mulle_utf32regex   *mulle_utf32regex_compile( const mulle_utf32_t *exp)
 {
    regexp        *r;
    node          *scan;
@@ -951,7 +951,7 @@ static char    *regex_string_from_opcode( node *op, char buf[64]);
 /*
  *  - mulle_unicode_regex_execute - match a regexp against a string
  */
-int    mulle_utf32regex_execute(  struct mulle_utf32regex *p, mulle_utf32_t *string)
+int    mulle_utf32regex_execute(  struct mulle_utf32regex *p, const mulle_utf32_t *string)
 {
    regexp         *prog = (regexp *) p;
    mulle_utf32_t  *s;
@@ -969,26 +969,26 @@ int    mulle_utf32regex_execute(  struct mulle_utf32regex *p, mulle_utf32_t *str
    }
 
    /* If there is a "must appear" string, look for it. */
-   if( prog->regmust && ! mulle_utf32_strstr( string, prog->regmust))
+   if( prog->regmust && ! mulle_utf32_strstr( (mulle_utf32_t *) string, prog->regmust))
       return( 0);
 
    /* Mark beginning of line for ^ . */
-   ex.regbol    = string;
+   ex.regbol    = (mulle_utf32_t *) string;
    ex.regstartp = prog->startp;
    ex.regendp   = prog->endp;
 
    /* memorize for later computation of ranges */
-   prog->start = string;
+   prog->start = (mulle_utf32_t *) string;
 
    /* Simplest case:  anchored match need be tried only once. */
    if( prog->reganch)
-      return( regex_try_match( &ex, prog, string));
+      return( regex_try_match( &ex, prog, (mulle_utf32_t *) string));
 
    /* Messy cases:  unanchored match. */
    if( prog->regstart)
    {
       /* We know what char it must start with. */
-      for( s = string; s; s = *s ? mulle_utf32_strchr( s + 1, prog->regstart) : NULL)
+      for( s = (mulle_utf32_t *) string; s; s = *s ? mulle_utf32_strchr( s + 1, prog->regstart) : NULL)
          if( regex_try_match (&ex, prog, s))
             return( 1);
 
@@ -996,7 +996,7 @@ int    mulle_utf32regex_execute(  struct mulle_utf32regex *p, mulle_utf32_t *str
    }
 
    /* We don't -- general case. */
-   for( s = string; ! regex_try_match( &ex, prog, s); s++)
+   for( s = (mulle_utf32_t *) string; ! regex_try_match( &ex, prog, s); s++)
       if( ! *s)
          return( 0);
    return( 1);

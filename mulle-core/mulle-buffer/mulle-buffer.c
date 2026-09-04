@@ -85,7 +85,7 @@ void
    buffer->_initial_storage  =
    buffer->_storage          =
    buffer->_curr             = (void *) storage;
-   buffer->_sentinel         = &buffer->_storage[ length];
+   buffer->_sentinel         = storage ? &buffer->_storage[ length] : NULL;
 
    // no special case for mulle_sprintf
    assert( length != INT_MAX);
@@ -127,43 +127,42 @@ static inline unsigned int   hex( unsigned int c)
 
 
 void   mulle_buffer_hexdump_line( struct mulle_buffer *buffer,
-                                  void *bytes,
+                                  const void *bytes,
                                   unsigned int n,
                                   size_t counter,
                                   unsigned int options)
 {
-   uint8_t        *memo;
+   const uint8_t        *memo;
    uint8_t        *s;
 #ifndef NDEBUG
    uint8_t        *sentinel;
 #endif
    unsigned int   i;
    unsigned int   value;
-   uint8_t        *p;
-   uint32_t       adr;     // limited to 32 bit currently
+   const uint8_t        *p;
+   size_t         adr;
 
    memo = bytes;
    p    = bytes;
-   adr  = (uint32_t) counter;
+   adr  = (size_t) counter;
 
    if( ! (options & mulle_buffer_hexdump_no_offset))
    {
       s = mulle_buffer_advance( buffer, 10);
-      assert( s);
       if( s)
       {
 #ifndef NDEBUG
          sentinel = &s[ 10];
 #endif
-         *s++ = (uint8_t) hex( adr >> 28 & 0xF);
-         *s++ = (uint8_t) hex( adr >> 24 & 0xF);
-         *s++ = (uint8_t) hex( adr >> 20 & 0xF);
-         *s++ = (uint8_t) hex( adr >> 16 & 0xF);
+         *s++ = (uint8_t) hex( (unsigned int) (adr >> 28) & 0xF);
+         *s++ = (uint8_t) hex( (unsigned int) (adr >> 24) & 0xF);
+         *s++ = (uint8_t) hex( (unsigned int) (adr >> 20) & 0xF);
+         *s++ = (uint8_t) hex( (unsigned int) (adr >> 16) & 0xF);
 
-         *s++ = (uint8_t) hex( adr >> 12 & 0xF);
-         *s++ = (uint8_t) hex( adr >> 8 & 0xF);
-         *s++ = (uint8_t) hex( adr >> 4 & 0xF);
-         *s++ = (uint8_t) hex( adr >> 0 & 0xF);
+         *s++ = (uint8_t) hex( (unsigned int) (adr >> 12) & 0xF);
+         *s++ = (uint8_t) hex( (unsigned int) (adr >> 8) & 0xF);
+         *s++ = (uint8_t) hex( (unsigned int) (adr >> 4) & 0xF);
+         *s++ = (uint8_t) hex( (unsigned int) (adr >> 0) & 0xF);
 
          *s++ = ' ';
          *s++ = ' ';
@@ -176,7 +175,6 @@ void   mulle_buffer_hexdump_line( struct mulle_buffer *buffer,
    {
       i = 0;
       s = mulle_buffer_advance( buffer, 3 * 8);
-      assert( s);
       if( s)
       {
 #ifndef NDEBUG
@@ -209,7 +207,6 @@ void   mulle_buffer_hexdump_line( struct mulle_buffer *buffer,
       mulle_buffer_add_byte( buffer, ' ');
 
       s = mulle_buffer_advance( buffer, 3 * 8);
-      assert( s);
       if( s)
       {
 #ifndef NDEBUG
@@ -268,7 +265,7 @@ void   mulle_buffer_hexdump_line( struct mulle_buffer *buffer,
 
 
 void  mulle_buffer_hexdump( struct mulle_buffer *buffer,
-                            void *bytes,
+                            const void *bytes,
                             size_t length,
                             size_t counter,
                             unsigned int options)
@@ -277,7 +274,7 @@ void  mulle_buffer_hexdump( struct mulle_buffer *buffer,
    size_t   full_lines;
    size_t   remainder;
    size_t   i;
-   uint8_t  *p;
+   const uint8_t  *p;
 
    lines      = (length + 15) / 16;
    full_lines = length / 16;

@@ -34,6 +34,8 @@
 //
 #include "mulle-data.h"
 
+#include <string.h>
+
 
 int   __MULLE_DATA_ranlib__;
 
@@ -48,31 +50,37 @@ MULLE__DATA_GLOBAL
 void   *mulle_data_search_data( struct mulle_data haystack,
                                 struct mulle_data needle)
 {
-   char      *haystack_bytes;
-   char      *needle_bytes;
-   size_t    i;
-   size_t    j;
+   unsigned char   *h;
+   unsigned char   *end;
+   unsigned char   first;
+   size_t          tail;
 
    mulle_data_assert( haystack);
    mulle_data_assert( needle);
 
    if( ! haystack.bytes || ! needle.bytes || haystack.length < needle.length)
       return( NULL);
+   if( ! needle.length)
+      return( haystack.bytes);
 
+   h     = (unsigned char *) haystack.bytes;
+   end   = h + haystack.length - needle.length;
+   first = *(unsigned char *) needle.bytes;
+   tail  = needle.length - 1;
 
-   haystack_bytes = (char *) haystack.bytes;
-   needle_bytes   = (char *) needle.bytes;
-
-   for( i = 0; i <= haystack.length - needle.length; i++)
+   //
+   // Use memchr to skip non-matching positions in bulk, then memcmp the
+   // remainder. This is O(n*m) worst case but in practice memchr uses
+   // SIMD on modern libc implementations, making the common case fast.
+   //
+   while( h <= end)
    {
-      j = 0;
-
-      while( j < needle.length && haystack_bytes[ i + j] == needle_bytes[ j])
-        j++;
-
-      if( j == needle.length)
-         return( &haystack_bytes[ i]);
+      h = (unsigned char *) memchr( h, first, (size_t) (end - h) + 1);
+      if( ! h)
+         return( NULL);
+      if( ! tail || ! memcmp( h + 1, (unsigned char *) needle.bytes + 1, tail))
+         return( h);
+      ++h;
    }
-
    return( NULL);
 }

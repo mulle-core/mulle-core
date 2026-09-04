@@ -13,6 +13,6 @@ export MULLE_VIBECODING=""
 #
 #
 #
-export vibecoding="off"
+
 
 

@@ -275,9 +275,9 @@ struct mulle__rbtree
 
 MULLE_C_NONNULL_FIRST
 static inline struct mulle_rbnode  *
-   _mulle__rbtree_get_nil_node( struct mulle__rbtree *a_tree)
+   _mulle__rbtree_get_nil_node( const struct mulle__rbtree *a_tree)
 {
-   return( &a_tree->_nil);
+   return( (struct mulle_rbnode *) &a_tree->_nil);
 }
 
 
@@ -350,7 +350,7 @@ MULLE_C_NONNULL_FIRST
 static inline size_t
    _mulle__rbtree_get_extra_size( struct mulle__rbtree *a_tree)
 {
-   return( _mulle_storage_get_element_size( &a_tree->_nodes) - sizeof( struct mulle_rbnode));
+   return( _mulle_storage_get_element_size( &a_tree->_nodes) - offsetof( struct mulle_rbnode, payload));
 }
 
 
@@ -453,7 +453,7 @@ void   _mulle__rbtree_free_node( struct mulle__rbtree *a_tree, void *node)
 /* Operations. */
 MULLE_C_NONNULL_FIRST
 static inline struct mulle_rbnode    *
-   _mulle__rbtree_get_root_node( struct mulle__rbtree *a_tree)
+   _mulle__rbtree_get_root_node( const struct mulle__rbtree *a_tree)
 {
    return( a_tree->_root);
 }
@@ -539,6 +539,15 @@ struct mulle_rbnode    *
    _mulle__rbtree_find_node_equal_or_greater( struct mulle__rbtree *a_tree,
                                               void *a_key,
                                               int (*a_comp)( void *, void *));
+
+//
+// Range queries (upper_bound, find_less_equal, iteration from an arbitrary
+// key) are deliberately not provided here. Consumers that need range
+// iteration can use _mulle__rbtree_find_node_equal_or_greater as a starting
+// point and walk with _mulle__rbtree_next_node / _mulle__rbtree_previous_node.
+// More complex patterns (e.g. augmented order-statistic trees) should be built
+// on top of the low-level node API and the dirty/walk_dirty mechanism.
+//
 
 #if 0
 MULLE__RBTREE_GLOBAL
@@ -809,7 +818,7 @@ void  _mulle__rbtree_insert_node_after_node( struct mulle__rbtree *a_tree,
 //
 // the node will be freed by _mulle__rbtree_remove_node do not touch it
 // afterwards.
-// After inserting nodes, you can call __mulle__rbtree_walk_dirty to get
+// After removing a node, you can call __mulle__rbtree_walk_dirty to get
 // callbacks for all affected nodes (once)
 //
 MULLE__RBTREE_GLOBAL

@@ -48,7 +48,7 @@
  *
  *  version:  major, minor, patch
  */
-#define MULLE__FIFO_VERSION  ((0UL << 20) | (1 << 8) | 7)
+#define MULLE__FIFO_VERSION  ((0UL << 20) | (1 << 8) | 8)
 
 
 static inline unsigned int   mulle_fifo_get_version_major( void)

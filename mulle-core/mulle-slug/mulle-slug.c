@@ -37,6 +37,7 @@
 #include "mulle-slug.h"
 
 #include <ctype.h>
+#include <string.h>
 
 
 int   __MULLE_SLUG_ranlib__;
@@ -58,18 +59,51 @@ static struct map_entry
 };
 
 
+// auto-generated from UnicodeData.txt canonical/compat decompositions
+static struct map_entry   decompose_map[] =
+{
+#include "decompose-map.inc"
+};
 
-void  mulle_buffer_add_slugified_utf8data( struct mulle_buffer *buffer,
-                                           struct mulle_utf8data data)
+
+
+static char  *search_map( struct map_entry *table, int n, mulle_utf32_t c)
+{
+   int   first;
+   int   last;
+   int   middle;
+
+   first  = 0;
+   last   = n - 1;
+   middle = (first + last) / 2;
+
+   while( first <= last)
+   {
+      if( table[ middle].utf32 <= c)
+      {
+         if( table[ middle].utf32 == c)
+            return( table[ middle].ascii);
+         first = middle + 1;
+      }
+      else
+         last = middle - 1;
+
+      middle = (first + last) / 2;
+   }
+   return( NULL);
+}
+
+
+
+static void  _mulle_buffer_add_slugified_utf8data( struct mulle_buffer *buffer,
+                                                    struct mulle_utf8data data,
+                                                    char delimiter,
+                                                    int passthru)
 {
    mulle_utf32_t      c;
    mulle_utf32_t      prev;
    char               *walk;
    char               *sentinel;
-   struct map_entry   *p;
-   int                first;
-   int                last;
-   int                middle;
    size_t             length;
    size_t             prevlen;
 
@@ -95,10 +129,10 @@ void  mulle_buffer_add_slugified_utf8data( struct mulle_buffer *buffer,
          case '\r' :
          case '\t' :
          case '\v' :
-         case '-'  : if( prev && prev != '-')
+         case '-'  : if( prev && prev != (mulle_utf32_t) delimiter)
                      {
-                        mulle_buffer_add_byte( buffer, '-');
-                        prev = '-';
+                        mulle_buffer_add_byte( buffer, delimiter);
+                        prev = (mulle_utf32_t) delimiter;
                      }
                      continue;
 
@@ -115,10 +149,10 @@ void  mulle_buffer_add_slugified_utf8data( struct mulle_buffer *buffer,
 
          if( ispunct( c))
          {
-            if( prev && prev != '-')
+            if( prev && prev != (mulle_utf32_t) delimiter)
             {
-               mulle_buffer_add_byte( buffer, '-');
-               prev = '-';
+               mulle_buffer_add_byte( buffer, delimiter);
+               prev = (mulle_utf32_t) delimiter;
             }
             continue;
          }
@@ -128,30 +162,39 @@ void  mulle_buffer_add_slugified_utf8data( struct mulle_buffer *buffer,
          continue;
       }
 
-      // binary search UTF32 code
+      // non-ASCII: transliterate via lookup tables
       {
-         first  = 0;
-         last   = (int) ((sizeof( map) / sizeof( map[ 0])) - 1);
-         middle = (first + last) / 2;
+         char   *ascii;
 
-         while( first <= last)
+         // skip combining marks (nonbase characters like U+0300 combining grave)
+         // this handles decomposed forms: e + U+0301 -> just "e"
+         if( mulle_unicode_is_nonbase( c))
+            continue;
+
+         // search hand-curated table first (has semantic mappings)
+         ascii = search_map( map,
+                             (int) (sizeof( map) / sizeof( map[ 0])),
+                             c);
+         // fall back to Unicode decomposition table
+         if( ! ascii)
+            ascii = search_map( decompose_map,
+                                (int) (sizeof( decompose_map) / sizeof( decompose_map[ 0])),
+                                c);
+         if( ascii)
          {
-            p = &map[ middle];
-            if( p->utf32 <= c)
-            {
-               if( p->utf32 == c)
-               {
-                  mulle_buffer_add_string( buffer, p->ascii);
-                  prev = c;
-                  break;
-               }
-
-               first = middle + 1;
-            }
-            else
-               last = middle - 1;
-
-            middle = (first + last) / 2;
+            mulle_buffer_add_string( buffer, ascii);
+            prev = c;
+         }
+         else if( passthru && ! mulle_unicode_is_whitespace( c)
+                           && ! mulle_unicode_is_punctuation( c)
+                           && ! mulle_unicode_is_control( c))
+         {
+            // pass through non-transliterable characters (CJK, Arabic, etc.) as UTF-8
+            mulle_utf32_bufferconvert_to_utf8( &c,
+                                               1,
+                                               buffer,
+                                               (mulle_utf_add_bytes_function_t *) mulle_buffer_add_bytes);
+            prev = c;
          }
       }
    }
@@ -161,12 +204,34 @@ stop:
    while( length > prevlen + 1)
    {
       c = mulle_buffer_get_last_byte( buffer);
-      if( c != '-')
+      if( c != (mulle_utf32_t) delimiter)
          break;
 
       mulle_buffer_remove_last_byte( buffer);
       --length;
    }
+}
+
+
+void  mulle_buffer_add_slugified_utf8data_with_delimiter( struct mulle_buffer *buffer,
+                                                          struct mulle_utf8data data,
+                                                          char delimiter)
+{
+   _mulle_buffer_add_slugified_utf8data( buffer, data, delimiter, 0);
+}
+
+
+void  mulle_buffer_add_slugified_utf8data( struct mulle_buffer *buffer,
+                                           struct mulle_utf8data data)
+{
+   _mulle_buffer_add_slugified_utf8data( buffer, data, '-', 0);
+}
+
+
+void  mulle_buffer_add_utf8_slugified_utf8data( struct mulle_buffer *buffer,
+                                                struct mulle_utf8data data)
+{
+   _mulle_buffer_add_slugified_utf8data( buffer, data, '-', 1);
 }
 
 
@@ -198,7 +263,7 @@ struct mulle_utf8data   mulle_utf8data_slugify( struct mulle_utf8data  data,
 }
 
 
-char   *mulle_utf8_slugify( char *s)
+char   *mulle_utf8_slugify( const char *s)
 {
    struct mulle_utf8data   data;
    struct mulle_utf8data   slug;
@@ -211,5 +276,71 @@ char   *mulle_utf8_slugify( char *s)
    assert( slug.characters);
    assert( slug.length >= 1); // sic (the trailing 0)
    return( (char *) slug.characters);
+}
+
+
+char   *mulle_utf8_slugify_utf8( const char *s)
+{
+   struct mulle_utf8data   data;
+   struct mulle_utf8data   slug;
+
+   if( ! s)
+      return( NULL);
+
+   data = mulle_utf8data_make( (char *) s, -1);
+
+   mulle_buffer_do( buffer)
+   {
+      _mulle_buffer_add_slugified_utf8data( buffer, data, '-', 1);
+      mulle_buffer_make_string( buffer);
+      slug = mulle_data_as_utf8data( mulle_buffer_extract_data( buffer));
+   }
+
+   assert( slug.characters);
+   assert( slug.length >= 1);
+   return( (char *) slug.characters);
+}
+
+
+char  *mulle_slugify_with_delimiter( char *dst, size_t dst_len,
+                                     const char *src, size_t src_len,
+                                     char delimiter)
+{
+   struct mulle_utf8data   data;
+
+   if( ! dst_len)
+      return( NULL);
+
+   if( ! src)
+   {
+      dst[ 0] = '\0';
+      return( dst);
+   }
+
+   if( src_len == (size_t) -1)
+      src_len = strlen( src);
+
+   data = mulle_utf8data_make( (char *) src, src_len);
+
+   mulle_buffer_do_flexible( buffer, dst, dst_len)
+   {
+      mulle_buffer_add_slugified_utf8data_with_delimiter( buffer, data, delimiter);
+      mulle_buffer_make_string( buffer);
+
+      // if the buffer overflowed into malloc, copy back and truncate
+      if( mulle_buffer_get_string( buffer) != dst)
+      {
+         strncpy( dst, mulle_buffer_get_string( buffer), dst_len - 1);
+         dst[ dst_len - 1] = '\0';
+      }
+   }
+
+   return( dst);
+}
+
+
+char  *mulle_slugify( char *dst, size_t dst_len, const char *src, size_t src_len)
+{
+   return( mulle_slugify_with_delimiter( dst, dst_len, src, src_len, '-'));
 }
 

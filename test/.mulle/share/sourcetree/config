@@ -1,1 +1,0 @@
-mulle-core;${MULLE__CORE_NODETYPE:-tar};;CFDA6C1A-AEBD-4D67-831D-C6A768E92458;${MULLE__CORE_URL:-https://github.com/nat/mulle-core/archive/${MULLE_TAG}.tar.gz};${MULLE__CORE_BRANCH};${MULLE__CORE_TAG:-latest};;

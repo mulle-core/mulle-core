@@ -1,10 +1,33 @@
-This is an almagamation of the [mulle-core](//github.com/mulle-core),
-[mulle-concurrent](//github.com/mulle-concurrent),
-[mulle-c](//github.com/mulle-c) projects that need not be forced linked. See
-the [constituting projects](#Constituents) for documentation, bug reports,
-pull requests.
+This is an amalgamation of the [mulle-core](//github.com/mulle-core),
+[mulle-concurrent](//github.com/mulle-concurrent), and
+[mulle-c](//github.com/mulle-c) projects that need not be force-linked. See
+the [constituent projects](#Constituents) for documentation, bug reports,
+and pull requests.
 
-mulle-core is tested to build on the following platforms and compiler 
+## Project model
+
+`mulle-core` is a release-time amalgamation, not a second source repository
+for all of its constituents. The constituent projects are the canonical source
+for the implementations, APIs, behavioral tests, portability tests, and CI.
+This repository gathers versioned constituent snapshots into one library and
+one envelope header for convenient consumption.
+
+The amalgamated sources are copied from the selected constituent revisions;
+they are not independently maintained here. Implementation fixes should be
+made in the owning constituent and then brought here by the next
+amalgamation. Maintainers may use `mulle-sde` to select dependencies and
+regenerate a snapshot, but consumers of a released snapshot do not need
+`mulle-sde`.
+
+The amalgamation's own build and release checks focus on the distribution:
+compilation, linking, generated manifests, envelope headers, and the supported
+Git submodule plus CMake `add_subdirectory` integration. It intentionally does
+not duplicate every constituent test suite.
+
+See [the design and project model](dox/DESIGN.md) for the maintainer and
+consumer workflow.
+
+mulle-core is tested to build on the following platforms and compiler
 matrix:
 
 | OS       | Compiler   | Flags  | Note
@@ -22,6 +45,6 @@ matrix:
 
 The advantages of using **mulle-core** over the individual projects are:
 
-* compiles faster than two dozens of individual projects
+* compiles faster than two dozen individual projects
 * you only need to link against one library file
 * `#include` statements may remain unchanged or simplify to `#include <mulle-core/mulle-core.h>`

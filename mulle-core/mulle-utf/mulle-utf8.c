@@ -223,7 +223,7 @@ mulle_utf32_t   _mulle_utf8_previous_utf32character( char **s_p)
 //
 // the slower non-crashing code ...
 //
-int   mulle_utf8_are_valid_extracharacters( char *src,
+int   mulle_utf8_are_valid_extracharacters( const char *src,
                                             size_t len,
                                             mulle_utf32_t *p_x)
 {
@@ -302,10 +302,10 @@ int   mulle_utf8_are_valid_extracharacters( char *src,
 //
 // dst should be 2 * len
 //
-char   *_mulle_iso1_convert_to_utf8( char *iso1, size_t len,  char *dst)
+char   *_mulle_iso1_convert_to_utf8( const char *iso1, size_t len,  char *dst)
 {
-   unsigned char   *src;
-   unsigned char   *sentinel;
+   const unsigned char   *src;
+   const unsigned char   *sentinel;
    unsigned char   _c;
 
    assert( len != (size_t) -1);
@@ -329,10 +329,10 @@ char   *_mulle_iso1_convert_to_utf8( char *iso1, size_t len,  char *dst)
 
 
 char   *
-   _mulle_utf8_convert_to_iso1( char *_src, size_t len, char *iso1, int unknown)
+   _mulle_utf8_convert_to_iso1( const char *_src, size_t len, char *iso1, int unknown)
 {
-   unsigned char  *src = (unsigned char *) _src;
-   unsigned char  *sentinel;
+   const unsigned char  *src = (const unsigned char *) _src;
+   const unsigned char  *sentinel;
    unsigned char  _c;
    unsigned char  _d;
    unsigned char  *dst;
@@ -351,17 +351,24 @@ char   *
          continue;
       }
 
-      if( (_c & 0xFC) == 0xC0) // we have 110000nn
+      if( (_c & 0xFC) == 0xC0) // we have 110000nn (C0-C3)
       {                        // and     10nnnnnn
          if( src < sentinel)
          {
             _d = *src++;
-            if( (_c & 0xC0) == 0x80)
+            if( (_d & 0xC0) == 0x80)
             {
                *dst++ = ((_c & 0x3) << 6) | (_d & 0x3F);
                continue;
             }
+            --src; // _d was not a continuation, put it back
          }
+      }
+      else
+      {
+         // skip continuation bytes of multi-byte sequences (3 or 4 byte)
+         while( src < sentinel && (*src & 0xC0) == 0x80)
+            ++src;
       }
       if( unknown < 0)
          return( NULL);
@@ -376,13 +383,13 @@ char   *
 
 // this also does not do any error checking, the UTF8 string must be perfect
 //
-mulle_utf16_t   *_mulle_utf8_convert_to_utf16( char *_src,
+mulle_utf16_t   *_mulle_utf8_convert_to_utf16( const char *_src,
                                                size_t len,
                                                mulle_utf16_t *dst)
 {
-   unsigned char   *src = (unsigned char *) _src;
-   unsigned char   *next;
-   unsigned char   *sentinel;
+   const unsigned char   *src = (const unsigned char *) _src;
+   const unsigned char   *next;
+   const unsigned char   *sentinel;
    unsigned char   _c;
    size_t          extra_len;
    uint32_t        x;
@@ -424,13 +431,13 @@ mulle_utf16_t   *_mulle_utf8_convert_to_utf16( char *_src,
 // this also does not do any error checking, the UTF8 string must be perfect
 // the destination buffer must be large enough.
 //
-mulle_utf32_t   *_mulle_utf8_convert_to_utf32( char *_src,
+mulle_utf32_t   *_mulle_utf8_convert_to_utf32( const char *_src,
                                                size_t len,
                                                mulle_utf32_t *dst)
 {
-   unsigned char   *src = (unsigned char *) _src;
-   unsigned char   *next;
-   unsigned char   *sentinel;
+   const unsigned char   *src = (const unsigned char *) _src;
+   const unsigned char   *next;
+   const unsigned char   *sentinel;
    unsigned char   _c;
    size_t          extra_len;
 
@@ -464,14 +471,14 @@ mulle_utf32_t   *_mulle_utf8_convert_to_utf32( char *_src,
 //
 // this also does not do any error checking, the UTF8 string must be perfect
 //
-void   mulle_utf8_bufferconvert_to_utf16( char *_src,
+void   mulle_utf8_bufferconvert_to_utf16( const char *_src,
                                           size_t len,
                                           void *buffer,
                                           mulle_utf_add_bytes_function_t *addbytes)
 {
-   unsigned char   *src = (unsigned char *) _src;
-   unsigned char   *next;
-   unsigned char   *sentinel;
+   const unsigned char   *src = (const unsigned char *) _src;
+   const unsigned char   *next;
+   const unsigned char   *sentinel;
    unsigned char   _c;
    size_t          extra_len;
    uint32_t        x;
@@ -529,14 +536,14 @@ void   mulle_utf8_bufferconvert_to_utf16( char *_src,
 //
 // this also does not do any error checking, the UTF8 string must be perfect
 //
-void  mulle_utf8_bufferconvert_to_utf32( char *_src,
+void  mulle_utf8_bufferconvert_to_utf32( const char *_src,
                                          size_t len,
                                          void *buffer,
                                          mulle_utf_add_bytes_function_t *addbytes)
 {
-   unsigned char   *src = (unsigned char *) _src;
-   unsigned char   *next;
-   unsigned char   *sentinel;
+   const unsigned char   *src = (const unsigned char *) _src;
+   const unsigned char   *next;
+   const unsigned char   *sentinel;
    unsigned char   _c;
    size_t          extra_len;
    mulle_utf32_t   *s;
@@ -583,11 +590,11 @@ void  mulle_utf8_bufferconvert_to_utf32( char *_src,
 }
 
 
-char  *mulle_utf8_validate( char *_src, size_t len)
+char  *mulle_utf8_validate( const char *_src, size_t len)
 {
-   unsigned char   *src = (unsigned char *) _src;
-   unsigned char   *end;
-   unsigned char   *sentinel;
+   const unsigned char   *src = (const unsigned char *) _src;
+   const unsigned char   *end;
+   const unsigned char   *sentinel;
    unsigned char   _c;
    size_t          extra_len;
    mulle_utf32_t   _x;
@@ -608,7 +615,7 @@ char  *mulle_utf8_validate( char *_src, size_t len)
    for( ; src < sentinel; src++)
    {
       if( ! (_c = *src))
-         return( (char *) src);
+         break;   // embedded NUL is a valid terminator
 
       if( mulle_utf8_is_asciicharacter( _c))
          continue;
@@ -621,7 +628,7 @@ char  *mulle_utf8_validate( char *_src, size_t len)
       if( end >= sentinel)
          return( (char *) src);
 
-      if( ! mulle_utf8_are_valid_extracharacters( (char *) src, extra_len, &_x))
+      if( ! mulle_utf8_are_valid_extracharacters( (const char *) src, extra_len, &_x))
          return( (char *) src);
       src = end;
    }
@@ -634,11 +641,11 @@ char  *mulle_utf8_validate( char *_src, size_t len)
 // a long or long long
 // (b) masking value with 0x80808080 to figure out if all are "ASCII"
 //
-int  mulle_utf8_information( char *_src, size_t len, struct mulle_utf_information *info)
+int  mulle_utf8_information( const char *_src, size_t len, struct mulle_utf_information *info)
 {
-   unsigned char                  *src = (unsigned char *) _src;
-   unsigned char                  *end;
-   unsigned char                  *sentinel;
+   const unsigned char                  *src = (const unsigned char *) _src;
+   const unsigned char                  *end;
+   const unsigned char                  *sentinel;
    unsigned char                  _c;
    size_t                         dst_len;
    size_t                         extra_len;
@@ -650,7 +657,7 @@ int  mulle_utf8_information( char *_src, size_t len, struct mulle_utf_informatio
 
    info->has_terminating_zero = 0;
    info->invalid              = NULL;
-   info->start                = src;
+   info->start                = (void *) src;
    info->is_ascii             = 1;
    info->is_char5             = 1;
    info->is_utf15             = 1;
@@ -670,14 +677,14 @@ int  mulle_utf8_information( char *_src, size_t len, struct mulle_utf_informatio
    //
    // remove leading BOM
    //
-   info->has_bom = mulle_utf8_has_leading_bomcharacter( (char *) src, len);
+   info->has_bom = mulle_utf8_has_leading_bomcharacter( (const char *) src, len);
    if( info->has_bom)
    {
       src += 3;
       len -= 3;
    }
 
-   info->start = src;
+   info->start = (void *) src;
    sentinel    = &src[ len];
    dst_len     = len;
 
@@ -782,7 +789,7 @@ int  mulle_utf8_information( char *_src, size_t len, struct mulle_utf_informatio
       if( end >= sentinel)
          goto fail;
 
-      if( ! mulle_utf8_are_valid_extracharacters( (char *) src, extra_len, &_x))
+      if( ! mulle_utf8_are_valid_extracharacters( (const char *) src, extra_len, &_x))
          goto fail;
       if( _x >= 0x08000)
          info->is_utf15 = 0;
@@ -809,15 +816,15 @@ int  mulle_utf8_information( char *_src, size_t len, struct mulle_utf_informatio
 
 fail:
    memset( info, 0, sizeof( *info));
-   info->invalid = src;
+   info->invalid = (void *) src;
    return( -1);
 }
 
 
 
-int   mulle_utf8_is_ascii( char *src, size_t len)
+int   mulle_utf8_is_ascii( const char *src, size_t len)
 {
-   char   *sentinel;
+   const char   *sentinel;
 
    if( ! src)
       return( 0);
@@ -835,12 +842,16 @@ int   mulle_utf8_is_ascii( char *src, size_t len)
 }
 
 //
-// this routine does not validate...
+// This routine does not validate, but returns (size_t) -1 if a multi-byte
+// sequence extends past the buffer. This isn't a validation service — it's
+// unavoidable because we'd read out of bounds otherwise. The utf32 length
+// functions don't have this issue (each element is self-contained) and just
+// assert instead.
 //
-size_t   mulle_utf8_utf16length( char *src, size_t len)
+size_t   mulle_utf8_utf16length( const char *src, size_t len)
 {
-   char            *end;
-   char            *sentinel;
+   const char            *end;
+   const char            *sentinel;
    char            _c;
    size_t    extra_len;
    size_t    dst_len;
@@ -866,7 +877,7 @@ size_t   mulle_utf8_utf16length( char *src, size_t len)
       dst_len  -= extra_len == 3 ? 2 : extra_len; // ==3 : 32 bit
       end       = &src[ extra_len];
       if( end > sentinel)
-         return( 0);
+         return( (size_t) -1);
 #ifndef NDEBUG
       do
       {
@@ -882,13 +893,11 @@ size_t   mulle_utf8_utf16length( char *src, size_t len)
 }
 
 
-//
-// this routine does not validate...
-//
-size_t  mulle_utf8_utf32length( char *src, size_t len)
+// See comment above mulle_utf8_utf16length for the error signalling rationale.
+size_t  mulle_utf8_utf32length( const char *src, size_t len)
 {
-   char           *end;
-   char           *sentinel;
+   const char           *end;
+   const char           *sentinel;
    char           _c;
    size_t   extra_len;
    size_t   dst_len;
@@ -967,13 +976,28 @@ struct mulle_utf8data  mulle_utf8data_range_of_utf32_range( struct mulle_utf8dat
    {
       if( i == range.location)
          rval.characters = s;
-      if( (unsigned char) *s++ & 0x80)
+
+      // skip continuation bytes (10xxxxxx), only count lead/ASCII bytes
+      if( ((unsigned char) *s & 0xC0) == 0x80)
+      {
+         s++;
          continue;
-      if( ++i == end)
+      }
+
+      if( i == end)
       {
          rval.length = s - rval.characters;
          return( rval);
       }
+      ++i;
+      s++;
+   }
+
+   // handle range that extends to end of string
+   if( i == end)
+   {
+      rval.length = s - rval.characters;
+      return( rval);
    }
 
    return( mulle_utf8data_make( NULL, 0));
@@ -987,13 +1011,13 @@ struct mulle_utf8data  mulle_utf8data_range_of_utf32_range( struct mulle_utf8dat
 // http://www.alanwood.net/demos/macroman.html
 //
 
-static char   *_mulle_table_convert_to_utf8( char *macroman,
+static char   *_mulle_table_convert_to_utf8( const char *macroman,
                                              size_t len,
                                              uint16_t table[],
                                              char *dst)
 {
-   unsigned char   *src;
-   unsigned char   *sentinel;
+   const unsigned char   *src;
+   const unsigned char   *sentinel;
    unsigned char   _c;
    mulle_utf16_t   utf16;
 
@@ -1019,7 +1043,7 @@ static char   *_mulle_table_convert_to_utf8( char *macroman,
 }
 
 
-char   *_mulle_macroman_convert_to_utf8( char *macroman, size_t len, char *dst)
+char   *_mulle_macroman_convert_to_utf8( const char *macroman, size_t len, char *dst)
 {
    static uint16_t   macroman_0x80_0xFF[] =
    {
@@ -1046,7 +1070,7 @@ char   *_mulle_macroman_convert_to_utf8( char *macroman, size_t len, char *dst)
 }
 
 
-char   *_mulle_nextstep_convert_to_utf8( char *nextstep, size_t len, char *dst)
+char   *_mulle_nextstep_convert_to_utf8( const char *nextstep, size_t len, char *dst)
 {
    // http://www.kostis.net/charsets/nextstep.htm (misses one character!)
    // https://en.wikipedia.org/wiki/NeXT_character_set

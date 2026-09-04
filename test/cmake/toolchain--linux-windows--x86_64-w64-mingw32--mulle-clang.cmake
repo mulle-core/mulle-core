@@ -1,1 +1,0 @@
-../../cmake/share/toolchain--linux-windows--x86_64-w64-mingw32--mulle-clang.cmake

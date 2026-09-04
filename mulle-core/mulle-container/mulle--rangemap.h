@@ -59,6 +59,9 @@ struct mulle_range;
 //    struct mulle__rangemap has no API for that.
 // 6. adjacent ranges are not merged, this different from mulle__rangeset
 //
+// Sentinel: mulle_not_found_e (INTPTR_MAX) for location — out-of-band by
+//           construction (location_max == INTPTR_MAX-1). See mulle-range.h.
+//
 struct mulle__rangemap
 {
    void        *_storage;    // the malloc'd area
@@ -165,6 +168,34 @@ uintptr_t  _mulle__rangemap_search( struct mulle__rangemap *map,
                                     uintptr_t location);
 
 
+//
+// returns the number of ranges that intersect with the given range.
+// out_ranges and out_values may be NULL, if the respective data is
+// not wanted. At most max_out entries are written to each array,
+// the return value is the number of intersecting ranges (which may
+// be larger than max_out).
+//
+MULLE__CONTAINER_GLOBAL
+MULLE_C_NONNULL_FIRST
+uintptr_t   _mulle__rangemap_get_ranges_values( struct mulle__rangemap *map,
+                                                struct mulle_range range,
+                                                uintptr_t max_out,
+                                                struct mulle_range *out_ranges,
+                                                void **out_values);
+
+
+//
+// returns the value for the exact matching range, or NULL if the
+// range is not present. Sets errno to ENOENT if the range is not
+// found, and to EINVAL if an intersecting (but not equal) range is
+// found.
+//
+MULLE__CONTAINER_GLOBAL
+MULLE_C_NONNULL_FIRST
+void   *_mulle__rangemap_get_exact( struct mulle__rangemap *map,
+                                    struct mulle_range range);
+
+
 
 MULLE__CONTAINER_GLOBAL
 MULLE_C_NONNULL_FIRST
@@ -211,9 +242,18 @@ static inline struct mulle__rangemapenumerator
 {
    struct mulle__rangemapenumerator   rover;
 
-   rover._curr = _mulle__rangemap_get_ranges( map);
-   rover._sentinel = rover._curr + map->_length;
-   rover._values = _mulle__rangemap_get_values( map);
+   if( map->_length)
+   {
+      rover._curr     = _mulle__rangemap_get_ranges( map);
+      rover._sentinel = rover._curr + map->_length;
+      rover._values   = _mulle__rangemap_get_values( map);
+   }
+   else
+   {
+      rover._curr     = NULL;
+      rover._sentinel = NULL;
+      rover._values   = NULL;
+   }
    return( rover);
 }
 

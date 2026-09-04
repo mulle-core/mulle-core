@@ -33,9 +33,9 @@
  */
 struct parse_state
 {
-   struct mulle__strtod_syntax   *syntax;
-   char                          *p;
-   char                          *end;
+   const struct mulle__strtod_syntax   *syntax;
+   const char                          *p;
+   const char                          *end;
    uint64_t                      significand;
    int                           digits;
    int                           dropped;
@@ -86,7 +86,7 @@ static int   is_alpha( char c)
 /* `word` must be given in lowercase. Returns the number of characters
  * matched, or 0 for no match.
  */
-static size_t   match_word( char *p, char *end, char *word, int case_sensitive)
+static size_t   match_word( const char *p, const char *end, const char *word, int case_sensitive)
 {
    size_t   i;
    size_t   len;
@@ -110,7 +110,7 @@ static size_t   match_word( char *p, char *end, char *word, int case_sensitive)
 }
 
 
-static int   is_exponent_char( struct mulle__strtod_syntax *syntax, char c)
+static int   is_exponent_char( const struct mulle__strtod_syntax *syntax, char c)
 {
    char   d;
    int    case_sensitive;
@@ -170,7 +170,7 @@ static int   parse_special( struct parse_state *state)
    size_t     n;
    int        case_sensitive;
    uint32_t   flags;
-   char       *p;
+   const char       *p;
 
    flags          = state->syntax->flags;
    case_sensitive = (flags & mulle_strtod_case_sensitive_e) != 0;
@@ -274,7 +274,7 @@ static void   parse_fraction( struct parse_state *state)
  */
 static int   parse_exponent( struct parse_state *state)
 {
-   char       *p;
+   const char       *p;
    int        negative;
    int        value;
    uint32_t   flags;
@@ -316,7 +316,7 @@ static int   parse_exponent( struct parse_state *state)
 }
 
 
-int   mulle__strtod_syntax_is_valid( struct mulle__strtod_syntax *syntax)
+int   mulle__strtod_syntax_is_valid( const struct mulle__strtod_syntax *syntax)
 {
    char   c;
    int    i;
@@ -353,15 +353,15 @@ int   mulle__strtod_syntax_is_valid( struct mulle__strtod_syntax *syntax)
 
 
 struct mulle_dtostr_decimal
-   mulle_strtod_parse( char *s,
+   mulle_strtod_parse( const char *s,
                        size_t len,
-                       struct mulle__strtod_syntax *syntax,
+                       const struct mulle__strtod_syntax *syntax,
                        char **endptr)
 {
    struct mulle_dtostr_decimal   decimal = { 0 };
    struct mulle__strtod_syntax   fallback;
    struct parse_state            state   = { 0 };
-   char                          *memo;
+   const char                          *memo;
    int                           exponent;
    int                           special;
    uint32_t                      flags;
@@ -448,7 +448,7 @@ struct mulle_dtostr_decimal
 
 done:
    if( endptr)
-      *endptr = state.p;
+      *endptr = (char *) state.p;
    return( decimal);
 }
 
@@ -920,9 +920,9 @@ double   mulle_strtod_compose( struct mulle_dtostr_decimal decimal)
 }
 
 
-int   mulle_strtod_scan( char *s,
+int   mulle_strtod_scan( const char *s,
                         size_t len,
-                        struct mulle__strtod_syntax *syntax,
+                        const struct mulle__strtod_syntax *syntax,
                         double *p_value,
                         char **endptr)
 {

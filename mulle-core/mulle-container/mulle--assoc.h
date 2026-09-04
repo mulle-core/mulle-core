@@ -96,13 +96,13 @@ static inline struct mulle__assoc   *
 MULLE__CONTAINER_GLOBAL
 MULLE_C_NONNULL_FIRST_SECOND
 void   _mulle__assoc_destroy( struct mulle__assoc *assoc,
-                              struct mulle_container_keyvaluecallback *callback,
+                              const struct mulle_container_keyvaluecallback *callback,
                               struct mulle_allocator *allocator);
 
 MULLE__CONTAINER_GLOBAL
 MULLE_C_NONNULL_FIRST  // _SECOND
 void   _mulle__assoc_done( struct mulle__assoc *assoc,
-                           struct mulle_container_keyvaluecallback *callback,
+                           const struct mulle_container_keyvaluecallback *callback,
                            struct mulle_allocator *allocator);
 
 
@@ -242,15 +242,15 @@ MULLE__CONTAINER_GLOBAL
 MULLE_C_NONNULL_FIRST_THIRD
 void   _mulle__assoc_remove_in_range( struct mulle__assoc *assoc,
                                       struct mulle_range range,
-                                      struct mulle_container_keyvaluecallback *callback,
+                                      const struct mulle_container_keyvaluecallback *callback,
                                       struct mulle_allocator *allocator);
 
 // convenience, that uses find in range and then remove in range
 MULLE__CONTAINER_GLOBAL
 MULLE_C_NONNULL_FIRST_THIRD
 void   _mulle__assoc_remove( struct mulle__assoc *assoc,
-                             void *key,
-                             struct mulle_container_keyvaluecallback *callback,
+                             const void *key,
+                             const struct mulle_container_keyvaluecallback *callback,
                              mulle_pointerpair_compare_t *compare,
                              void *userinfo,
                              struct mulle_allocator *allocator);
@@ -258,7 +258,7 @@ void   _mulle__assoc_remove( struct mulle__assoc *assoc,
 MULLE__CONTAINER_GLOBAL
 MULLE_C_NONNULL_FIRST
 void   _mulle__assoc_reset( struct mulle__assoc *assoc,
-                            struct mulle_container_keyvaluecallback *callback,
+                            const struct mulle_container_keyvaluecallback *callback,
                             struct mulle_allocator *allocator);
 
 
@@ -268,7 +268,7 @@ MULLE__CONTAINER_GLOBAL
 MULLE_C_NONNULL_FIRST_THIRD
 int    _mulle__assoc_is_equal( struct mulle__assoc *assoc,
                                struct mulle__assoc *other,
-                               struct mulle_container_keyvaluecallback *callback,
+                               const struct mulle_container_keyvaluecallback *callback,
                                mulle_pointerpair_compare_t *compare,
                                void *userinfo);
 
@@ -278,14 +278,14 @@ MULLE_C_NONNULL_FIRST_THIRD
 void    _mulle__assoc_add( struct mulle__assoc *assoc,
                            void *key,
                            void *value,
-                           struct mulle_container_keyvaluecallback *callback,
+                           const struct mulle_container_keyvaluecallback *callback,
                            struct mulle_allocator *allocator);
 
 static inline void
    mulle__assoc_add( struct mulle__assoc *assoc,
                      void *key,
                      void *value,
-                     struct mulle_container_keyvaluecallback *callback,
+                     const struct mulle_container_keyvaluecallback *callback,
                      struct mulle_allocator *allocator)
 {
    if( assoc)
@@ -298,7 +298,7 @@ static inline void
    _mulle__assoc_add_guaranteed( struct mulle__assoc *assoc,
                                  void *key,
                                  void *value,
-                                 struct mulle_container_keyvaluecallback *callback,
+                                 const struct mulle_container_keyvaluecallback *callback,
                                  struct mulle_allocator *allocator)
 {
    struct mulle_pointerpair   retained;
@@ -317,7 +317,7 @@ void    _mulle__assoc_set_at_index( struct mulle__assoc *assoc,
                                     size_t i,
                                     void *key,
                                     void *value,
-                                    struct mulle_container_keyvaluecallback *callback,
+                                    const struct mulle_container_keyvaluecallback *callback,
                                     mulle_pointerpair_compare_t *compare,
                                     void *userinfo,
                                     struct mulle_allocator *allocator);
@@ -387,7 +387,7 @@ struct mulle_pointerpair  _mulle__assoc_get_last( struct mulle__assoc *assoc)
 MULLE_C_NONNULL_FIRST_SECOND
 static inline
 void  _mulle__assoc_remove_last( struct mulle__assoc *assoc,
-                                 struct mulle_container_keyvaluecallback *callback,
+                                 const struct mulle_container_keyvaluecallback *callback,
                                  struct mulle_allocator *allocator)
 {
    struct mulle_pointerpair   p;
@@ -401,13 +401,13 @@ MULLE__CONTAINER_GLOBAL
 void   _mulle__assoc_add_assoc_range( struct mulle__assoc *assoc,
                                       struct mulle__assoc *other,
                                       struct mulle_range range,
-                                      struct mulle_container_keyvaluecallback *callback,
+                                      const struct mulle_container_keyvaluecallback *callback,
                                       struct mulle_allocator *allocator);
 
 static inline
 void   mulle__assoc_add_assoc( struct mulle__assoc *assoc,
                                struct mulle__assoc *other,
-                               struct mulle_container_keyvaluecallback *callback,
+                               const struct mulle_container_keyvaluecallback *callback,
                                struct mulle_allocator *allocator)
 {
    if( assoc && other)
@@ -423,7 +423,7 @@ MULLE__CONTAINER_GLOBAL
 MULLE_C_NONNULL_FIRST_SECOND_THIRD
 void _mulle__assoc_copy_items( struct mulle__assoc *dst,
                                struct mulle__assoc *src,
-                               struct mulle_container_keyvaluecallback *callback,
+                               const struct mulle_container_keyvaluecallback *callback,
                                struct mulle_allocator *allocator);
 
 
@@ -436,18 +436,18 @@ void _mulle__assoc_copy_items( struct mulle__assoc *dst,
 //
 MULLE__CONTAINER_GLOBAL
 uintptr_t   _mulle__assoc_find_in_range( struct mulle__assoc *assoc,
-                                         void *key,
+                                         const void *key,
                                          struct mulle_range range,
-                                         struct mulle_container_keyvaluecallback *callback,
+                                         const struct mulle_container_keyvaluecallback *callback,
                                          mulle_pointerpair_compare_t *compare,
                                          void *userinfo);
 
 
 static inline uintptr_t
    mulle__assoc_find_in_range( struct mulle__assoc *assoc,
-                               void *key,
+                               const void *key,
                                struct mulle_range range,
-                               struct mulle_container_keyvaluecallback *callback,
+                               const struct mulle_container_keyvaluecallback *callback,
                                mulle_pointerpair_compare_t compare,
                                void *userinfo)
 {
@@ -459,8 +459,8 @@ static inline uintptr_t
 MULLE_C_NONNULL_FIRST_THIRD
 static inline uintptr_t
     _mulle__assoc_find( struct mulle__assoc *assoc,
-                        void *key,
-                        struct mulle_container_keyvaluecallback *callback,
+                        const void *key,
+                        const struct mulle_container_keyvaluecallback *callback,
                         mulle_pointerpair_compare_t compare,
                         void *userinfo)
 {
@@ -475,8 +475,8 @@ static inline uintptr_t
 
 static inline uintptr_t
    mulle__assoc_find( struct mulle__assoc *assoc,
-                      void *key,
-                      struct mulle_container_keyvaluecallback *callback,
+                      const void *key,
+                      const struct mulle_container_keyvaluecallback *callback,
                       mulle_pointerpair_compare_t compare,
                       void *userinfo)
 {
@@ -525,15 +525,15 @@ static inline struct mulle_pointerpair
 MULLE_C_NONNULL_FIRST
 static inline uintptr_t
    _mulle__assoc_find_callback( struct mulle__assoc *assoc,
-                                void *key,
-                                struct mulle_container_keyvaluecallback *callback,
+                                const void *key,
+                                const struct mulle_container_keyvaluecallback *callback,
                                 mulle_pointerpair_compare_t *compare,
                                 void *userinfo)
 {
    struct mulle_pointerpair   search;
 
    _mulle__assoc_qsort_r_if_needed( assoc, compare, userinfo);
-   search = mulle_pointerpair_make( key, NULL);
+   search = mulle_pointerpair_make( (void *) key, NULL);
    return( _mulle__pointerpairarray_find_callback( (struct mulle__pointerpairarray *) assoc,
                                                    search,
                                                    callback));
@@ -542,8 +542,8 @@ static inline uintptr_t
 
 static inline uintptr_t
    mulle__assoc_find_callback( struct mulle__assoc *assoc,
-                               void *key,
-                               struct mulle_container_keyvaluecallback *callback,
+                               const void *key,
+                               const struct mulle_container_keyvaluecallback *callback,
                                mulle_pointerpair_compare_t *compare,
                                void *userinfo)
 {
@@ -557,13 +557,13 @@ static inline uintptr_t
 MULLE_C_NONNULL_FIRST
 static inline uintptr_t
    _mulle__assoc_find_compare( struct mulle__assoc *assoc,
-                               void *key,
+                               const void *key,
                                mulle_pointerpair_compare_t *compare,
                                void *userinfo)
 {
    struct mulle_pointerpair   search;
 
-   search = mulle_pointerpair_make( key, NULL);
+   search = mulle_pointerpair_make( (void *) key, NULL);
    return( _mulle__pointerpairarray_find_compare( (struct mulle__pointerpairarray *) assoc,
                                                   search,
                                                   compare,
@@ -573,7 +573,7 @@ static inline uintptr_t
 
 static inline uintptr_t
    mulle__assoc_find_compare( struct mulle__assoc *assoc,
-                              void *key,
+                              const void *key,
                               mulle_pointerpair_compare_t *compare,
                               void *userinfo)
 {
@@ -586,13 +586,13 @@ static inline uintptr_t
 MULLE__CONTAINER_GLOBAL
 MULLE_C_NONNULL_FIRST
 void   *_mulle__assoc_get( struct mulle__assoc *assoc,
-                           void *key,
+                           const void *key,
                            mulle_pointerpair_compare_t *compare,
                            void *userinfo);
 
 static inline
 void   *mulle__assoc_get( struct mulle__assoc *assoc,
-                          void *key,
+                          const void *key,
                           mulle_pointerpair_compare_t *compare,
                           void *userinfo)
 {
@@ -607,7 +607,7 @@ MULLE_C_NONNULL_FIRST
 void   _mulle__assoc_set( struct mulle__assoc *assoc,
                           void *key,
                           void *value,
-                          struct mulle_container_keyvaluecallback *callback,
+                          const struct mulle_container_keyvaluecallback *callback,
                           mulle_pointerpair_compare_t *compare,
                           void *userinfo,
                           struct mulle_allocator *allocator);
@@ -619,7 +619,7 @@ mulle__assoc_set( struct mulle__assoc *assoc,
                   void *value,
                   mulle_pointerpair_compare_t *compare,
                   void *userinfo,
-                  struct mulle_container_keyvaluecallback *callback,
+                  const struct mulle_container_keyvaluecallback *callback,
                   struct mulle_allocator *allocator)
 {
    if (assoc)
@@ -632,7 +632,7 @@ MULLE_C_NONNULL_FIRST
 void   _mulle__assoc_remap_intptr_key_range(struct mulle__assoc *assoc,
                                             struct mulle_range range,
                                             intptr_t offset,
-                                            struct mulle_container_keyvaluecallback *callback,
+                                            const struct mulle_container_keyvaluecallback *callback,
                                             mulle_pointerpair_compare_t *compare,
                                             void *userinfo);
 
@@ -641,7 +641,7 @@ static inline void
    mulle__assoc_remap_intptr_key_range( struct mulle__assoc *assoc,
                                         struct mulle_range range,
                                         intptr_t offset,
-                                        struct mulle_container_keyvaluecallback *callback,
+                                        const struct mulle_container_keyvaluecallback *callback,
                                         mulle_pointerpair_compare_t *compare,
                                         void *userinfo)
 {
@@ -654,7 +654,7 @@ MULLE_C_NONNULL_FIRST
 void   _mulle__assoc_move_intptr_key_range( struct mulle__assoc *assoc,
                                             struct mulle_range range,
                                             intptr_t index,
-                                            struct mulle_container_keyvaluecallback *callback,
+                                            const struct mulle_container_keyvaluecallback *callback,
                                             mulle_pointerpair_compare_t *compare,
                                             void *userinfo);
 
@@ -663,7 +663,7 @@ static inline void
 mulle__assoc_move_intptr_key_range( struct mulle__assoc *assoc,
                                     struct mulle_range range,
                                     intptr_t index,
-                                    struct mulle_container_keyvaluecallback *callback,
+                                    const struct mulle_container_keyvaluecallback *callback,
                                     mulle_pointerpair_compare_t *compare,
                                     void *userinfo)
 {
@@ -677,7 +677,7 @@ mulle__assoc_move_intptr_key_range( struct mulle__assoc *assoc,
 MULLE__CONTAINER_GLOBAL
 MULLE_C_NONNULL_FIRST_SECOND
 char   *_mulle__assoc_describe( struct mulle__assoc *assoc,
-                                struct mulle_container_keyvaluecallback *callback,
+                                const struct mulle_container_keyvaluecallback *callback,
                                 mulle_pointerpair_compare_t *compare,
                                 void *userinfo,
                                 struct mulle_allocator *allocator);
@@ -686,7 +686,7 @@ char   *_mulle__assoc_describe( struct mulle__assoc *assoc,
 MULLE_C_NONNULL_SECOND
 static inline
 char   *mulle__assoc_describe( struct mulle__assoc *assoc,
-                               struct mulle_container_keyvaluecallback *callback,
+                               const struct mulle_container_keyvaluecallback *callback,
                                mulle_pointerpair_compare_t *compare,
                                void *userinfo,
                                struct mulle_allocator *allocator)
@@ -725,10 +725,15 @@ struct mulle__assocenumerator
 #define mulle__assocenumerator_empty   ((struct mulle__assocenumerator) { 0})
 
 
+//
+// The enumerator traverses the assoc's contiguous pair storage.
+// It is invalidated by any add, remove, set, or reset — these may
+// realloc or memmove the internal array. Do not mutate during enumeration.
+//
 MULLE_C_NONNULL_FIRST
 static inline struct mulle__assocenumerator
    _mulle__assoc_enumerate( struct mulle__assoc *assoc,
-                            struct mulle_container_keyvaluecallback *callback,
+                            const struct mulle_container_keyvaluecallback *callback,
                             mulle_pointerpair_compare_t *compare,
                             void *userinfo)
 {
@@ -743,7 +748,7 @@ static inline struct mulle__assocenumerator
 
 static inline struct mulle__assocenumerator
    mulle__assoc_enumerate( struct mulle__assoc *assoc,
-                           struct mulle_container_keyvaluecallback *callback,
+                           const struct mulle_container_keyvaluecallback *callback,
                            mulle_pointerpair_compare_t *compare,
                            void *userinfo)
 {
@@ -810,8 +815,8 @@ static inline void
  */
 MULLE__CONTAINER_GLOBAL
 int   _mulle__assoc_member( struct mulle__assoc *assoc,
-                            void *key,
-                            struct mulle_container_keyvaluecallback *callback);
+                            const void *key,
+                            const struct mulle_container_keyvaluecallback *callback);
 
 // created by make-container-do.sh -ls --compare --type struct mulle_pointerpair    mulle--assoc.c
 

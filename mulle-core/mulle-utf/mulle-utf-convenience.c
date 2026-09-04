@@ -120,7 +120,7 @@ void   mulle_utf16_conversion_context_add_bytes( void *_p,
       }
 
       len         = (t - (mulle_utf16_t *) bytes) * sizeof( mulle_utf16_t);
-      end         = &p->buf[ len];
+      end         = &p->buf[ len / sizeof( mulle_utf16_t)];
       p->sentinel = NULL; // ensure we don't add a late smaller character
    }
 
@@ -160,7 +160,7 @@ void   mulle_utf32_conversion_context_add_bytes( void *_p,
 # pragma mark - utf8
 
 // rename to utf16_string
-mulle_utf16_t  *mulle_utf8_convert_to_utf16_string( char *src,
+mulle_utf16_t  *mulle_utf8_convert_to_utf16_string( const char *src,
                                                     size_t len,
                                                     struct mulle_allocator *allocator)
 {
@@ -191,7 +191,7 @@ mulle_utf16_t  *mulle_utf8_convert_to_utf16_string( char *src,
 }
 
 
-mulle_utf32_t  *mulle_utf8_convert_to_utf32_string( char *src,
+mulle_utf32_t  *mulle_utf8_convert_to_utf32_string( const char *src,
                                                     size_t len,
                                                     struct mulle_allocator *allocator)
 {
@@ -223,7 +223,7 @@ mulle_utf32_t  *mulle_utf8_convert_to_utf32_string( char *src,
 
 # pragma mark - utf16
 
-char  *mulle_utf16_convert_to_utf8_string( mulle_utf16_t *src,
+char  *mulle_utf16_convert_to_utf8_string( const mulle_utf16_t *src,
                                            size_t len,
                                            struct mulle_allocator *allocator)
 {
@@ -253,7 +253,7 @@ char  *mulle_utf16_convert_to_utf8_string( mulle_utf16_t *src,
 }
 
 
-mulle_utf32_t  *mulle_utf16_convert_to_utf32_string( mulle_utf16_t *src,
+mulle_utf32_t  *mulle_utf16_convert_to_utf32_string( const mulle_utf16_t *src,
                                                      size_t len,
                                                      struct mulle_allocator *allocator)
 {
@@ -287,7 +287,7 @@ mulle_utf32_t  *mulle_utf16_convert_to_utf32_string( mulle_utf16_t *src,
 # pragma mark -
 # pragma mark utf32
 
-char  *mulle_utf32_convert_to_utf8_string( mulle_utf32_t *src,
+char  *mulle_utf32_convert_to_utf8_string( const mulle_utf32_t *src,
                                            size_t len,
                                            struct mulle_allocator *allocator)
 {
@@ -317,7 +317,7 @@ char  *mulle_utf32_convert_to_utf8_string( mulle_utf32_t *src,
 
 
 
-mulle_utf16_t  *mulle_utf32_convert_to_utf16_string( mulle_utf32_t *src,
+mulle_utf16_t  *mulle_utf32_convert_to_utf16_string( const mulle_utf32_t *src,
                                                      size_t len,
                                                      struct mulle_allocator *allocator)
 {

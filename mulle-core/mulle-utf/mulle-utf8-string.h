@@ -45,19 +45,19 @@
 #include <string.h>
 
 
-static inline int  mulle_utf8_strcmp( char *s, char *other)
+static inline int  mulle_utf8_strcmp( const char *s, const char *other)
 {
    return( strcmp( s, other));
 }
 
 
-static inline int  mulle_utf8_strncmp( char *s, char *other, int len)
+static inline int  mulle_utf8_strncmp( const char *s, const char *other, int len)
 {
    return( strncmp( s, other, len));
 }
 
 
-static inline char  *mulle_utf8_strdup( char *s)
+static inline char  *mulle_utf8_strdup( const char *s)
 {
    return( mulle_allocator_strdup( NULL, s));
 }
@@ -67,10 +67,10 @@ static inline char  *mulle_utf8_strdup( char *s)
 // hand coded because linux doesn't have it by default, and I want to get rid
 // of the warning without having to define __USE_XOPEN2K8
 //
-static inline size_t  mulle_utf8_strnlen( char *s, size_t len)
+static inline size_t  mulle_utf8_strnlen( const char *s, size_t len)
 {
-   char   *start;
-   char   *sentinel;
+   const char   *start;
+   const char   *sentinel;
 
    if( ! s)
       return( 0);
@@ -94,15 +94,15 @@ static inline size_t  mulle_utf8_strnlen( char *s, size_t len)
  * only terminates, does not fill with zero
  */
 MULLE__UTF_GLOBAL
-char   *mulle_utf8_strncpy( char *dst, size_t len, char *src);
+char   *mulle_utf8_strncpy( char *dst, size_t len, const char *src);
 
 
 // strstr
 MULLE__UTF_GLOBAL
-char   *mulle_utf8_strnstr( char *s, size_t len, char *search);
+char   *mulle_utf8_strnstr( const char *s, size_t len, const char *search);
 
 
-static inline char  *mulle_utf8_strstr( char *s, char *search)
+static inline char  *mulle_utf8_strstr( const char *s, const char *search)
 {
    return( mulle_utf8_strnstr( s, (size_t) -1, search));
 }
@@ -110,9 +110,9 @@ static inline char  *mulle_utf8_strstr( char *s, char *search)
 
 // strchr
 MULLE__UTF_GLOBAL
-char   *mulle_utf8_strnchr( char *s, size_t len, mulle_utf32_t c);
+char   *mulle_utf8_strnchr( const char *s, size_t len, mulle_utf32_t c);
 
-static inline char  *mulle_utf8_strchr( char *s, mulle_utf32_t c)
+static inline char  *mulle_utf8_strchr( const char *s, mulle_utf32_t c)
 {
    return( mulle_utf8_strnchr( s, (size_t) -1, c));
 }
@@ -120,12 +120,12 @@ static inline char  *mulle_utf8_strchr( char *s, mulle_utf32_t c)
 
 // strspn 
 MULLE__UTF_GLOBAL
-size_t   mulle_utf8_strspn( char *s, char *search);
+size_t   mulle_utf8_strspn( const char *s, const char *search);
 
 
 // strcspn
 MULLE__UTF_GLOBAL
-size_t   mulle_utf8_strcspn( char *s, char *search);
+size_t   mulle_utf8_strcspn( const char *s, const char *search);
 
 
 // p_n: contains utf32 chars to skip, returns actually skipped
@@ -135,10 +135,10 @@ char   *mulle_utf8_skiputf32( char *s, size_t *p_n);
 
 
 // MEMO: need these variety for ObjC where there might not be a terminating 0
-static inline size_t   mulle_utf8_strnspn( char *s, size_t length, char *search)
+static inline size_t   mulle_utf8_strnspn( const char *s, size_t length, const char *search)
 {
    MULLE__UTF_GLOBAL
-   size_t   _mulle_utf8_strnxspn( char *string, size_t length, char *search, int flag);
+   size_t   _mulle_utf8_strnxspn( const char *string, size_t length, const char *search, int flag);
 
    if( ! s)
       return( 0);
@@ -146,10 +146,10 @@ static inline size_t   mulle_utf8_strnspn( char *s, size_t length, char *search)
 }
 
 
-static inline size_t   mulle_utf8_strncspn( char *s, size_t length, char *search)
+static inline size_t   mulle_utf8_strncspn( const char *s, size_t length, const char *search)
 {
    MULLE__UTF_GLOBAL
-   size_t   _mulle_utf8_strnxspn( char *string, size_t length, char *search, int flag);
+   size_t   _mulle_utf8_strnxspn( const char *string, size_t length, const char *search, int flag);
 
    if( ! s)
       return( 0);   
@@ -157,13 +157,13 @@ static inline size_t   mulle_utf8_strncspn( char *s, size_t length, char *search
 }
 
 
-static inline void   mulle_utf8_memcpy( char *dst, char *src, size_t len)
+static inline void   mulle_utf8_memcpy( char *dst, const char *src, size_t len)
 {
    memcpy( dst, src, len);
 }
 
 
-static inline void   mulle_utf8_memmove( char *dst, char *src, size_t len)
+static inline void   mulle_utf8_memmove( char *dst, const char *src, size_t len)
 {
    memmove( dst, src, len);
 }

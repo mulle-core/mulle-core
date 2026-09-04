@@ -40,9 +40,9 @@
 #include "mulle-utf32.h"
 
 
-int   mulle_char7_is_char7string32( char *src, size_t len)
+int   mulle_char7_is_char7string32( const char *src, size_t len)
 {
-   char   *sentinel;
+   const char   *sentinel;
 
    if( ! src)
       return( 0);
@@ -67,9 +67,9 @@ int   mulle_char7_is_char7string32( char *src, size_t len)
 }
 
 
-int   mulle_char7_is_char7string64( char *src, size_t len)
+int   mulle_char7_is_char7string64( const char *src, size_t len)
 {
-   char   *sentinel;
+   const char   *sentinel;
 
    if( ! src)
       return( 0);
@@ -94,10 +94,10 @@ int   mulle_char7_is_char7string64( char *src, size_t len)
 }
 
 
-uint32_t  mulle_char7_encode32( char *src, size_t len)
+uint32_t  mulle_char7_encode32( const char *src, size_t len)
 {
-   char       *s;
-   char       *sentinel;
+   const char       *s;
+   const char       *sentinel;
    int        char7;
    uint32_t   value;
 
@@ -122,10 +122,10 @@ uint32_t  mulle_char7_encode32( char *src, size_t len)
 }
 
 
-uint64_t  mulle_char7_encode64( char *src, size_t len)
+uint64_t  mulle_char7_encode64( const char *src, size_t len)
 {
-   char       *s;
-   char       *sentinel;
+   const char       *s;
+   const char       *sentinel;
    int        char7;
    uint64_t   value;
 
@@ -150,10 +150,10 @@ uint64_t  mulle_char7_encode64( char *src, size_t len)
 }
 
 
-uint32_t  mulle_char7_encode32_utf16( mulle_utf16_t *src, size_t len)
+uint32_t  mulle_char7_encode32_utf16( const mulle_utf16_t *src, size_t len)
 {
-   mulle_utf16_t   *s;
-   mulle_utf16_t   *sentinel;
+   const mulle_utf16_t   *s;
+   const mulle_utf16_t   *sentinel;
    int             char7;
    uint32_t        value;
 
@@ -178,10 +178,10 @@ uint32_t  mulle_char7_encode32_utf16( mulle_utf16_t *src, size_t len)
 }
 
 
-uint64_t  mulle_char7_encode64_utf16( mulle_utf16_t *src, size_t len)
+uint64_t  mulle_char7_encode64_utf16( const mulle_utf16_t *src, size_t len)
 {
-   mulle_utf16_t   *s;
-   mulle_utf16_t   *sentinel;
+   const mulle_utf16_t   *s;
+   const mulle_utf16_t   *sentinel;
    int             char7;
    uint64_t        value;
 
@@ -206,10 +206,10 @@ uint64_t  mulle_char7_encode64_utf16( mulle_utf16_t *src, size_t len)
 }
 
 
-uint32_t  mulle_char7_encode32_utf32( mulle_utf32_t *src, size_t len)
+uint32_t  mulle_char7_encode32_utf32( const mulle_utf32_t *src, size_t len)
 {
-   mulle_utf32_t   *s;
-   mulle_utf32_t   *sentinel;
+   const mulle_utf32_t   *s;
+   const mulle_utf32_t   *sentinel;
    int             char7;
    uint32_t        value;
 
@@ -234,10 +234,10 @@ uint32_t  mulle_char7_encode32_utf32( mulle_utf32_t *src, size_t len)
 }
 
 
-uint64_t  mulle_char7_encode64_utf32( mulle_utf32_t *src, size_t len)
+uint64_t  mulle_char7_encode64_utf32( const mulle_utf32_t *src, size_t len)
 {
-   mulle_utf32_t   *s;
-   mulle_utf32_t   *sentinel;
+   const mulle_utf32_t   *s;
+   const mulle_utf32_t   *sentinel;
    int             char7;
    uint64_t        value;
 

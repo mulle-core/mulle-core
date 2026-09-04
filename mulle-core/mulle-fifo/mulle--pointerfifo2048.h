@@ -5,9 +5,9 @@
 //  mulle--pointerfifo2048.h
 //  mulle-fifo
 //
-//  Created by Nat! on 10.02.2021
-//  Copyright © 2021 Nat! for Mulle kybernetiK.
+//  Copyright (c) 2021 Nat! - Mulle kybernetiK.
 //  All rights reserved.
+//
 //
 //  Redistribution and use in source and binary forms, with or without
 //  modification, are permitted provided that the following conditions are met:
@@ -40,7 +40,8 @@
 
 #include "include.h"
 
-#include <assert.h>
+#include <stddef.h>
+#include <stdint.h>
 
 
 /*
@@ -94,7 +95,12 @@ static inline void   *_mulle__pointerfifo2048_read( struct mulle__pointerfifo204
    return( pointer);
 }
 
-
+//
+// DEPRECATED: With seq_cst atomics in mulle-thread, the plain _read function
+// now provides full publication guarantees. This barrier variant is retained
+// only for source compatibility and will be removed in a future major version.
+//
+#if 0
 static inline void   *_mulle__pointerfifo2048_read_barrier( struct mulle__pointerfifo2048 *p)
 {
    void   *pointer;
@@ -113,12 +119,14 @@ static inline void   *_mulle__pointerfifo2048_read_barrier( struct mulle__pointe
 
    return( pointer);
 }
+#endif
 
 
 static inline int   _mulle__pointerfifo2048_write( struct mulle__pointerfifo2048 *p,
                                                  void *pointer)
 {
-   assert( pointer != NULL);
+   if( ! pointer)
+      return( -2);
 
    if( _mulle__pointerfifo2048_get_count( p) == 2048)
       return( -1);

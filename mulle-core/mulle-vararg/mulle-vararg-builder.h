@@ -38,6 +38,10 @@
 #include "mulle-align.h"
 #include "mulle-vararg.h"
 
+#include <mulle-allocator/mulle-allocator.h>
+
+#include <string.h>
+
 
 /* Sketched out: an idea for a vararg builder.
  * The builder function returns the address to push the next argument unto.
@@ -60,8 +64,8 @@
  * mulle_mvsprintf( buffer, "%d %ld", varargs);
  */
 
-// use double for alignment
-typedef double   mulle_vararg_builderbuffer_t;
+// use long double for alignment (must satisfy alignof(long double))
+typedef long double   mulle_vararg_builderbuffer_t;
 
 
 #define mulle_vararg_builderbuffer_n( n)  \
@@ -98,7 +102,7 @@ while( 0)                                                         \
    : sizeof( long double))
 
 #define mulle_vararg_alignof_fp( type)              \
-   ((sizeof( type) <= sizeof( int))                 \
+   ((sizeof( type) <= sizeof( double))              \
    ? alignof( double)                               \
    : alignof( long double))
 
@@ -137,8 +141,8 @@ while( 0)                                                         \
 #define mulle_vararg_sizeof_uint32()             mulle_vararg_sizeof_integer( uint32_t)
 #define mulle_vararg_sizeof_uint64()             mulle_vararg_sizeof_integer( uint64_t)
 
-#define mulle_vararg_sizeof_float()              mulle_vararg_sizeof_integer( float)
-#define mulle_vararg_sizeof_double()             mulle_vararg_sizeof_integer( double)
+#define mulle_vararg_sizeof_float()              mulle_vararg_sizeof_fp( float)
+#define mulle_vararg_sizeof_double()             mulle_vararg_sizeof_fp( double)
 
 
 #define mulle_vararg_push_integer( ap, type, value)    \
@@ -175,15 +179,23 @@ do                                                     \
 }                                                      \
 while( 0)
 
-#define mulle_vararg_push_union( ap, value)            \
-   mulle_vararg_push_struct( p, value)
+#define mulle_vararg_push_union( ap, value) \
+   mulle_vararg_push_struct( ap, value)
 
 
 #define mulle_vararg_push_pointer( ap, value) \
    _mulle_vararg_push( ap, void *, value)
 
-#define mulle_vararg_push_functionpointer( ap, value) \
-   _mulle_vararg_push( ap, void (*)( void), value)
+#define mulle_vararg_push_functionpointer( ap, value)        \
+do                                                           \
+{                                                            \
+   void (*functionpointer)( void);                           \
+   functionpointer = (void (*)( void)) (value);              \
+   ap.p = mulle_pointer_align( ap.p, alignof( void (*)( void))); \
+   memcpy( ap.p, &functionpointer, sizeof( functionpointer));\
+   ap.p = &((char *) ap.p)[ sizeof( functionpointer)];       \
+}                                                            \
+while( 0)
 
 
 #define mulle_vararg_push_char( ap, value)  \
