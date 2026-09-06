@@ -1,412 +1,665 @@
 # mulle-http Library Documentation for AI
-<!-- Keywords: http, parsing -->
+<!-- Keywords: http, parser, request, response, url, headers -->
 
 ## 1. Introduction & Purpose
 
-**mulle-http** is a high-performance HTTP/1.1 request and response parser extracted from the NGINX codebase (originally from NODE.js). It provides:
-
-- **Fast, standard-compliant HTTP parsing**: Based on proven NGINX HTTP parser
-- **Callback-driven architecture**: Incremental parsing with callbacks for different message components
-- **Request and response parsing**: Handles both HTTP request parsing and response parsing
-- **Chunked transfer encoding support**: Understands chunked request/response bodies
-- **URL field extraction**: Parses and separates URL components (scheme, host, port, path, query, fragment)
-- **Header parsing**: Incremental header field and value callbacks
-- **Upgrade header detection**: Recognizes protocol upgrades (e.g., for WebSocket)
-- **Strict and lenient modes**: Configurable strict HTTP compliance
-
-This library is a foundational component of mulle-core and provides the basis for HTTP processing in web frameworks and network libraries.
+- A high-performance, event-driven HTTP/1.1 request and response parser for C.
+- The parser is a verbatim extraction of the well-known Node.js `http_parser`
+  library, which itself is based on the NGINX parser (`src/http/ngx_http_parse.c`,
+  copyright Igor Sysoev).
+- It solves the problem of incremental, streaming HTTP message parsing: data may
+  be fed to the parser as it arrives on a socket, in arbitrarily small chunks,
+  without buffering the whole message.
+- Key features at a high level: incremental callback-driven parsing, automatic
+  request/response detection, chunked transfer-encoding support, URL component
+  extraction, configurable strict/lenient conformance checking, keep-alive
+  detection, and pause/resume support.
+- A foundational component of `mulle-core`; depends only on `mulle-c11`.
 
 ## 2. Key Concepts & Design Philosophy
 
-- **Incremental parsing**: Parser does not require entire message in memory; feeds data in chunks
-- **Callback-driven**: Uses callbacks for each major HTTP component (URL, headers, body, etc.) rather than returning structured data
-- **Zero-copy design**: Callbacks provide pointers and lengths to data rather than copying strings
-- **Stateful**: Parser maintains state machine internally; clients provide data via `http_parser_execute`
-- **Dual-mode**: Can parse HTTP requests or responses (or both, with automatic detection)
-- **Non-blocking**: Suitable for event-driven, non-blocking I/O servers
-- **Strict vs. lenient**: `HTTP_PARSER_STRICT` mode enforces full RFC compliance; lenient mode is more forgiving
+- **Incremental parsing**: The parser is a state machine. Decide which of the
+  parser state struct fields (see below),
+  feed it a buffer via `http_parser_execute`, and it resumes exactly where it
+  left off on the next call.
+- **Callback-driven, zero-copy**: The parser never copies input data. Instead it
+  invokes user callbacks with a pointer into your buffer (`at`) and a `length`.
+  Data for a single field (e.g. a long URL) may arrive as *multiple* callbacks;
+  accumulate it yourself if you need the whole string.
+- **Return-value error signaling**: Callbacks return `0` to continue and
+  non-zero to abort parsing with an error. `http_parser_execute` returns the
+  number of bytes parsed and sets `parser->http_errno` on error.
+- **Dual mode**: A parser is initialized for `HTTP_REQUEST`, `HTTP_RESPONSE`, or
+  `HTTP_BOTH` (auto-detect request vs. response).
+- **Strict vs. lenient**: With `HTTP_PARSER_STRICT` (default 1) only
+  RFC-compliant requests are accepted; with `HTTP_PARSER_STRICT=0` parsing is
+  faster and more forgiving. `lenient_http_headers` relaxes header handling.
+- **No memory ownership**: There are no allocations; the caller owns every
+  buffer, the parser struct, and the settings struct.
 
 ## 3. Core API & Data Structures
+
+All public API is in `src/http_parser.h`, included via the umbrella header
+`src/mulle-http.h`. The library version is exposed as:
+
+```c
+#define MULLE__HTTP_VERSION  ((0UL << 20) | (1 << 8) | 14)
+```
 
 ### 3.1. `http_parser.h`
 
 #### `struct http_parser`
-- **Purpose**: Maintains parser state for incremental HTTP message parsing
-- **Key Public Fields** (READ-ONLY after parsing begins):
-  - `unsigned short http_major`: Major version (e.g., 1 for HTTP/1.1)
-  - `unsigned short http_minor`: Minor version (e.g., 1 for HTTP/1.1)
-  - `unsigned int status_code`: Response status code (e.g., 200, 404) - only for responses
-  - `unsigned int method`: Request method enum (e.g., HTTP_GET, HTTP_POST) - only for requests
-  - `unsigned int upgrade`: 1 if Upgrade header present and connection should upgrade, 0 otherwise
-  - `uint64_t content_length`: Content-Length header value (0 if absent); also chunk length during chunk parsing
+- **Purpose:** Holds all state for a single incremental HTTP message parse.
+- **Layout contexts** (marked in the header):
+  - **PRIVATE:** `type`, `flags`, `state`, `header_state`, `index`,
+    `lenient_http_headers`, `nread`, `content_length`. Do not touch these.
+  - **READ-ONLY (after parsing):**
+    - `unsigned short http_major` / `unsigned short http_minor`: HTTP version,
+      e.g. 1 / 1 for HTTP/1.1.
+    - `unsigned int status_code : 16`: response status code (responses only).
+    - `unsigned int method : 8`: request method enum value (requests only).
+    - `unsigned int http_errno : 7`: error code if parsing failed.
+    - `unsigned int upgrade : 1`: `1` if an `Upgrade` header was present and the
+      parser exited. Check this when `http_parser_execute` returns, in addition
+      to error checking.
+  - **PUBLIC:** `void *data`: user pointer, the hook to your connection/socket
+    object. Set it after `http_parser_init`.
 
-- **Key Public Fields** (WRITABLE):
-  - `void *data`: Opaque pointer for user context (often points to connection/socket object)
-
-- **Private Fields**: State machine internals, flags, counters (do not access directly)
-
-#### Parser Type Enum
+#### `enum http_parser_type` (verbatim)
 ```c
-enum http_parser_type {
-  HTTP_REQUEST,   // Parse HTTP requests
-  HTTP_RESPONSE,  // Parse HTTP responses
-  HTTP_BOTH       // Auto-detect request or response
-};
+enum http_parser_type { HTTP_REQUEST, HTTP_RESPONSE, HTTP_BOTH };
+```
+- `HTTP_REQUEST`: parse client requests (server side). `HTTP_RESPONSE`: parse
+  responses (client side). `HTTP_BOTH`: auto-detect.
+
+#### `enum http_method` (verbatim)
+```c
+enum http_method
+  {
+#define XX(num, name, string) HTTP_##name = num,
+  HTTP_METHOD_MAP(XX)
+#undef XX
+  };
+```
+- Flag values are generated by `HTTP_METHOD_MAP`, spanning the standard methods
+  plus WebDAV, subversion, upnp, CalDAV, and RFC-5789/2068 additions:
+  `HTTP_DELETE`(0), `HTTP_GET`(1), `HTTP_HEAD`(2), `HTTP_POST`(3), `HTTP_PUT`(4),
+  `HTTP_CONNECT`(5), `HTTP_OPTIONS`(6), `HTTP_TRACE`(7), `HTTP_COPY`(8),
+  `HTTP_LOCK`(9), `HTTP_MKCOL`(10), `HTTP_MOVE`(11), `HTTP_PROPFIND`(12),
+  `HTTP_PROPPATCH`(13), `HTTP_SEARCH`(14), `HTTP_UNLOCK`(15), `HTTP_BIND`(16),
+  `HTTP_REBIND`(17), `HTTP_UNBIND`(18), `HTTP_ACL`(19), `HTTP_REPORT`(20),
+  `HTTP_MKACTIVITY`(21), `HTTP_CHECKOUT`(22), `HTTP_MERGE`(23), `HTTP_MSEARCH`(24),
+  `HTTP_NOTIFY`(25), `HTTP_SUBSCRIBE`(26), `HTTP_UNSUBSCRIBE`(27),
+  `HTTP_PATCH`(28), `HTTP_PURGE`(29), `HTTP_MKCALENDAR`(30), `HTTP_LINK`(31),
+  `HTTP_UNLINK`(32).
+- `enum http_method` is the parameter type of `http_method_str()`;
+  `parser->method` holds its value.
+
+#### `enum flags` (semi-public `flags` field bit values)
+```c
+enum flags
+  { F_CHUNKED               = 1 << 0
+  , F_CONNECTION_KEEP_ALIVE = 1 << 1
+  , F_CONNECTION_CLOSE      = 1 << 2
+  , F_CONNECTION_UPGRADE    = 1 << 3
+  , F_TRAILING              = 1 << 4
+  , F_UPGRADE               = 1 << 5
+  , F_SKIPBODY              = 1 << 6
+  , F_CONTENTLENGTH         = 1 << 7
+  };
 ```
 
-#### HTTP Methods Enum
+#### `enum http_errno` and `HTTP_PARSER_ERRNO`
+- Any error code used by the parser; values (`HPE_OK`, `HPE_CB_message_begin`,
+  `HPE_CB_url`, `HPE_CB_header_field`, `HPE_CB_header_value`,
+  `HPE_CB_headers_complete`, `HPE_CB_body`, `HPE_CB_message_complete`,
+  `HPE_CB_status`, `HPE_CB_chunk_header`, `HPE_CB_chunk_complete`,
+  `HPE_INVALID_EOF_STATE`, `HPE_HEADER_OVERFLOW`, `HPE_CLOSED_CONNECTION`,
+  `HPE_INVALID_VERSION`, `HPE_INVALID_STATUS`, `HPE_INVALID_METHOD`,
+  `HPE_INVALID_URL`, `HPE_INVALID_HOST`, `HPE_INVALID_PORT`,
+  `HPE_INVALID_PATH`, `HPE_INVALID_QUERY_STRING`, `HPE_INVALID_FRAGMENT`,
+  `HPE_LF_EXPECTED`, `HPE_INVALID_HEADER_TOKEN`,
+  `HPE_INVALID_CONTENT_LENGTH`, `HPE_UNEXPECTED_CONTENT_LENGTH`,
+  `HPE_INVALID_CHUNK_SIZE`, `HPE_INVALID_CONSTANT`,
+  `HPE_INVALID_INTERNAL_STATE`, `HPE_STRICT`, `HPE_PAUSED`, `HPE_UNKNOWN`).
+- Convenience macro:
+  ```c
+  #define HTTP_PARSER_ERRNO(p)            ((enum http_errno) (p)->http_errno)
+  ```
+- Convert to human-readable strings with `http_errno_name()` /
+  `http_errno_description()`.
+
+#### Callback types (verbatim)
 ```c
-enum http_method {
-  HTTP_DELETE, HTTP_GET, HTTP_HEAD, HTTP_POST, HTTP_PUT,
-  HTTP_CONNECT, HTTP_OPTIONS, HTTP_TRACE, HTTP_COPY,
-  HTTP_LOCK, HTTP_MKCOL, HTTP_MOVE, HTTP_PROPFIND,
-  HTTP_PROPPATCH, HTTP_SEARCH, HTTP_UNLOCK, HTTP_BIND,
-  HTTP_REBIND, HTTP_UNBIND, HTTP_ACL, HTTP_REPORT,
-  HTTP_MKACTIVITY, HTTP_CHECKOUT, HTTP_MERGE, HTTP_MSEARCH,
-  HTTP_NOTIFY, HTTP_SUBSCRIBE, HTTP_UNSUBSCRIBE, HTTP_PATCH
+typedef int (*http_data_cb) (http_parser*, const char *at, size_t length);
+typedef int (*http_cb) (http_parser*);
+```
+- `http_data_cb`: receives a chunk of data (URL, status, header field/name,
+  body). `at` points into the input buffer; do not keep it past the callback.
+- `http_cb`: event notification without data.
+- Return `0` to continue; return non-zero to abort parsing (the parser halts,
+  and the corresponding `CB_*` errno is set).
+- Exception: in an `HTTP_RESPONSE` parser, `on_headers_complete` may return `1`
+  to tell the parser not to expect a body (e.g. HEAD response), or `2` to expect
+  neither a body nor further responses on the connection (CONNECT response).
+
+#### `struct http_parser_settings` (verbatim)
+```c
+struct http_parser_settings {
+  http_cb      on_message_begin;
+  http_data_cb on_url;
+  http_data_cb on_status;
+  http_data_cb on_header_field;
+  http_data_cb on_header_value;
+  http_cb      on_headers_complete;
+  http_data_cb on_body;
+  http_cb      on_message_complete;
+  http_cb      on_chunk_header;
+  http_cb      on_chunk_complete;
 };
 ```
+- Zero it with the provided initializer (`http_parser_settings_init()`); an
+  `http_cb` of `NULL` simply skips that event. When `on_chunk_header` is
+  invoked, the current chunk length is exposed via `parser->content_length`.
 
-#### Parser Callbacks
-
-**Callback Type Definitions:**
-- `typedef int (*http_data_cb)(http_parser *parser, const char *at, size_t length)`: Called for data chunks (URL, headers, body)
-- `typedef int (*http_cb)(http_parser *parser)`: Called for events without data (headers complete, message complete)
-
-**Callback Return Values:**
-- Return 0 to continue parsing
-- Return non-zero to signal parse error and stop
-- Special: `on_headers_complete` can return:
-  - 0: Continue parsing, expect body
-  - 1: (Response only) Don't expect body (HEAD response or similar)
-  - 2: (Response only) No further responses expected on connection (CONNECT response)
-
-#### `struct http_parser_settings`
-- **Purpose**: Callback handlers for different parsing events
-- **Key Callbacks**:
-  - `http_cb on_message_begin`: Called when message parsing starts
-  - `http_data_cb on_url`: Called with URL data (may be called multiple times for long URLs)
-  - `http_data_cb on_status`: Called with status text (response only)
-  - `http_data_cb on_header_field`: Called with header field name
-  - `http_data_cb on_header_value`: Called with header field value
-  - `http_cb on_headers_complete`: Called after all headers parsed (before body)
-  - `http_data_cb on_body`: Called with body data (may be multiple times for large bodies)
-  - `http_cb on_message_complete`: Called after entire message parsed
-  - `http_cb on_chunk_header`: Called when chunk header parsed (chunked encoding)
-  - `http_cb on_chunk_complete`: Called after chunk body parsed
-
-#### URL Parsing Fields Enum
+#### `enum http_parser_url_fields` (verbatim)
 ```c
-enum http_parser_url_fields {
-  UF_SCHEMA,          // http, https, etc.
-  UF_HOST,            // hostname or IP
-  UF_PORT,            // numeric port number
-  UF_PATH,            // /path/to/resource
-  UF_QUERY,           // ?query=string
-  UF_FRAGMENT,        // #anchor
-  UF_USERINFO         // user:password (in authority)
-};
+enum http_parser_url_fields
+  { UF_SCHEMA           = 0
+  , UF_HOST             = 1
+  , UF_PORT             = 2
+  , UF_PATH             = 3
+  , UF_QUERY            = 4
+  , UF_FRAGMENT         = 5
+  , UF_USERINFO         = 6
+  , UF_MAX              = 7
+  };
 ```
 
-#### `struct http_parser_url`
-- **Purpose**: Result of URL parsing (extract URL components)
-- **Key Fields**:
-  - `uint16_t field_set`: Bitmask indicating which fields are present
-  - `uint16_t port`: Parsed port number (0 if not present or default)
-  - `struct { uint16_t off; uint16_t len; } fields[7]`: Offsets and lengths for each URL component in original buffer
+#### `struct http_parser_url` (verbatim)
+```c
+struct http_parser_url {
+  uint16_t field_set;           /* Bitmask of (1 << UF_*) values */
+  uint16_t port;                /* Converted UF_PORT string */
 
-### 3.2. Core Functions
+  struct {
+    uint16_t off;               /* Offset into buffer in which field starts */
+    uint16_t len;               /* Length of run in buffer */
+  } field_data[UF_MAX];
+};
+```
+- **Purpose:** Result structure for `http_parser_parse_url()`. Index into
+  `field_data[]` with a `UF_*` value **only if** `field_set` has the
+  `(1 << UF_*)` bit set.
+- `port` holds the numeric port as a convenience (converted from the UF_PORT
+  string).
 
-#### Initialization
-- `void http_parser_init(struct http_parser *parser, enum http_parser_type type)`: Initialize parser for requests or responses
-- `size_t http_parser_execute(struct http_parser *parser, const struct http_parser_settings *settings, const char *data, size_t len)`: Parse data chunk
-  - Returns: Number of bytes parsed (may be less than input if error)
-  - Check `parser->http_errno` for error code if `< len`
+#### Parser lifecycle functions
+- **Create / init:**
+  ```c
+  MULLE__HTTP_GLOBAL
+  void http_parser_init(http_parser *parser, enum http_parser_type type);
+  ```
+  Initialize a parser for request, response, or both. Must be the first call on
+  the struct. There is no teardown — the parser allocates nothing.
+- **Settings init:**
+  ```c
+  MULLE__HTTP_GLOBAL
+  void http_parser_settings_init(http_parser_settings *settings);
+  ```
+  Zero the settings struct; NULL callbacks are skipped.
+- **Execute (the workhorse):**
+  ```c
+  MULLE__HTTP_GLOBAL
+  size_t http_parser_execute(http_parser *parser,
+                             const http_parser_settings *settings,
+                             const char *data,
+                             size_t len);
+  ```
+  Feed a chunk of bytes. Returns the number of bytes parsed (`<= len`).
+  If it is less than `len`, either a callback returned non-zero, an error
+  occurred (`parser->http_errno`), or the parser is paused. Also check
+  `parser->upgrade` afterwards.
+- **Destroy / done:** none — nothing to release.
 
-#### URL Parsing
-- `int http_parser_parse_url(const char *buf, size_t buflen, int is_connect, struct http_parser_url *u)`: Parse URL into components
-  - `is_connect`: 1 if parsing CONNECT request URL (authority form), 0 for normal URLs
-  - Returns: 0 on success, non-zero error code on failure
-  - After success, use `u->fields[UF_*].off` and `.len` to extract components from buffer
+#### Core operations
+- **Keep-alive check:**
+  ```c
+  MULLE__HTTP_GLOBAL
+  int http_should_keep_alive(const http_parser *parser);
+  ```
+  Call inside `on_headers_complete` or `on_message_complete`. Returns non-zero
+  if more messages may follow on this connection (keep-alive); if `0`, this must
+  be the last message on the connection (server: reply with `Connection: close`; client: close).
+- **Pause/resume:**
+  ```c
+  MULLE__HTTP_GLOBAL
+  void http_parser_pause(http_parser *parser, int paused);
+  ```
+  Non-zero pauses the parser (subsequent `http_parser_execute` calls become
+  no-ops and report `HPE_PAUSED`); zero resumes. Useful for throttling
+  backpressure without reading more data.
+- **Final chunk check:**
+  ```c
+  MULLE__HTTP_GLOBAL
+  int http_body_is_final(const http_parser *parser);
+  ```
+  Returns non-zero if the message body is completely consumed (only sensible
+  mid-body, e.g. after `on_chunk_complete`).
 
-#### Version Query
-- `unsigned long http_parser_version(void)`: Get version as 32-bit packed value (major, minor, patch)
+#### URL parsing
 
-#### Error Reporting
-- `const char *http_errno_name(enum http_errno err)`: Get error name string
-- `const char *http_errno_description(enum http_errno err)`: Get error description string
-- Check `parser->http_errno` field for error code after `http_parser_execute` returns < input length
+```c
+MULLE__HTTP_GLOBAL
+int http_parser_parse_url(const char *buf, size_t buflen,
+                          int is_connect,
+                          struct http_parser_url *u);
+```
+- Parse `buf` into URL components. `is_connect` is `1` for CONNECT requests
+  (authority-form URL, host:port). Returns `0` on success, non-zero on failure.
+  On success, `u->field_set` tells which of `u->field_data[UF_*]` are valid.
 
-### 3.3. Configuration Constants
+```c
+MULLE__HTTP_GLOBAL
+void http_parser_url_init(struct http_parser_url *u);
+```
+- Zero all `struct http_parser_url` members before reuse.
 
-- `HTTP_PARSER_STRICT`: Compile-time flag (default 1); set to 0 for lenient parsing
-- `HTTP_MAX_HEADER_SIZE`: Maximum header size allowed (default 80KB)
+#### Introspection helpers
+- ```c
+  MULLE__HTTP_GLOBAL
+  unsigned long http_parser_version(void);
+  ```
+  Returns the http_parser library version: bits 16-23 = major, bits 8-15 =
+  minor, bits 0-7 = patch (currently 2.7.0).
+- ```c
+  MULLE__HTTP_GLOBAL
+  const char *http_method_str(enum http_method m);
+  ```
+  Returns the wire-format method string (e.g. `"GET"`, `"M-SEARCH"`).
+- ```c
+  MULLE__HTTP_GLOBAL
+  const char *http_errno_name(enum http_errno err);
+  ```
+  Returns e.g. `"HPE_INVALID_URL"` for a given errno.
+- ```c
+  MULLE__HTTP_GLOBAL
+  const char *http_errno_description(enum http_errno err);
+  ```
+  Returns a human-readable description of the errno.
+
+### 3.2. Configuration constants (compile-time)
+```c
+#ifndef HTTP_PARSER_STRICT
+# define HTTP_PARSER_STRICT 1
+#endif
+
+#ifndef HTTP_MAX_HEADER_SIZE
+# define HTTP_MAX_HEADER_SIZE (80*1024)
+#endif
+```
+- `HTTP_PARSER_STRICT`: set to `0` to relax RFC conformance checks and parse
+  faster.
+- `HTTP_MAX_HEADER_SIZE`: maximum header bytes accepted; `HPE_HEADER_OVERFLOW`
+  is raised when exceeded. Define before including the header (e.g.
+  `-DHTTP_MAX_HEADER_SIZE=0x7fffffff`) to remove the effective limit.
+
+### 3.3. `mulle-http.h`
+- Umbrella header. Pulls in `include.h`, `<stdint.h>`, and `http_parser.h`, and
+  (when present) the generated `_mulle-http-versioncheck.h` which enforces the
+  compatible `mulle-c11` version range.
+- Version macro for library consumers: `MULLE__HTTP_VERSION` (see above).
+- `MULLE__HTTP_GLOBAL` (defined in `generic/include.h`) resolves symbol
+  visibility: `MULLE_C_GLOBAL` when building the library, `MULLE_C_EXTERN_GLOBAL`
+  for dynamic consumers, and plain `extern` otherwise.
 
 ## 4. Performance Characteristics
 
-- **Parsing speed**: O(n) for n bytes of input; designed for high throughput
-- **Memory overhead**: Parser struct is ~100 bytes; no internal buffering (streaming)
-- **Callback overhead**: Callbacks may be invoked many times for large messages (e.g., many small header chunks)
-- **URL parsing**: O(n) for URL length; separate operation after message parsing
-- **Thread-safety**: Parser instance is not thread-safe; each thread should have its own parser
-- **Streaming**: Suitable for processing multi-gigabyte messages chunk-by-chunk
+- **Time:** O(n) in input size for `http_parser_execute`; no re-scanning of
+  previously fed bytes thanks to the state machine. `http_parser_parse_url` is
+  O(n) in URL length.
+- **Space:** No internal buffering whatsoever; the stack-allocatable
+  `struct http_parser` is the only state. Multi-gigabyte messages can be parsed
+  in constant memory, chunk by chunk.
+- **Callback overhead:** Headers are delivered in whatever fragments arrive, so
+  a large header may trigger many small callbacks. Accumulate if needed.
+- **Zero-copy:** All callback data is a pointer into your input buffer; there is
+  no allocation or copying.
+- **Thread-safety:** Not thread-safe. One parser instance is meant for one
+  connection / one thread. No global mutable state.
 
 ## 5. AI Usage Recommendations & Patterns
 
 ### Best Practices
-
-1. **One parser per connection/stream**: Create separate parser instances for each HTTP connection
-2. **Initialize with correct type**: Use `HTTP_REQUEST` for server, `HTTP_RESPONSE` for client
-3. **Check return values**: Always verify `http_parser_execute` return value; if < input length, check `http_errno`
-4. **Handle partial data**: Parser is designed for incremental input; feed data as it arrives
-5. **Capture data in callbacks**: Callbacks provide pointers to data in the input buffer; copy if needed for later use
-6. **URL parsing after message**: Call `http_parser_parse_url` with full URL from `on_url` callback data
-7. **Check upgrade flag**: After parsing request/response, check `upgrade` field for protocol upgrades
+- Initialize the parser and settings before use:
+  `http_parser_init()` + `http_parser_settings_init()`; set `parser->data` to
+  your connection context.
+- Always check the `http_parser_execute` return value. If it is `< len`, inspect
+  `HTTP_PARSER_ERRNO(parser)` and `parser->upgrade`.
+- Call `http_should_keep_alive()` from `on_headers_complete` /
+  `on_message_complete` to drive connection reuse.
+- For URL work, accumulate `on_url` fragments into a prefix of a fixed buffer and
+  then run `http_parser_parse_url` on the complete URL.
+- Feed data exactly as it arrives from the socket; the parser handles partial
+  messages naturally. One parser per connection.
 
 ### Common Pitfalls
+- **Borrowed pointers:** data pointers passed to `http_data_cb` refer to the
+  input buffer and become invalid once the callback returns. Copy if you need
+  them later.
+- **Multiple callbacks per field:** a single header name, value, or URL is not
+  guaranteed to arrive in one callback.
+- **Ignoring errors:** forgetting to compare the `http_parser_execute` return
+  value with `len` hides protocol errors.
+- **Message framing across `on_message_complete`:** the parser handles one
+  message at a time; manage pipelined requests at a higher level. A
+  `keep-alive` connection requires a new message to start — the parser does this
+  automatically, but track `http_should_keep_alive()` yourself.
+- **Pausing:** `http_parser_pause` only takes effect on a subsequent call whose
+  buffer enters the body; a parser that reaches end-of-buffer while paused just
+  returns. Only pause a parser whose errno is `HPE_OK` (or already `HPE_PAUSED`).
+- **Fixed-size buffers:** `HTTP_MAX_HEADER_SIZE` (80 KB default) caps header
+  size; `HPE_HEADER_OVERFLOW` is the result of exceeding it.
+- **`content_length` is reused:** it holds both the Content-Length header value
+  and, inside `on_chunk_header`, the current chunk length.
 
-1. **Buffer lifetime**: Callback data pointers (`at`) point into input buffer; copy if storing beyond callback scope
-2. **Multiple message parsing**: Create new parser for each HTTP message (or reset state carefully)
-3. **Error checking**: Easy to forget checking `http_parser_execute` return value; always verify
-4. **Header fragmentation**: Header field names/values may arrive in multiple callbacks; accumulate with string building
-5. **HTTP/1.1 pipelining**: Parser handles one message at a time; manage pipelining at higher level
-6. **Chunked encoding**: Parser handles chunked transfer encoding transparently; use `on_chunk_*` callbacks if needed
-7. **Connection upgrade**: Check `upgrade` field after parsing to determine if connection should upgrade protocols
+### Idiomatic Usage
+- Typical flow: `http_parser_init(&parser, HTTP_REQUEST)` → set `parser.data` →
+  loop { read socket / call `http_parser_execute` ; if error → `http_errno_*` ;
+  if `parser.upgrade` → switch protocols }.
 
 ## 6. Integration Examples
 
-### Example 1: Simple HTTP request parsing
+Examples below use this project's C styleguide: 3-space indent, Allman braces,
+C89 declarations at top of block sorted alphabetically, one variable per line,
+columnar assignment, `return( expr);`.
+
+### Example 1: Parse a complete HTTP request
 
 ```c
 #include <mulle-http/mulle-http.h>
+
 #include <stdio.h>
 #include <string.h>
 
-static int on_message_begin(http_parser *parser) {
-    printf("Message begin\n");
-    return 0;
+static int  on_url( http_parser *parser, const char *at, size_t length)
+{
+   fprintf( stderr, "%.*s\n", (int) length, at);
+   return( 0);
 }
 
-static int on_url(http_parser *parser, const char *at, size_t length) {
-    printf("URL: %.*s\n", (int)length, at);
-    return 0;
-}
 
-static int on_header_field(http_parser *parser, const char *at, size_t length) {
-    printf("Header: %.*s", (int)length, at);
-    return 0;
-}
+int  main()
+{
+   struct http_parser         parser;
+   struct http_parser_settings settings;
 
-static int on_header_value(http_parser *parser, const char *at, size_t length) {
-    printf(" = %.*s\n", (int)length, at);
-    return 0;
-}
+   http_parser_init( &parser, HTTP_REQUEST);
+   http_parser_settings_init( &settings);
+   settings.on_url = on_url;
 
-static int on_headers_complete(http_parser *parser) {
-    printf("Headers complete, method=%d\n", parser->method);
-    return 0;
-}
+   {
+      const char  *request = "GET /path HTTP/1.1\r\nHost: example.com\r\n\r\n";
+      size_t      nparsed;
 
-static int on_body(http_parser *parser, const char *at, size_t length) {
-    printf("Body: %.*s\n", (int)length, at);
-    return 0;
-}
+      nparsed = http_parser_execute( &parser, &settings, request, strlen( request));
+      if( nparsed != strlen( request))
+         fprintf( stderr, "error: %s\n",
+                  http_errno_name( HTTP_PARSER_ERRNO( &parser)));
+   }
 
-static int on_message_complete(http_parser *parser) {
-    printf("Message complete\n");
-    return 0;
-}
-
-int main() {
-    struct http_parser parser;
-    struct http_parser_settings settings = {
-        .on_message_begin = on_message_begin,
-        .on_url = on_url,
-        .on_header_field = on_header_field,
-        .on_header_value = on_header_value,
-        .on_headers_complete = on_headers_complete,
-        .on_body = on_body,
-        .on_message_complete = on_message_complete
-    };
-    
-    http_parser_init(&parser, HTTP_REQUEST);
-    
-    const char *request = "GET /path HTTP/1.1\r\nHost: example.com\r\n\r\n";
-    size_t parsed = http_parser_execute(&parser, &settings, request, strlen(request));
-    
-    printf("Parsed %zu bytes\n", parsed);
-    return 0;
+   return( 0);
 }
 ```
 
-### Example 2: Parse URL components
+### Example 2: Extract URL components
 
 ```c
 #include <mulle-http/mulle-http.h>
+
 #include <stdio.h>
 #include <string.h>
 
-int main() {
-    const char *url = "https://user:pass@example.com:8080/path?query=value#anchor";
-    struct http_parser_url parsed;
-    
-    int result = http_parser_parse_url(url, strlen(url), 0, &parsed);
-    
-    if (result == 0) {
-        printf("Schema: %.*s\n", 
-            parsed.fields[UF_SCHEMA].len, 
-            url + parsed.fields[UF_SCHEMA].off);
-        printf("Host: %.*s\n", 
-            parsed.fields[UF_HOST].len, 
-            url + parsed.fields[UF_HOST].off);
-        printf("Port: %d\n", parsed.port);
-        printf("Path: %.*s\n", 
-            parsed.fields[UF_PATH].len, 
-            url + parsed.fields[UF_PATH].off);
-    }
-    return 0;
+int  main()
+{
+   struct http_parser_url  u;
+   const char              *url = "https://user:pass@example.com:8080/p/t?q=a#f";
+   int                     rval;
+
+   http_parser_url_init( &u);
+   rval = http_parser_parse_url( url, strlen( url), 0, &u);
+   if( rval)
+      return( rval);
+
+   if( u.field_set & (1 << UF_SCHEMA))
+      printf( "scheme: %.*s\n", u.field_data[ UF_SCHEMA].len,
+                                url + u.field_data[ UF_SCHEMA].off);
+   if( u.field_set & (1 << UF_HOST))
+      printf( "host: %.*s\n",   u.field_data[ UF_HOST].len,
+                                url + u.field_data[ UF_HOST].off);
+   if( u.field_set & (1 << UF_PORT))
+      printf( "port: %u\n",     u.port);
+
+   return( 0);
 }
 ```
 
-### Example 3: HTTP response parsing
+### Example 3: Parse a response and decide on connection reuse
 
 ```c
 #include <mulle-http/mulle-http.h>
+
 #include <stdio.h>
 #include <string.h>
 
-static int on_status(http_parser *parser, const char *at, size_t length) {
-    printf("Status text: %.*s\n", (int)length, at);
-    return 0;
+static int  on_headers_complete( http_parser *parser)
+{
+   if( http_should_keep_alive( parser))
+      printf( "reuse connection (status %u)\n", parser->status_code);
+   else
+      printf( "connection: close (status %u)\n", parser->status_code);
+
+   return( 0);
 }
 
-static int on_headers_complete(http_parser *parser) {
-    printf("Response status code: %d (HTTP/%d.%d)\n", 
-        parser->status_code, parser->http_major, parser->http_minor);
-    return 0;
-}
 
-int main() {
-    struct http_parser parser;
-    struct http_parser_settings settings = {
-        .on_status = on_status,
-        .on_headers_complete = on_headers_complete
-    };
-    
-    http_parser_init(&parser, HTTP_RESPONSE);
-    
-    const char *response = "HTTP/1.1 404 Not Found\r\nContent-Length: 0\r\n\r\n";
-    http_parser_execute(&parser, &settings, response, strlen(response));
-    
-    return 0;
+int  main()
+{
+   struct http_parser          parser;
+   struct http_parser_settings settings;
+
+   http_parser_init( &parser, HTTP_RESPONSE);
+   http_parser_settings_init( &settings);
+   settings.on_headers_complete = on_headers_complete;
+
+   {
+      const char  *response = "HTTP/1.1 200 OK\r\nContent-Length: 0\r\n\r\n";
+
+      http_parser_execute( &parser, &settings, response, strlen( response));
+   }
+
+   return( 0);
 }
 ```
 
-### Example 4: Incremental parsing with chunks
+### Example 4: Incremental parsing with a user context
 
 ```c
 #include <mulle-http/mulle-http.h>
+
 #include <stdio.h>
 #include <string.h>
 
-int main() {
-    struct http_parser parser;
-    struct http_parser_settings settings = {0};
-    
-    http_parser_init(&parser, HTTP_REQUEST);
-    
-    // Simulate receiving data in chunks
-    const char *chunk1 = "GET /path HTTP/1.1\r\n";
-    const char *chunk2 = "Host: example.com\r\n";
-    const char *chunk3 = "Content-Length: 5\r\n\r\nhello";
-    
-    size_t nparsed = 0;
-    
-    nparsed += http_parser_execute(&parser, &settings, chunk1, strlen(chunk1));
-    nparsed += http_parser_execute(&parser, &settings, chunk2, strlen(chunk2));
-    nparsed += http_parser_execute(&parser, &settings, chunk3, strlen(chunk3));
-    
-    printf("Total parsed: %zu bytes\n", nparsed);
-    printf("Error: %s\n", http_errno_name(parser.http_errno));
-    
-    return 0;
+struct context
+{
+   char  request_line[ 256];
+   int  count;
+};
+
+
+static int  on_message_begin( http_parser *parser)
+{
+   struct context  *ctx;
+
+   ctx = (struct context *) parser->data;
+   ctx->count++;
+
+   return( 0);
+}
+
+
+static int  on_url( http_parser *parser, const char *at, size_t length)
+{
+   struct context  *ctx;
+
+   ctx = (struct context *) parser->data;
+   if( ctx->count == 1)
+   {
+      if( length > 255)
+         length = 255;
+      memcpy( ctx->request_line, at, length);
+      ctx->request_line[ length] = '\0';
+   }
+
+   return( 0);
+}
+
+
+int  main()
+{
+   struct context              ctx;
+   struct http_parser          parser;
+   struct http_parser_settings settings;
+
+   memset( &ctx, 0, sizeof( ctx));
+   http_parser_init( &parser, HTTP_REQUEST);
+   http_parser_settings_init( &settings);
+   parser.data = &ctx;
+   settings.on_message_begin = on_message_begin;
+   settings.on_url = on_url;
+
+   http_parser_execute( &parser, &settings, "GET /a HTTP/1.1\r\n", 16);
+   http_parser_execute( &parser, &settings, "Host: x\r\n\r\n", 11);
+
+   printf( "path: %s\n", ctx.request_line);
+
+   return( 0);
 }
 ```
 
-### Example 5: Detect upgrade requests (WebSocket, etc.)
+### Example 5: Parse a chunked (Transfer-Encoding: chunked) message
 
 ```c
 #include <mulle-http/mulle-http.h>
-#include <stdio.h>
 
-int main() {
-    struct http_parser parser;
-    struct http_parser_settings settings = {0};
-    
-    http_parser_init(&parser, HTTP_REQUEST);
-    
-    // WebSocket upgrade request
-    const char *request = "GET /chat HTTP/1.1\r\n"
-                         "Upgrade: websocket\r\n"
-                         "Connection: Upgrade\r\n"
-                         "\r\n";
-    
-    http_parser_execute(&parser, &settings, request, strlen(request));
-    
-    if (parser.upgrade) {
-        printf("Upgrade requested (connection should switch protocols)\n");
-    }
-    
-    return 0;
-}
-```
-
-### Example 6: Accumulate fragmented headers
-
-```c
-#include <mulle-http/mulle-http.h>
 #include <stdio.h>
 #include <string.h>
 
-typedef struct {
-    char current_header_field[256];
-    char current_header_value[1024];
-} ParseContext;
-
-static int on_header_field(http_parser *parser, const char *at, size_t length) {
-    ParseContext *ctx = (ParseContext *)parser->data;
-    strncat(ctx->current_header_field, at, length);
-    return 0;
+static int  on_url( http_parser *parser, const char *at, size_t length)
+{
+   (void) parser;
+   (void) at;
+   (void) length;
+   return( 0);
 }
 
-static int on_header_value(http_parser *parser, const char *at, size_t length) {
-    ParseContext *ctx = (ParseContext *)parser->data;
-    strncat(ctx->current_header_value, at, length);
-    return 0;
+
+static int  on_chunk_header( http_parser *parser)
+{
+   /* parser->content_length holds the current chunk length */
+   fprintf( stderr, "chunk header, length=%llu\n",
+            (unsigned long long) parser->content_length);
+   return( 0);
 }
 
-int main() {
-    struct http_parser parser;
-    struct http_parser_settings settings = {
-        .on_header_field = on_header_field,
-        .on_header_value = on_header_value
-    };
-    
-    ParseContext ctx = {0};
-    http_parser_init(&parser, HTTP_REQUEST);
-    parser.data = &ctx;
-    
-    const char *request = "GET / HTTP/1.1\r\nX-Custom-Header: value\r\n\r\n";
-    http_parser_execute(&parser, &settings, request, strlen(request));
-    
-    printf("Field: %s\n", ctx.current_header_field);
-    printf("Value: %s\n", ctx.current_header_value);
-    
-    return 0;
+
+static int  on_body_data( http_parser *parser, const char *at, size_t length)
+{
+   (void) parser;
+   fprintf( stderr, "chunk data: %.*s\n", (int) length, at);
+   return( 0);
+}
+
+
+static int  on_chunk_complete( http_parser *parser)
+{
+   fprintf( stderr, "chunk complete (final=%d)\n",
+            http_body_is_final( parser));
+   return( 0);
+}
+
+
+static int  on_message_complete( http_parser *parser)
+{
+   (void) parser;
+   fprintf( stderr, "message complete\n");
+   return( 0);
+}
+
+
+int  main()
+{
+   struct http_parser          parser;
+   struct http_parser_settings settings;
+   const char                  *data;
+   size_t                      nparsed;
+
+   http_parser_init( &parser, HTTP_REQUEST);
+   http_parser_settings_init( &settings);
+   settings.on_url = on_url;
+   settings.on_chunk_header = on_chunk_header;
+   settings.on_body = on_body_data;
+   settings.on_chunk_complete = on_chunk_complete;
+   settings.on_message_complete = on_message_complete;
+
+   data    = "POST /up HTTP/1.1\r\nHost: x\r\n"
+             "Transfer-Encoding: chunked\r\n\r\n"
+             "4\r\nWiki\r\n5\r\npedia\r\n0\r\n\r\n";
+   nparsed = http_parser_execute( &parser, &settings, data, strlen( data));
+   if( nparsed != strlen( data))
+      fprintf( stderr, "error: %s\n",
+               http_errno_name( HTTP_PARSER_ERRNO( &parser)));
+
+   return( 0);
+}
+```
+
+### Example 6: Query the parser version
+
+```c
+#include <mulle-http/mulle-http.h>
+
+#include <stdio.h>
+
+
+int  main()
+{
+   unsigned long  version;
+
+   version = http_parser_version();
+   printf( "http_parser v%lu.%lu.%lu\n",
+           (version >> 16) & 255,
+           (version >> 8) & 255,
+           version & 255);
+
+   return( 0);
 }
 ```
 
 ## 7. Dependencies
 
-- `mulle-c11`: Cross-platform C compiler glue
+Direct `mulle-sde` dependencies (from `.mulle/etc/sourcetree/config`):
 
+- `mulle-c11` (cross-platform C compiler/ABI glue; provides the
+  `MULLE_C_GLOBAL` visibility machinery used by `MULLE__HTTP_GLOBAL`)
+
+No other runtime dependencies. The project is a leaf component of `mulle-core`.
+
+## 8. Shortcut
+
+This `index.md` was last committed as part of `2d7faa3` ("maintenance: add
+BSD-3-Clause license headers ..."). Since then the only public API-visible
+change is the library version bump in `src/mulle-http.h`
+(`MULLE__HTTP_VERSION` `0.1.13` → `0.1.14`) and a tightened `mulle-c11`
+versioncheck range; `src/http_parser.h` and the parser implementation are
+unchanged. All documentation above was verified against the current headers.

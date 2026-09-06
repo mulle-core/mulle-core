@@ -252,6 +252,7 @@ mulle-core/mulle-c11/mulle-c11.h
 mulle-core/mulle-c11/mulle-c11-integer.h
 mulle-core/mulle-c11/mulle-c11-rotate.h
 mulle-core/mulle-c11/mulle-c11-swap.h
+mulle-core/mulle-c11/_mulle-c11-versioncheck.h
 mulle-core/mulle-concurrent/mulle-concurrent.h
 mulle-core/mulle-concurrent/mulle-concurrent-hashmap.h
 mulle-core/mulle-concurrent/mulle-concurrent-hashtable.h

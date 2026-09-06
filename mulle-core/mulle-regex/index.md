@@ -5,7 +5,7 @@
 - A compact Unicode-aware regular-expression library (Henry Spencer's regexp reimplementation adapted for Unicode).
 - Solves: pattern matching and substitution on UTF-32 strings (mulle_utf32_t) for C programs.
 - Key features: egrep-style patterns, compile/execute API, substitution helpers, convenience one-shot functions.
-- Relationship: component of mulle-core; depends on mulle-utf for Unicode types and helpers.
+- Relationship: component of mulle-core; usually consumed through the umbrella `#include <mulle-core/mulle-core.h>`. Standalone use is possible via `clib install --out src mulle-c/mulle-regex` (then add `-isystem src` and compile the downloaded sources). Direct dependency: mulle-utf for Unicode types and helpers.
 
 ## 2. Key Concepts & Design Philosophy
 
@@ -20,34 +20,33 @@
 #### struct mulle_utf32regex
 - Purpose: Opaque compiled regular-expression object for matching UTF-32 input.
 - Lifecycle Functions:
-  - mulle_utf32regex_compile(mulle_utf32_t *pattern): Compile a pattern; returns malloced struct or NULL on error.
-  - mulle_utf32regex_free(struct mulle_utf32regex *regex): Free a compiled regex (inline wrapper around mulle_free).
+  - `struct mulle_utf32regex   *mulle_utf32regex_compile( const mulle_utf32_t *pattern);`
+     - Compile a pattern; returns malloced struct or NULL on failure (malformed regular expression).
+  - `static inline void   mulle_utf32regex_free( struct mulle_utf32regex *regex);`
+     - Free a compiled regex (inline wrapper around mulle_free).
 
 - Core Operations:
-  - mulle_utf32regex_execute(struct mulle_utf32regex *regex, mulle_utf32_t *src):
+  - `int   mulle_utf32regex_execute( struct mulle_utf32regex *regex, const mulle_utf32_t *src);`
      - Returns <0 on error, 1 on match, 0 on no match.
-  - mulle_utf32regex_substitute(struct mulle_utf32regex *regex,
-                                mulle_utf32_t *replacement,
-                                mulle_utf32_t *dst,
-                                size_t dst_len,
-                                int zero):
+  - `int   mulle_utf32regex_substitute( struct mulle_utf32regex *regex, const mulle_utf32_t *replacement, mulle_utf32_t *dst, size_t dst_len, int zero);`
      - Performs substitution into caller-provided dst buffer; returns <0 on failure, 0 on success.
-     - Requires dst buffer length; does not append trailing zero unless `zero` and dst_len include space for it.
+     - Does not truncate; if the output buffer is too small, it is an error.
+     - Does not append a trailing zero unless `zero` is set; `dst_len` must then be + 1.
 
 - Convenience One-shot Functions:
-  - mulle_utf32_match(mulle_utf32_t *pattern, mulle_utf32_t *src):
+  - `mulle_utf32_t   *mulle_utf32_match( const mulle_utf32_t *pattern, const mulle_utf32_t *src);`
      - Compiles, executes, and returns a malloced match buffer or NULL.
-  - mulle_utf32_substitute(mulle_utf32_t *pattern, mulle_utf32_t *replacement, mulle_utf32_t *src):
+  - `mulle_utf32_t   *mulle_utf32_substitute( const mulle_utf32_t *pattern, const mulle_utf32_t *replacement, const mulle_utf32_t *src);`
      - Compiles, substitutes and returns a malloced result buffer or NULL.
 
 - Substitution sizing helpers:
-  - mulle_utf32regex_substitution_length(struct mulle_utf32regex *regex, mulle_utf32_t *replacement):
+  - `size_t   mulle_utf32regex_substitution_length( struct mulle_utf32regex *regex, const mulle_utf32_t *replacement);`
      - Returns length (number of codepoints) of the substituted part (does not include trailing zero). Returns (size_t)-1 on error.
-  - mulle_utf32regex_substitution_buffer_size(...):
-     - Inline helper returning number of bytes to malloc for substitution (adds space for trailing zero).
+  - `mulle_utf32regex_substitution_buffer_size( struct mulle_utf32regex *regex, const mulle_utf32_t *replacement);`
+     - Inline helper returning number of bytes(!) to malloc for substitution (adds space for trailing zero).
 
 - Match inspection:
-  - mulle_utf32regex_range_for_index(struct mulle_utf32regex *regex, unsigned int i):
+  - `struct mulle_range   mulle_utf32regex_range_for_index( struct mulle_utf32regex *regex, unsigned int i);`
      - Returns struct mulle_range for the whole match (index 0) or capture groups (1-9 for \1..\9).
      - struct mulle_range exposes .location and .length (from mulle-utf).
 
@@ -71,6 +70,7 @@
   - Use mulle_utf32regex_range_for_index( regex, 0 ) to get the whole match; 1..9 for capture groups.
 
 - Common Pitfalls:
+  - All input-only pointer parameters are `const`-qualified; treat pattern/replacement/src strings as read-only.
   - mulle_utf32regex_substitute requires correct dst_len; if too small it returns an error — always size buffers properly.
   - Substitution helpers return lengths that exclude the trailing zero; add 1 when allocating space for the NUL.
   - Substitution does not include prefix/suffix of original string — caller must stitch prefix + replacement + suffix.
@@ -183,11 +183,15 @@ example_one_shot()
 ## 7. Dependencies
 
 - mulle-utf         (provides mulle_utf32_t, struct mulle_range, and string/range helpers)
-- mulle-core        (this project is a component of mulle-core; typically used via mulle-core)
+- mulle-core        (this project is a component of mulle-core; typically used via the `<mulle-core/mulle-core.h>` umbrella — not a build dependency of this library itself)
 
 ## 8. Shortcut
 
-- Existing TOC last commit: 2026-04-04 (check repo history for diffs).  If updating, compare since that commit.
+- Existing TOC last committed in `5beac54` (2026-08-04). Changes to consider since then:
+  - `789a04c` const-qualify input-only pointer parameters — all public API input strings are now `const` (see Section 3.1).
+  - `f5f33ab` README rewrite — documents consuming via `<mulle-core/mulle-core.h>` umbrella or via `clib install`.
+  - `476d8e4` build system and dependency configuration updates; version bumped to 0.1.2.
+  - No new public headers or public symbols were added since the previous TOC commit.
 
 ---
 Notes for AI assistants:

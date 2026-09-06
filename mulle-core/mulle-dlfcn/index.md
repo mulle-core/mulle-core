@@ -20,7 +20,7 @@
 
 #### Version helpers & macro
 - MULLE__DLFCN_VERSION
-  - Purpose: Compile-time packed version (major<<20 | minor<<8 | patch).
+  - Purpose: Compile-time packed version (major<<20 | minor<<8 | patch). Current value: 0.1.2, i.e. ((0UL << 20) | (1 << 8) | 2).
 - mulle_dlfcn_get_version(void)
   - Purpose: Returns the packed version as uint32_t (defined in .c).
 - Inline helpers:

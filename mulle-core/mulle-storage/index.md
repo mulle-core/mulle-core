@@ -1,9 +1,9 @@
 # mulle-storage Library Documentation for AI
-<!-- Keywords: memory-pool, node-allocation -->
+<!-- Keywords: memory-pool, node-allocation, arena, bump-allocator -->
 
 ## 1. Introduction & Purpose
 
-mulle-storage provides optimized memory management for allocating and freeing fixed-size elements (nodes) with automatic reuse of freed memory. It solves the problem of efficient node allocation in tree and data structure implementations where individual node allocation/deallocation would cause fragmentation and locality issues. The library offers two variants: `mulle_storage` (queue-based, maintains insertion order) and `mulle_indexedstorage` (index-based, direct access). This is a foundational component of the mulle-c ecosystem used extensively in tree and container implementations.
+mulle-storage provides optimized memory management for allocating and freeing fixed-size elements (nodes) with automatic reuse of freed memory. It solves the problem of efficient node allocation in tree and data structure implementations where individual node allocation/deallocation would cause fragmentation and locality issues. The library offers three components: `mulle_storage` (queue-based, maintains pointer stability), `mulle_indexedstorage` (index-based, direct access), and `mulle_arena` (variable-size bump allocator with scoped lifetime, usable as a drop-in `mulle_allocator`). This is a foundational component of the mulle-c ecosystem used extensively in tree and container implementations.
 
 ## 2. Key Concepts & Design Philosophy
 
@@ -13,11 +13,14 @@ mulle-storage provides optimized memory management for allocating and freeing fi
 
 - **Reduced Fragmentation:** By reusing freed slots internally, fragmentation is minimized. All nodes live in contiguous allocations, improving cache locality and reducing system allocator pressure.
 
-- **Two Variants:**
+- **Three Components:**
   - `mulle_storage`: Elements accessed by pointer (FIFO queue of freed nodes for reuse).
   - `mulle_indexedstorage`: Elements accessed by integer indices (efficient for array-like access).
+  - `mulle_arena`: Variable-size bump allocator; individual allocations cannot be freed, all memory is released at once on `done`/`reset`.
 
-- **Fixed-Size Elements:** All elements in a storage must be the same size and alignment. Configured at initialization time.
+- **Fixed-Size Elements:** All elements in `mulle_storage`/`mulle_indexedstorage` must be the same size and alignment. Configured at initialization time. The `mulle_arena` supports variable sizes.
+
+- **Allocator Protocol:** `mulle_arena` embeds `MULLE_ALLOCATOR_BASE` at offset 0, so `(struct mulle_allocator *) &arena` works with any mulle-container code expecting an allocator.
 
 - **Lazy Allocation:** Storage grows as needed, but capacity is pre-reserved to avoid repeated reallocation.
 
@@ -46,9 +49,9 @@ mulle-storage provides optimized memory management for allocating and freeing fi
   - `alloc`: Pointer to uninitialized `mulle_storage` structure.
   - `sizeof_struct`: Size of each element to be allocated.
   - `alignof_struct`: Alignment requirement of each element.
-  - `capacity`: Initial capacity (number of elements to pre-allocate).
+  - `capacity`: Bucket size. Memory is handed out in fixed buckets of `capacity` elements. A larger value means fewer system allocations while growing and a cheaper `_done`, but the permanent high-water mark rises in `capacity`-sized steps. Pick roughly the expected number of live nodes.
   - `allocator`: Memory allocator to use (NULL for default).
-- **Behavior:** Pre-allocates memory for capacity elements.
+- **Behavior:** Grows in fixed-size buckets of `capacity` elements.
 
 **`mulle_storage_init(...)`** (NULL-safe wrapper)
 
@@ -81,7 +84,7 @@ mulle-storage provides optimized memory management for allocating and freeing fi
 - **Returns:** Pointer to zero-initialized node memory.
 - **Behavior:** Calls `_mulle_storage_malloc()` then `memset()` to zero.
 
-**`_mulle_storage_copy(struct mulle_storage *alloc, void *q)`**
+**`_mulle_storage_copy(struct mulle_storage *alloc, const void *q)`**
 
 - **Purpose:** Allocate a new node and copy data from an existing element.
 - **Parameters:**
@@ -116,7 +119,7 @@ mulle-storage provides optimized memory management for allocating and freeing fi
 **`_mulle_storage_get_count(struct mulle_storage *alloc)`**
 
 - **Purpose:** Get the number of currently allocated (not freed) nodes.
-- **Returns:** Count of active nodes (total reserved minus freed).
+- **Returns:** Count of active nodes as `size_t` (total reserved minus freed).
 
 **`mulle_storage_get_count(...)`** (NULL-safe)
 
@@ -148,7 +151,7 @@ mulle-storage provides optimized memory management for allocating and freeing fi
 **`_mulle_indexedstorage_init(struct mulle_indexedstorage *alloc, size_t sizeof_struct, unsigned int alignof_struct, unsigned int capacity, struct mulle_allocator *allocator)`**
 
 - **Purpose:** Initialize indexed storage.
-- **Parameters:** Same as `mulle_storage_init`.
+- **Parameters:** Same as `mulle_storage_init`, except `capacity` is the initial array capacity; the array grows (realloc) as needed.
 
 **`_mulle_indexedstorage_done(struct mulle_indexedstorage *alloc)`**
 
@@ -191,23 +194,135 @@ mulle-storage provides optimized memory management for allocating and freeing fi
 **`_mulle_indexedstorage_get_count(struct mulle_indexedstorage *alloc)`**
 
 - **Purpose:** Get the number of currently allocated (not freed) elements.
+- **Returns:** Count of active elements as `size_t` (total reserved minus freed).
 
 **`_mulle_indexedstorage_get_element_size(struct mulle_indexedstorage *alloc)`**
 
 - **Purpose:** Get the size of each element.
+- **Returns:** The element size in bytes (`size_t`).
+
+### 3.3 `mulle-arena.h` - Variable-Size Bump Allocator
+
+A bump/arena allocator for variable-sized allocations with scoped lifetime.
+No individual free is possible; all memory is released at once via `_mulle_arena_done`
+or rewound with `_mulle_arena_reset`. It "subclasses" `struct mulle_allocator` via
+`MULLE_ALLOCATOR_BASE` (embedded at offset 0), so `(struct mulle_allocator *) &arena`
+can be passed to any code following the `mulle_allocator` protocol.
+
+#### `struct mulle_arena`
+
+- **Purpose:** Variable-size bump allocator; allocations are made from a sequence of fixed-size pages.
+- **Key Fields:**
+  - `MULLE_ALLOCATOR_BASE;` - Embedded `mulle_allocator` vtable (`calloc`, `realloc`, `free`, `fail`, `abafree`, `aba`) — makes the struct castable to `struct mulle_allocator *`.
+  - `_pages`: `mulle__pointerarray` holding the allocated page pointers.
+  - `_current`: Bump cursor into the current page.
+  - `_sentinel`: End of the current page.
+  - `_last`: Start of the last allocation (used for in-place `realloc` detection).
+  - `_page_size`: Size of a regular page (default 4096 when 0 is passed to init).
+  - `_page_index`: Index of the current page within `_pages`.
+
+#### Lifecycle Functions
+
+**`_mulle_arena_init(struct mulle_arena *arena, size_t page_size, struct mulle_allocator *allocator)`**
+
+- **Purpose:** Initialize the arena with the given page size.
+- **Parameters:**
+  - `arena`: Pointer to uninitialized `mulle_arena` structure.
+  - `page_size`: Size of each allocation page. `0` selects a sensible default (4096). Larger values mean fewer system allocations but higher memory overhead.
+  - `allocator`: Unused, present for API consistency. The arena uses the default allocator internally for page management.
+
+**`_mulle_arena_done(struct mulle_arena *arena)`**
+
+- **Purpose:** Finalize the arena, freeing all pages.
+
+#### Reset Functions
+
+**`_mulle_arena_reset_keep_pages(struct mulle_arena *arena, size_t keep_count)`**
+
+- **Purpose:** Reset the arena, keeping `keep_count` pages. Freed pages are returned to the system; kept pages are zeroed (poisoned `0xDEADDEAD` in DEBUG) for reuse.
+
+**`_mulle_arena_reset_keep_percentage(struct mulle_arena *arena, unsigned int percent)`**
+
+- **Purpose:** Reset the arena, keeping a percentage (0-100) of pages.
+
+**`_mulle_arena_reset(struct mulle_arena *arena)`**
+
+- **Purpose:** Reset the arena: free all pages, rewind. Equivalent to `_mulle_arena_reset_keep_pages( arena, 0)`.
+
+#### Allocation Functions
+
+**`_mulle_arena_alloc(struct mulle_arena *arena, size_t size, unsigned int alignment)`**
+
+- **Purpose:** Allocate `size` bytes from the arena.
+- **Parameters:**
+  - `arena`: The arena allocator.
+  - `size`: Number of bytes to allocate.
+  - `alignment`: Required alignment (must be a power of 2, minimum 1).
+- **Returns:** Pointer to the allocated memory.
+
+**`_mulle_arena_calloc(struct mulle_arena *arena, size_t size, unsigned int alignment)`**
+
+- **Purpose:** Allocate zero-initialized memory from the arena.
+
+**`_mulle_arena_realloc(struct mulle_arena *arena, void *block, size_t old_size, size_t new_size, unsigned int alignment)`**
+
+- **Purpose:** Attempt to resize the last allocation in place, or allocate new + copy.
+- **Parameters:**
+  - `block`: Pointer to the previous allocation (or NULL for allocation).
+  - `old_size`: Size of the previous allocation (needed for memcpy).
+  - `new_size`: Desired new size.
+- **Returns:** Pointer to the (possibly moved) allocation.
+
+**`_mulle_arena_memdup(struct mulle_arena *arena, void *src, size_t size)`**
+
+- **Purpose:** Duplicate a block of memory into the arena.
+
+**`_mulle_arena_strdup(struct mulle_arena *arena, char *s)`**
+
+- **Purpose:** Duplicate a C string into the arena.
+
+#### Inspection Functions
+
+**`_mulle_arena_get_allocator(struct mulle_arena *arena)`**
+
+- **Purpose:** Get the arena as a `mulle_allocator` pointer. The primary way to pass the arena to code expecting a `mulle_allocator`.
+
+**`_mulle_arena_get_page_count(struct mulle_arena *arena)`**
+
+- **Purpose:** Get the number of pages allocated by the arena.
+
+#### NULL-safe Wrappers
+
+`mulle_arena_init(...)`, `mulle_arena_done(...)`, `mulle_arena_reset(...)`,
+`mulle_arena_reset_keep_pages(...)`, `mulle_arena_reset_keep_percentage(...)`,
+`mulle_arena_alloc(...)`, `mulle_arena_calloc(...)`, `mulle_arena_memdup(...)`,
+`mulle_arena_strdup(...)`, `mulle_arena_get_allocator(...)`, `mulle_arena_get_page_count(...)`
+
+- **Purpose:** Same as their leading-underscore counterparts, but safely handle a NULL `arena` pointer (return NULL/0 or do nothing). Allocation wrappers also return NULL when `size` is 0.
+
+#### `mulle_allocator` vtable semantics
+
+- `calloc` - bump allocate + zero.
+- `realloc` - if `block` is NULL, this is malloc (bump allocate). If `block` is the last allocation, extend in place if possible. Otherwise allocate new + memcpy (old space is abandoned).
+- `free` - no-op, except when the block is the last allocation (space reclaimed by rewinding the cursor). Memory is otherwise reclaimed only on `done`/`reset`.
+
+Allocations through the vtable store a size header at `((size_t *) user)[-1]` and are aligned to `MULLE_ARENA_DEFAULT_ALIGNMENT` (= `alignof(max_align_t)`). Oversized allocations (larger than `page_size`) get their own dedicated page.
 
 ## 4. Performance Characteristics
 
-- **Allocation Time:** O(1) amortized. Freed nodes are reused in FIFO order.
-- **Deallocation Time:** O(1). Simply adds pointer to freed list.
+- **Allocation Time (`mulle_storage`)**: O(1) amortized. Freed nodes are reused in FIFO order.
+- **Deallocation Time (`mulle_storage`)**: O(1). Simply adds pointer to freed list.
 - **Memory Overhead:** 16-32 bytes per node (internal structures) plus capacity overhead.
 - **Fragmentation:** Minimal internal fragmentation; external fragmentation eliminated by reuse.
 - **Cache Locality:** High; allocated nodes occupy contiguous memory regions.
+- **`mulle_indexedstorage`:** Same O(1) alloc/free as `mulle_storage`; element storage is a dynamic `mulle_structarray` (realloc grows it, so pointers obtained via `_mulle_indexedstorage_get` are only valid until the next add). Indices are stable.
+- **`mulle_arena`:** All allocations are a pointer bump, O(1), no free-list checks. `realloc` is O(1) only when extending the last allocation in place; otherwise O(n) alloc+copy. `reset`/`done` costs are proportional to the number of pages, not the number of allocations.
 
 **Comparisons:**
 
 - **vs. malloc/free:** Much faster for repeated allocation/deallocation; better cache locality; higher initial memory cost.
 - **vs. pre-allocated arrays:** Handles dynamic growth; reuses freed slots efficiently without holes.
+- **vs. `mulle_structarray`:** `mulle_storage` keeps node pointers stable across growth, unlike a struct array which can realloc.
 
 ## 5. AI Usage Recommendations & Patterns
 
@@ -225,6 +340,8 @@ mulle-storage provides optimized memory management for allocating and freeing fi
 
 5. **Use Allocator Consistently:** Pass the same allocator to init that you'll use for the tree or data structure using the storage.
 
+6. **Use `mulle_arena` for Scoped, Variable-Sized Allocations:** If all allocations die at the same time (per-request, per-frame, parser scratch, builder patterns), an arena is the right choice — pass `_mulle_arena_get_allocator( &arena)` to any mulle container expecting a `struct mulle_allocator *`.
+
 ### Common Pitfalls:
 
 1. **Double-Free:** Freeing the same pointer twice corrupts the freed list; use careful tracking.
@@ -236,6 +353,10 @@ mulle-storage provides optimized memory management for allocating and freeing fi
 4. **Capacity Estimation:** Too small capacity causes frequent reallocations; too large wastes memory pre-allocated but never used.
 
 5. **Alignment Mismatch:** Providing incorrect alignment can cause crashes on some architectures; always use `alignof()` macro.
+
+6. **Arena `realloc` Semantics:** The `realloc` fast path (extend in place) only works when the block is the last allocation; otherwise it allocates new + copies and abandons the old space. `free` on an arena is a no-op (except for the last allocation) — do not rely on it to reclaim memory.
+
+7. **Arena Infinity (no individual free):** `_mulle_arena_free_v` is a no-op. If you need per-node-free, use `mulle_storage` instead.
 
 ### Idiomatic Usage:
 
@@ -556,6 +677,51 @@ int main() {
     _mulle_storage_done(&store);
     
     return 0;
+}
+```
+
+### Example 7: mulle_arena as a Bump Allocator
+
+```c
+#include <mulle-storage/mulle-storage.h>
+
+int  main( int argc, char *argv[])
+{
+   struct mulle_arena   arena;
+   char                 *s;
+   void                 *p;
+
+   _mulle_arena_init( &arena, 4096, NULL);   // page_size 0 or 4096
+
+   // bump allocations, no individual free needed
+   p = _mulle_arena_alloc( &arena, 1024, alignof( max_align_t));
+   s = _mulle_arena_strdup( &arena, "hello");
+
+   _mulle_arena_done( &arena);   // frees everything at once
+   return( 0);
+}
+```
+
+### Example 8: mulle_arena as a drop-in mulle_allocator
+
+```c
+#include <mulle-storage/mulle-storage.h>
+
+int  main( int argc, char *argv[])
+{
+   struct mulle_arena        arena;
+   struct mulle_allocator    *allocator;
+   int                       *values;
+
+   _mulle_arena_init( &arena, 4096, NULL);
+   allocator = _mulle_arena_get_allocator( &arena);   // (struct mulle_allocator *) &arena
+
+   values = _mulle_allocator_calloc( allocator, 10, sizeof( int));
+   values[ 0] = 42;   // zero-initialized by calloc semantics
+
+   // pass `allocator` to any mulle container that accepts a mulle_allocator
+   _mulle_arena_done( &arena);
+   return( 0);
 }
 ```
 

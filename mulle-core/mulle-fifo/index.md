@@ -1,5 +1,5 @@
 # mulle-fifo Library Documentation for AI
-<!-- Keywords: lock-free, queue -->
+<!-- Keywords: lock-free, queue, spsc, non-blocking, atomics -->
 
 ## 1. Introduction & Purpose
 
@@ -419,7 +419,11 @@ int   main( void)
 
 ## 7. Dependencies
 
-Direct dependencies:
-- `mulle-thread`: sequentially consistent atomic operations
-- `mulle-allocator`: storage allocation for the dynamic FIFO
-- `mulle-c11`: C11 compatibility and utility macros
+Direct dependencies (from `.mulle/etc/sourcetree/config`):
+- `mulle-thread` (>= 4.10.0): sequentially consistent atomic operations, memory barriers
+- `mulle-allocator` (>= 8.1.0): storage allocation for the dynamic FIFO
+
+Minimum versions are enforced by `src/reflect/_mulle-fifo-versioncheck.h`
+(current as of version 0.1.8). `MULLE_C_GLOBAL`, `MULLE_C_UNUSED` and friends
+are provided transitively via `mulle-thread`; there is no direct dependency on
+`mulle-c11`.

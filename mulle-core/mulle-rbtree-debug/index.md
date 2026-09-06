@@ -1,453 +1,355 @@
-# mulle-rbtree Library Documentation for AI
-<!-- Keywords: red-black-tree, sorted -->
+# mulle-rbtree-debug Library Documentation for AI
+<!-- Keywords: red-black-tree, validation, debugging, graphviz, dot, ascii, visualization -->
 
 ## 1. Introduction & Purpose
 
-mulle-rbtree is a highly optimized red-black tree implementation for efficient sorted data storage and retrieval. It solves the problem of maintaining dynamically ordered collections with guaranteed O(log n) lookup, insertion, and deletion operations. This is a foundational data structure in the mulle-c ecosystem, used for implementing sorted containers and indices. The library provides both a low-level API (`mulle__rbtree`) for managing raw nodes and a higher-level convenience API (`mulle_rbtree`) that handles memory management through callbacks.
+mulle-rbtree-debug is a small debugging companion library for
+[mulle-rbtree](https://github.com/mulle-c/mulle-rbtree). It adds two kinds of
+facilities that do not belong inside the production tree code itself:
+
+1. **Integrity validation** (`mulle__rbtree_validate`): checks that a
+   `struct mulle__rbtree` still satisfies all five red-black tree properties
+   and returns a descriptive error-message string when it does not.
+2. **Visualization** (`mulle__rbtree_node_dot_fprintf`,
+   `mulle__rbtree_node_ascii_fprintf`): renders the internal topology of a
+   tree as Graphviz DOT source or as ASCII art, including node color and
+   "dirty" state.
+
+It is used by the `mulle-rbtree` test suite to verify that insert/delete
+operations never corrupt tree invariants. It resides in `mulle-core` because
+it builds on `mulle-fprintf` for all its I/O. It is a debug/utility library
+only; it contains no tree-mutating logic.
 
 ## 2. Key Concepts & Design Philosophy
 
-The red-black tree is a self-balancing binary search tree where nodes are colored either red or black. This coloring guarantees that the tree remains relatively balanced after every insertion and deletion, preventing worst-case O(n) performance. 
+The library never alters a tree. It only *reads* the internal state of a
+`struct mulle__rbtree` — its `_root` node, the sentinel `nil` node, the node
+`_left`/`_right`/`_parent` pointers, and the `_color`/dirty flags — then either
+checks invariants or renders the topology.
 
-**Key Design Principles:**
-
-- **Dual API Levels:** The library offers a low-level `mulle__rbtree` API for maximum control (direct node management) and a convenient `mulle_rbtree` API for ease of use (payload-based operations with automatic memory management via callbacks).
-
-- **Allocator Integration:** Uses `mulle_allocator` for all memory operations, allowing custom allocation strategies and tracking.
-
-- **Value Callbacks:** The high-level API uses `mulle_container_valuecallback` structures to manage lifecycle (retain/release) of stored values, similar to reference counting patterns.
-
-- **Comparison Function:** Values are sorted using a user-provided comparison function returning `<0` (less), `0` (equal), or `>0` (greater).
-
-- **Extra Node Data:** Supports storing custom data alongside tree nodes via "extra" bytes, enabling derived data structures like segment trees or weighted trees.
-
-- **Dirty Tracking:** Nodes can be marked dirty to enable deferred processing or change tracking.
-
-- **Not Thread-Safe:** Tree operations require external synchronization; no built-in thread safety mechanisms.
+- **Target type is `struct mulle__rbtree`** (defined in `mulle-rbtree`), read
+  through the `mulle__rbtree_*` / `mulle_rbnode*` accessor helpers of that
+  library (`_mulle__rbtree_get_nil_node`, `_mulle__rbtree_get_root_node`,
+  `_mulle__rbtree_get_node_value`, `_mulle_rbnode_is_red`,
+  `_mulle_rbnode_is_black`, `_mulle_rbnode_is_dirty`,
+  `_mulle_rbnode_is_marked`, ...). The debug functions expect a fully
+  initialized tree.
+- **Validation checks the five classic red-black properties**: (1) every node
+  is red or black, (2) the root is black, (3) the NIL leaves are black, (4) a
+  red node never has a red child, (5) every root-to-leaf path contains the
+  same number of black nodes. It additionally checks parent-child pointer
+  consistency and that a marked-dirty node always has a marked-dirty parent.
+- **Validation reports an error string, not a bool.** `mulle__rbtree_validate`
+  returns `NULL` when the tree is valid and a human-readable constant
+  `char *` (e.g. `"Root node is not black"`) for the first violation found.
+  The returned string must not be freed.
+- **Value printing is pluggable.** The DOT printer takes a
+  `void (*)(FILE *, void *)` callback and falls back to printing the numeric
+  node id when the callback is `NULL`. The ASCII printer takes a
+  `char *(*)(void *)` callback that must return a freshly allocated,
+  `mulle_free`-able string, and it **requires** a non-`NULL` callback (the
+  implementation calls `abort()` otherwise).
+- **I/O goes through `mulle-fprintf`.** A `NULL` `fp` routes output to
+  `stdout`.
+- **Not thread-safe.** Like the underlying tree, these helpers require
+  external synchronization when shared.
 
 ## 3. Core API & Data Structures
 
-### 3.1 `mulle-rbtree.h` - High-Level Convenience API
+The complete public API lives in a single header, `src/mulle-rbtree-debug.h`
+(which includes the generated `mulle-rbtree-debug/include.h`). There are no
+other public headers and no data structures of its own — it only operates on
+the `struct mulle__rbtree` / `struct mulle_rbnode` types supplied by
+`mulle-rbtree`. All exported functions are declared with the
+`MULLE__RBTREE__DEBUG_GLOBAL` linkage macro.
 
-#### `struct mulle_rbtree`
+### 3.1 `mulle-rbtree-debug.h`
 
-- **Purpose:** Opaque convenient wrapper around the red-black tree that manages payload lifecycle automatically.
+#### `mulle__rbtree_validate`
 
-- **Key Fields:** (Private, implementation details; accessed via functions)
-  - Internal `mulle__rbtree` base structure
-  - Comparison function pointer for sorting payloads
-  - Value callback structure for retain/release operations
-  - Optional "dirty" callback for tracking changes
-
-- **Lifecycle Functions:**
-  - `mulle_rbtree_init()` / `_mulle_rbtree_init()`: Initialize a tree with a comparison function, value callbacks, and allocator.
-  - `mulle_rbtree_init_with_config()` / `_mulle_rbtree_init_with_config()`: Initialize with a config structure for advanced options.
-  - `mulle_rbtree_done()` / `_mulle_rbtree_done()`: Clean up the tree, releasing all payloads via the callback.
-
-- **Core Operations:**
-  - `mulle_rbtree_add()` / `_mulle_rbtree_add()`: Insert a value into the tree (returns 0 on success, errno on failure).
-  - `mulle_rbtree_remove()` / `_mulle_rbtree_remove()`: Remove a value from the tree (returns 0 on success).
-  - `mulle_rbtree_remove_node()` / `_mulle_rbtree_remove_node()`: Remove a specific node by its address.
-  - `mulle_rbtree_find()`: Locate a value by key (exact match via comparison function).
-  - `mulle_rbtree_find_equal_or_greater()`: Find a value matching the key or the next greater one.
-  - `mulle_rbtree_walk()`: Iterate forward through values in sorted order, calling a callback for each.
-
-- **Enumeration:**
-  - `mulle_rbtree_enumerate()`: Create an enumerator for forward iteration.
-  - `mulle_rbtreeenumerator_next()`: Get the next value from an enumerator.
-  - `mulle_rbtree_for()`: Macro for convenient forward iteration loops.
-  - `mulle_rbtree_reverseenumerate()`: Create an enumerator for reverse iteration.
-  - `mulle_rbtreereverseenumerator_next()`: Get the next value from a reverse enumerator.
-  - `mulle_rbtree_reversefor()`: Macro for convenient reverse iteration loops.
-
-- **Inspection:**
-  - `mulle_rbtree_get_allocator()`: Retrieve the allocator used by the tree.
-  - `_mulle_rbtree_walk_dirty()`: Process all nodes marked as dirty.
-
-#### `struct mulle_rbtree_config`
-
-- **Purpose:** Configuration structure for advanced tree initialization.
-
-- **Fields:**
-  - `comparison`: Function pointer for comparing payloads.
-  - `dirty`: Optional callback invoked when nodes are marked dirty.
-  - `callback`: Pointer to value callback structure for lifecycle management.
-  - `node_extra`: Number of extra bytes to allocate per node (for custom data).
-  - `options`: Bitfield for initialization options (reserved for future use).
-
-### 3.2 `mulle--rbtree.h` - Low-Level Implementation API
-
-#### `struct mulle__rbtree`
-
-- **Purpose:** The underlying red-black tree structure managing tree topology and operations at the node level.
-
-- **Usage Pattern:** Direct node manipulation; used by library developers and advanced users needing fine-grained control.
-
-- **Lifecycle Functions:**
-  - `_mulle__rbtree_init()`: Initialize an empty tree with options and allocator.
-  - `_mulle__rbtree_done()`: Destroy the tree and free all nodes.
-
-- **Node Operations:**
-  - `_mulle__rbtree_new_node()`: Create a new tree node with a payload.
-  - `_mulle__rbtree_free_node()`: Free a node (the node must be already removed from the tree).
-  - `_mulle__rbtree_insert_node()`: Insert a node into the tree using a comparison function (returns 0 on success).
-  - `_mulle__rbtree_insert_node_before_node()`: Insert a new node directly before an existing node (bypasses comparison).
-  - `_mulle__rbtree_insert_node_after_node()`: Insert a new node directly after an existing node (bypasses comparison).
-  - `_mulle__rbtree_remove_node()`: Remove a node from the tree.
-  - `_mulle__rbtree_get_node_value()`: Extract the payload from a node (works with extra data).
-
-- **Tree Navigation:**
-  - `_mulle__rbtree_find_node()`: Locate a node by payload using a comparison function.
-  - `_mulle__rbtree_find_node_equal_or_greater()`: Find a node with matching payload or the next greater one.
-  - `_mulle__rbtree_next_node()`: Get the in-order successor of a node.
-  - `_mulle__rbtree_previous_node()`: Get the in-order predecessor of a node.
-  - `_mulle__rbtree_find_leftmost_node()`: Find the smallest element in a subtree.
-  - `_mulle__rbtree_find_rightmost_node()`: Find the largest element in a subtree.
-
-- **Iteration:**
-  - `_mulle__rbtree_walk()`: Call a callback for each node in sorted order.
-  - `_mulle__rbtree_walk_reverse()`: Call a callback for each node in reverse sorted order.
-
-- **Dirty Tracking:**
-  - `_mulle__rbtree_mark_node_as_dirty()`: Mark a node as dirty.
-  - `_mulle__rbtree_walk_dirty()`: Process nodes marked as dirty.
-
-- **Inspection:**
-  - `_mulle__rbtree_get_allocator()`: Retrieve the allocator.
-  - `_mulle__rbtree_get_root_node()`: Get the root node.
-  - `_mulle__rbtree_get_nil_node()`: Get the sentinel nil node.
-  - `mulle__rbtree_validate()`: Validate tree invariants (returns 0 if valid).
-
-#### `struct mulle_rbnode`
-
-- **Purpose:** Individual tree node structure containing tree topology and payload storage.
-
-- **Key Fields:**
-  - `_parent`: Pointer to parent node (managed internally).
-  - `_left`: Pointer to left child (managed internally).
-  - `_right`: Pointer to right child (managed internally).
-  - `_color`: Node color (red/black) and dirty flag (managed internally).
-  - `payload`: Void pointer to the stored value.
-
-- **Node Utilities:**
-  - `_mulle_rbnode_get_payload()`: Retrieve the payload from a node.
-  - `_mulle_rbnode_set_payload()`: Set a node's payload (no retain semantics).
-  - `_mulle_rbnode_get_extra()`: Access custom extra data appended to the node.
-  - `_mulle_rbnode_is_black()`: Check if a node is black.
-  - `_mulle_rbnode_is_red()`: Check if a node is red.
-  - `_mulle_rbnode_is_dirty()`: Check if a node is marked dirty.
-  - `_mulle_rbnode_set_dirty()`: Mark a node as dirty.
-  - `_mulle_rbnode_clear_dirty()`: Clear the dirty flag.
-
-### 3.3 Comparison Function Convention
-
-All tree operations that search or insert require a comparison function with this prototype:
+- **Purpose:** Verify that a red-black tree satisfies all red-black tree
+  invariants (root/NIL black, no red-red, equal black heights, consistent
+  parent pointers, consistent dirty flags).
+- **Signature (verbatim):**
 
 ```c
-int (*comparison)(void *a, void *b)
+MULLE__RBTREE__DEBUG_GLOBAL
+char  *mulle__rbtree_validate(struct mulle__rbtree *a_tree);
 ```
 
-**Return value interpretation:**
-- `< 0`: `a < b` (a comes before b in sort order)
-- `0`: `a == b` (values are equal)
-- `> 0`: `a > b` (a comes after b in sort order)
+- **Return value:**
+  - `NULL` — the tree is valid. Also returned when `a_tree == NULL` or the
+    tree is empty (root == nil).
+  - otherwise — a constant error-message string describing the first
+    violation (do not free it).
 
-**Standard comparisons:**
-- `strcmp` for C strings
-- Pointer comparison for custom structures (with custom comparator function)
+#### `mulle__rbtree_node_dot_fprintf`
+
+- **Purpose:** Write the tree as Graphviz DOT source (a `digraph RBTree {...}`
+  block) for use with `dot`/`xdot` or for debugging dumps.
+- **Signature (verbatim):**
+
+```c
+MULLE__RBTREE__DEBUG_GLOBAL
+void  mulle__rbtree_node_dot_fprintf( FILE *fp,
+                                      struct mulle__rbtree *tree,
+                                      void (*print_value_fn)( FILE *fp, void *));
+```
+
+- **Behavior:**
+  - `fp == NULL` → output goes to `stdout`.
+  - `print_value_fn == NULL` → node labels are the numeric node id (printed
+    with `mulle_fprintf`).
+  - Present children get edges labeled `L`/`R`; missing children are drawn as
+    point-shaped `nil_<id>` leaves.
+  - Fill color encodes state: `red`/`black` normally, `lightcoral`/`darkgray`
+    when dirty. If the tree was created with the
+    `mulle_rbtree_option_use_marker` option, unmarked nodes use `dotted` or
+    `dashed` styles instead.
+
+#### `mulle__rbtree_node_ascii_fprintf`
+
+- **Purpose:** Render the tree as a human-readable ASCII diagram with `\`/`/`
+  connector lines.
+- **Signature (verbatim):**
+
+```c
+MULLE__RBTREE__DEBUG_GLOBAL
+void  mulle__rbtree_node_ascii_fprintf( FILE *fp,
+                                        struct mulle__rbtree *tree,
+                                        char *(*print_value_fn)( void *));
+```
+
+- **Behavior:**
+  - `fp == NULL` → output goes to `stdout`.
+  - `print_value_fn` **must not be `NULL`** (the implementation calls
+    `abort()` otherwise). It is called once per node and must return a
+    `char *`; the library frees it with `mulle_free`.
+  - An empty tree prints `(empty tree)`; a `NULL` tree prints `NULL`.
+  - Each node label is the printed value followed by a state character:
+    `r` red, `b` black, `R` red+dirty, `B` black+dirty.
+
+#### Version macro
+
+```c
+#define MULLE__RBTREE__DEBUG_VERSION   ((0UL << 20) | (1 << 8) | 3)
+```
+
+Consumed by the mulle-sde dependency version-check mechanism. Bumped from
+`(1 << 8) | 2` to `(1 << 8) | 3`.
 
 ## 4. Performance Characteristics
 
-- **Insertion:** O(log n) average and worst-case time, O(1) space per node.
-- **Deletion:** O(log n) average and worst-case time.
-- **Search (find/lookup):** O(log n) average and worst-case time.
-- **Walk/Enumerate:** O(n) time to visit all nodes.
-- **Memory:** Each node requires 48 bytes on 64-bit systems (5 pointers + color field) plus payload space and any extra data.
-
-**Trade-offs:**
-- **Space vs. Complexity:** Red-black trees use more memory than simpler structures (arrays) but guarantee logarithmic operations and support dynamic insertion/deletion.
-- **Rebalancing Cost:** Insertions and deletions may require tree rotations and color changes, adding constant-factor overhead compared to simpler trees.
-
-**Thread Safety:** The tree is not thread-safe. External synchronization (mutexes, atomic operations) is required for multi-threaded access.
+- **Validation:** O(n) over the visited nodes. It recurses into every subtree
+  (red-red/parent/dirty checks) and makes an additional pass per node while
+  computing black heights. It allocates no heap memory; stack usage is O(tree
+  height), worst case O(n) for a degenerate input.
+- **DOT output:** O(n) — one or two short `mulle_fprintf` lines per node plus
+  per-child edges, written incrementally.
+- **ASCII output:** O(n) for the layout pass, then O(n × (n + line width))
+  string assembly in the current implementation (parent nodes are located by
+  linear scan and level buffers are copied). Fine for small debug trees;
+  avoid for large ones.
+- **Memory:** DOT output allocates nothing; ASCII output allocates one label
+  string per node (freed internally) and one line buffer per tree level.
+- **Thread safety:** Not thread-safe; requires external synchronization.
 
 ## 5. AI Usage Recommendations & Patterns
 
-### Best Practices:
+- **Best Practices:**
+  - Add the dependency with `mulle-sde add github:mulle-core/mulle-rbtree-debug`
+    and include `<mulle-rbtree-debug/mulle-rbtree-debug.h>`.
+  - Call `mulle__rbtree_validate` after any sequence of inserts/deletes in
+    tests; treat any non-`NULL` return as a hard error and report the string.
+  - Pass `NULL` as the `print_value_fn` for a minimal DOT dump (numeric ids)
+    or provide a callback when payloads are wanted.
+  - Always use the ASCII printer with a callback that `mulle_malloc`s its
+    result string — the library frees it.
+  - Guard debug output behind a debug flag/switch in production code; this
+    library adds I/O overhead and is meant for diagnostics.
 
-1. **Use the High-Level API When Possible:** `mulle_rbtree` is simpler and safer than `mulle__rbtree`; it automatically manages payloads via callbacks.
+- **Common Pitfalls:**
+  - `mulle__rbtree_validate` returns a `char *`, not an `int`. Check for
+    `NULL` (valid) vs. non-`NULL` (invalid) — do not test `== 0`.
+  - Do **not** free the error string returned by `mulle__rbtree_validate`; it
+    is a constant, shared message.
+  - Do **not** pass a `NULL` `print_value_fn` to
+    `mulle__rbtree_node_ascii_fprintf` — it aborts.
+  - The printing callbacks must not retain or deep-copy nothing except what
+    they print; DOT uses the value pointer as-is.
+  - These helpers only diagnose/render; they never fix a broken tree.
 
-2. **Provide Correct Comparison Functions:** The comparison function is critical; incorrect implementations lead to corrupt trees or logic errors. Test comparison functions thoroughly, especially with edge cases (NULL values, equal elements, etc.).
-
-3. **Always Call Done/Cleanup:** Ensure `mulle_rbtree_done()` is called to release payloads and internal memory. Use RAII patterns if available.
-
-4. **Choose Appropriate Value Callbacks:** Use `mulle_container_valuecallback_copied_cstring` for string payloads or provide custom callbacks that correctly retain/release your data type.
-
-5. **Allocator Management:** Pass the correct allocator; mismatch between allocation and deallocation can cause corruption.
-
-### Common Pitfalls:
-
-1. **Modifying Payloads In-Place:** Do not modify payload values after insertion without removing and re-adding the node; this breaks tree sort order invariants.
-
-2. **Comparison Function Side Effects:** Comparison functions should be pure (no side effects); they may be called multiple times for a single operation.
-
-3. **Memory Leaks with Custom Callbacks:** If using custom value callbacks, ensure retain() and release() are correctly paired; missing releases leak memory.
-
-4. **Iterating While Modifying:** Do not remove or add nodes while walking/enumerating; use separate passes or collect nodes first, then modify.
-
-5. **NULL Tree Operations:** Some functions check for NULL tree pointers and return silently; always validate tree pointers before use in performance-critical code.
-
-### Idiomatic Usage:
-
-```c
-// Simple iteration over sorted values
-mulle_rbtree_for(tree, value)
-{
-    process_value(value);
-}
-
-// Reverse iteration
-mulle_rbtree_reversefor(tree, value)
-{
-    process_value_reverse(value);
-}
-
-// Manual enumeration with early exit
-struct mulle_rbtreeenumerator rover = mulle_rbtree_enumerate(tree);
-void *value;
-while (_mulle_rbtreeenumerator_next(&rover, &value))
-{
-    if (should_break(value))
-        break;
-}
-mulle_rbtreeenumerator_done(&rover);
-```
+- **Idiomatic usage (from the test suite):**
+  - The validation kept in tests: build a tree, run mutating operations, then
+    `err = mulle__rbtree_validate( &tree); if( err) fail if err != NULL`.
+  - The dependency's `mulle__rbtree` API is the low-level node API
+    (`_mulle__rbtree_init`, `_mulle_storage_malloc`/`_mulle__rbtree_init_node`
+    or `_mulle__rbtree_new_node`, `_mulle__rbtree_remove_node`,
+    `_mulle__rbtree_done`).
 
 ## 6. Integration Examples
 
-### Example 1: Basic String Tree Creation and Iteration
+The examples below build small trees by hand (as the test suite does, using
+the low-level `mulle-rbtree` node API) so they are self-contained and only
+depend on the two public debug functions.
+
+### Example 1: Validating a Manually Built Tree
 
 ```c
-#include <mulle-rbtree/mulle-rbtree.h>
+#include <mulle-rbtree-debug/mulle-rbtree-debug.h>
 #include <stdio.h>
-#include <string.h>
 
-struct mulle_rbtree tree;
-
-// Initialize with strcmp for sorting strings,
-// copied_cstring callback to retain/release strings
-mulle_rbtree_init(&tree,
-                   (int (*)(void *, void *)) strcmp,
-                   &mulle_container_valuecallback_copied_cstring,
-                   NULL);  // Use default allocator
-
-// Add values
-mulle_rbtree_add(&tree, "apple");
-mulle_rbtree_add(&tree, "cherry");
-mulle_rbtree_add(&tree, "banana");
-
-// Iterate in sorted order and print
-mulle_rbtree_for(&tree, value)
+int  main( void)
 {
-    printf("%s\n", (char *) value);
-}
-// Output: apple, banana, cherry
+   struct mulle__rbtree   tree;
+   struct mulle_rbnode    *node1;
+   struct mulle_rbnode    *node2;
+   struct mulle_rbnode    *node3;
+   char                   *err;
 
-mulle_rbtree_done(&tree);
+   _mulle__rbtree_init( &tree, NULL);
+
+   // root node, black
+   node1 = _mulle_storage_malloc( &tree._nodes);
+   _mulle__rbtree_init_node( &tree, node1, (void *) 5);
+   node1->_color = mulle__rbtree_black;
+
+   // two red children
+   node2 = _mulle_storage_malloc( &tree._nodes);
+   _mulle__rbtree_init_node( &tree, node2, (void *) 3);
+   node2->_color  = mulle__rbtree_red;
+   node2->_parent = node1;
+   node1->_left   = node2;
+
+   node3 = _mulle_storage_malloc( &tree._nodes);
+   _mulle__rbtree_init_node( &tree, node3, (void *) 7);
+   node3->_color  = mulle__rbtree_red;
+   node3->_parent = node1;
+   node1->_right  = node3;
+
+   tree._root = node1;
+
+   // NULL means valid, otherwise err is a constant message string
+   err = mulle__rbtree_validate( &tree);
+   if( err)
+   {
+      fprintf( stderr, "INVALID: %s\n", err);
+      return( 1);
+   }
+
+   _mulle__rbtree_done( &tree);
+   return( 0);
+}
 ```
 
-### Example 2: Finding and Removing Values
+### Example 2: Dumping a Tree as Graphviz DOT
 
 ```c
-#include <mulle-rbtree/mulle-rbtree.h>
+#include <mulle-rbtree-debug/mulle-rbtree-debug.h>
+#include <stdio.h>
 
-struct mulle_rbtree tree;
-mulle_rbtree_init(&tree,
-                   (int (*)(void *, void *)) strcmp,
-                   &mulle_container_valuecallback_copied_cstring,
-                   NULL);
+static void  print_name( FILE *fp, void *value)
+{
+   fprintf( fp, "%s", (char *) value);
+}
 
-mulle_rbtree_add(&tree, "alice");
-mulle_rbtree_add(&tree, "bob");
-mulle_rbtree_add(&tree, "charlie");
+int  main( void)
+{
+   struct mulle__rbtree   tree;
+   struct mulle_rbnode    *node1;
+   struct mulle_rbnode    *node2;
+   struct mulle_rbnode    *node3;
 
-// Find exact match
-char *found = mulle_rbtree_find(&tree, "bob");
-if (found)
-    printf("Found: %s\n", found);  // Output: Found: bob
+   _mulle__rbtree_init( &tree, NULL);
 
-// Find equal or greater (useful for range queries)
-char *greater = mulle_rbtree_find_equal_or_greater(&tree, "anna");
-if (greater)
-    printf("Next: %s\n", greater);  // Output: Next: bob
+   node1 = _mulle_storage_malloc( &tree._nodes);
+   _mulle__rbtree_init_node( &tree, node1, (void *) "root");
+   node1->_color = mulle__rbtree_black;
 
-// Remove value
-int result = mulle_rbtree_remove(&tree, "bob");
-if (result == 0)
-    printf("Removed bob\n");
+   node2 = _mulle_storage_malloc( &tree._nodes);
+   _mulle__rbtree_init_node( &tree, node2, (void *) "left");
+   node2->_color  = mulle__rbtree_red;
+   node2->_parent = node1;
+   node1->_left   = node2;
 
-mulle_rbtree_done(&tree);
+   node3 = _mulle_storage_malloc( &tree._nodes);
+   _mulle__rbtree_init_node( &tree, node3, (void *) "right");
+   node3->_color  = mulle__rbtree_red;
+   node3->_parent = node1;
+   node1->_right  = node3;
+
+   tree._root = node1;
+
+   mulle__rbtree_node_dot_fprintf( stdout, &tree, print_name);
+
+   _mulle__rbtree_done( &tree);
+   return( 0);
+}
 ```
 
-### Example 3: Reverse Iteration and Walking with Callback
+### Example 3: Rendering a Tree as ASCII Art
 
 ```c
-#include <mulle-rbtree/mulle-rbtree.h>
+#include <mulle-rbtree-debug/mulle-rbtree-debug.h>
+#include <stdio.h>
 
-static int print_callback(void *value, void *userinfo)
+static char  *print_int( void *value)
 {
-    printf("%s\n", (char *) value);
-    return 1;  // Continue iteration
+   char   *s;
+
+   s = mulle_malloc( 16);
+   sprintf( s, "%d", (int)(intptr_t) value);
+   return( s);
 }
 
-struct mulle_rbtree tree;
-mulle_rbtree_init(&tree,
-                   (int (*)(void *, void *)) strcmp,
-                   &mulle_container_valuecallback_copied_cstring,
-                   NULL);
-
-mulle_rbtree_add(&tree, "dog");
-mulle_rbtree_add(&tree, "cat");
-mulle_rbtree_add(&tree, "ant");
-mulle_rbtree_add(&tree, "bear");
-
-// Walk forward
-printf("Forward:\n");
-mulle_rbtree_walk(&tree, print_callback, NULL);
-
-// Reverse iteration
-printf("Reverse:\n");
-mulle_rbtree_reversefor(&tree, value)
+int  main( void)
 {
-    printf("%s\n", (char *) value);
+   struct mulle__rbtree   tree;
+   struct mulle_rbnode    *node1;
+   struct mulle_rbnode    *node2;
+   struct mulle_rbnode    *node3;
+
+   _mulle__rbtree_init( &tree, NULL);
+
+   node1 = _mulle_storage_malloc( &tree._nodes);
+   _mulle__rbtree_init_node( &tree, node1, (void *) 5);
+   node1->_color = mulle__rbtree_black;
+
+   node2 = _mulle_storage_malloc( &tree._nodes);
+   _mulle__rbtree_init_node( &tree, node2, (void *) 3);
+   node2->_color  = mulle__rbtree_red;
+   node2->_parent = node1;
+   node1->_left   = node2;
+
+   node3 = _mulle_storage_malloc( &tree._nodes);
+   _mulle__rbtree_init_node( &tree, node3, (void *) 7);
+   node3->_color  = mulle__rbtree_red;
+   node3->_parent = node1;
+   node1->_right  = node3;
+
+   tree._root = node1;
+
+   mulle__rbtree_node_ascii_fprintf( stdout, &tree, print_int);
+
+   _mulle__rbtree_done( &tree);
+   return( 0);
 }
-
-mulle_rbtree_done(&tree);
-```
-
-### Example 4: Custom Comparison Function (Integers)
-
-```c
-#include <mulle-rbtree/mulle-rbtree.h>
-
-// Custom comparison for integer pointers
-static int compare_ints(void *a, void *b)
-{
-    int *ia = (int *) a;
-    int *ib = (int *) b;
-    return (*ia < *ib) ? -1 : (*ia > *ib) ? 1 : 0;
-}
-
-// Custom callback to free integers on release
-static void int_release(struct mulle_container_valuecallback *callback,
-                        void *p,
-                        struct mulle_allocator *allocator)
-{
-    mulle_free(p);
-}
-
-static void *int_retain(struct mulle_container_valuecallback *callback,
-                        void *p,
-                        struct mulle_allocator *allocator)
-{
-    int *copy = mulle_malloc(sizeof(int), allocator);
-    if (copy)
-        *copy = *(int *) p;
-    return copy;
-}
-
-struct mulle_rbtree tree;
-struct mulle_container_valuecallback int_callback = {
-    .release = int_release,
-    .retain = int_retain
-};
-
-mulle_rbtree_init(&tree, compare_ints, &int_callback, NULL);
-
-int val1 = 42, val2 = 10, val3 = 99;
-mulle_rbtree_add(&tree, &val1);
-mulle_rbtree_add(&tree, &val2);
-mulle_rbtree_add(&tree, &val3);
-
-// Find will locate values in sorted order (10, 42, 99)
-int search_key = 42;
-int *found = mulle_rbtree_find(&tree, &search_key);
-if (found)
-    printf("Found: %d\n", *found);
-
-mulle_rbtree_done(&tree);
-```
-
-### Example 5: Low-Level Node API Usage
-
-```c
-#include <mulle-rbtree/mulle--rbtree.h>
-#include <stdlib.h>
-#include <string.h>
-
-struct mulle__rbtree tree;
-_mulle__rbtree_init(&tree, NULL);
-
-// Create and insert nodes directly
-struct mulle_rbnode *node1 = _mulle__rbtree_new_node(&tree, strdup("zebra"));
-struct mulle_rbnode *node2 = _mulle__rbtree_new_node(&tree, strdup("apple"));
-struct mulle_rbnode *node3 = _mulle__rbtree_new_node(&tree, strdup("mango"));
-
-_mulle__rbtree_insert_node(&tree, node1, (void *) strcmp);
-_mulle__rbtree_insert_node(&tree, node2, (void *) strcmp);
-_mulle__rbtree_insert_node(&tree, node3, (void *) strcmp);
-
-// Manually walk and print nodes
-struct mulle_rbnode *nil = _mulle__rbtree_get_nil_node(&tree);
-struct mulle_rbnode *current = _mulle__rbtree_find_leftmost_node(&tree,
-                                                                 _mulle__rbtree_get_root_node(&tree));
-
-while (current != nil)
-{
-    char *payload = _mulle_rbnode_get_payload(current);
-    printf("%s\n", payload);
-    current = _mulle__rbtree_next_node(&tree, current);
-}
-
-// Clean up
-_mulle__rbtree_done(&tree);
-```
-
-### Example 6: Enumerator with Early Exit
-
-```c
-#include <mulle-rbtree/mulle-rbtree.h>
-#include <string.h>
-
-struct mulle_rbtree tree;
-mulle_rbtree_init(&tree,
-                   (int (*)(void *, void *)) strcmp,
-                   &mulle_container_valuecallback_copied_cstring,
-                   NULL);
-
-mulle_rbtree_add(&tree, "one");
-mulle_rbtree_add(&tree, "two");
-mulle_rbtree_add(&tree, "three");
-mulle_rbtree_add(&tree, "four");
-
-// Enumerate with early exit condition
-struct mulle_rbtreeenumerator rover = mulle_rbtree_enumerate(&tree);
-void *value;
-
-while (_mulle_rbtreeenumerator_next(&rover, &value))
-{
-    printf("Processing: %s\n", (char *) value);
-    if (!strcmp((char *) value, "three"))
-    {
-        printf("Found target, stopping\n");
-        break;
-    }
-}
-
-mulle_rbtreeenumerator_done(&rover);
-mulle_rbtree_done(&tree);
 ```
 
 ## 7. Dependencies
 
-Direct mulle-sde dependencies:
-- `mulle-storage`: Memory management and allocation utilities for tree nodes and internal structures
+Direct `mulle-sde` dependencies (from `.mulle/etc/sourcetree/config`):
+
+- `mulle-rbtree` — provides `struct mulle__rbtree`, `struct mulle_rbnode`,
+  and every node/tree accessor the debug functions operate on.
+- `mulle-fprintf` — used for all formatted output (`mulle_fprintf`).
+
+## 8. Shortcut
+
+The previous `index.md` was committed as `b5b10d1` ("docs: add comprehensive
+AI-oriented API documentation") on 2026-08-04. Since that commit, the only
+public-API change is a version bump (`MULLE__RBTREE__DEBUG_VERSION` from
+`(1 << 8) | 2` to `(1 << 8) | 3`). The prior document mistakenly described the
+`mulle-rbtree` dependency API instead of this project's API, so it was
+rewritten here to document the actual three public functions of
+`mulle-rbtree-debug`.

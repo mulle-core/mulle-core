@@ -165,14 +165,14 @@ The low-level tree structure.
 - `_mulle__rbtree_walk_dirty()`: Process all dirty nodes and clear flags
 
 **Inspection:**
-- `_mulle__rbtree_get_root_node()`: Get root node
+- `_mulle__rbtree_get_root_node( const struct mulle__rbtree *a_tree)`: Get root node (takes a const tree, returns non-const node)
 - `_mulle__rbtree_is_root_node()`: Check if node is root
-- `_mulle__rbtree_get_nil_node()`: Get sentinel nil node
+- `_mulle__rbtree_get_nil_node( const struct mulle__rbtree *a_tree)`: Get sentinel nil node (takes a const tree, returns non-const node)
 - `_mulle__rbtree_is_nil_node()`: Check if node is nil sentinel
 - `_mulle__rbtree_get_allocator()`: Get allocator
 - `_mulle__rbtree_get_count()`: Get number of nodes in tree (recursive count)
 - `_mulle__rbtree_is_dirty()`: Check if tree has dirty nodes
-- `_mulle__rbtree_get_extra_size()`: Get size of extra memory per node
+- `_mulle__rbtree_get_extra_size()`: Get size of extra memory per node (storage element size minus `offsetof( struct mulle_rbnode, payload)`, not `sizeof( struct mulle_rbnode)`)
 
 **Dirty and Marker Support:**
 - `_mulle__rbtree_mark_node_as_dirty()`: Mark node and propagate dirty flag to ancestors
@@ -220,10 +220,10 @@ Configuration structure for advanced initialization.
 **Core Operations:**
 - `mulle_rbtree_add()`: Add value to tree; returns 0 on success, errno on failure (NULL-safe)
 - `_mulle_rbtree_add()`: Unsafe version; handles retain via callback
-- `mulle_rbtree_remove()`: Remove value from tree; returns 0 on success, errno on failure (NULL-safe)
-- `_mulle_rbtree_remove()`: Unsafe version; handles release via callback
+- `mulle_rbtree_remove()`: Remove value from tree; returns 0 on success, `ENOENT` if the value is not present (NULL-safe)
+- `_mulle_rbtree_remove()`: Unsafe version; handles release via callback; asserts on a NULL tree and returns `ENOENT` for absent keys
 - `mulle_rbtree_remove_node()`: Remove by node pointer (NULL-safe)
-- `_mulle_rbtree_remove_node()`: Unsafe version
+- `_mulle_rbtree_remove_node()`: Unsafe version; asserts node is non-NULL and not the nil node
 
 **Search Functions:**
 - `mulle_rbtree_find()`: Find value in tree; returns value pointer or NULL
@@ -234,6 +234,8 @@ Configuration structure for advanced initialization.
 - `_mulle_rbtree_walk_dirty()`: Process dirty nodes with dirty callback
 
 **Inspection:**
+- `mulle_rbtree_is_empty( const struct mulle_rbtree *a_tree)`: Check if the tree is empty; treats a NULL tree as empty (returns 1) (NULL-safe)
+- `_mulle_rbtree_is_empty( const struct mulle_rbtree *a_tree)`: Unsafe version (asserts non-NULL tree)
 - `mulle_rbtree_get_allocator()`: Get allocator (NULL-safe)
 - `_mulle_rbtree_get_allocator()`: Unsafe version
 
@@ -284,9 +286,9 @@ Reverse enumerator for tree values.
 - **Enumeration:** O(n) - visit each node once
 
 ### Space Complexity
-- **Per Node:** `sizeof(struct mulle_rbnode)` + `node_extra` bytes
-  - Minimum: 5 pointers + 1 int ≈ 44 bytes on 64-bit systems (with payload)
-  - Additional memory for extra mode as configured
+- **Per Node:** storage element size is the maximum of `offsetof( struct mulle_rbnode, payload) + node_extra` and `sizeof( struct mulle_rbnode)`
+  - Payload mode: `sizeof( struct mulle_rbnode)` = 4 pointers + 1 int ≈ 40 bytes on 64-bit systems
+  - Extra mode: `offsetof( struct mulle_rbnode, payload)` + `node_extra` bytes (the payload pointer slot is reused as the start of the extra area)
 - **Tree Overhead:** 1 sentinel node + storage structure ≈ 60 bytes
 - **Balanced Height:** Maximum height is 2 * log₂(n + 1), typically very shallow
 
@@ -342,7 +344,13 @@ mulle_rbtree_for( &tree, value)
 }
 ```
 
-**7. Extra Mode Usage:**
+**7. Check for Emptiness with `is_empty`:**
+- Use `mulle_rbtree_is_empty()` instead of comparing the root node yourself. It is NULL-safe (a NULL tree is reported as empty) and does not require casting to the low-level `mulle__rbtree`.
+
+**8. Handle ENOENT from `remove`:**
+- Since v0.2.0, `mulle_rbtree_remove()` returns `ENOENT` (rather than crashing or silently succeeding) if the value is not present in the tree. Check the return value to distinguish \"removed\" from \"not found\".
+
+**9. Extra Mode Usage:**
 - Set `node_extra` to size of your data structure minus sizeof(void *)
 - Comparison receives pointer to extra area, not payload pointer
 - Use `_mulle__rbtree_get_node_from_extra()` to convert extra pointer back to node if needed
@@ -741,6 +749,56 @@ int   main( void)
    found = mulle_rbtree_find_equal_or_greater( &tree, (void *)(intptr_t) 60);
    if( ! found)
       printf( "No value >= 60\n");
+
+   mulle_rbtree_done( &tree);
+   return( 0);
+}
+```
+
+### Example 7: Testing for an Empty Tree and ENOENT on Remove
+
+```c
+#include <mulle-rbtree/mulle-rbtree.h>
+
+#include <errno.h>
+#include <assert.h>
+#include <stdio.h>
+#include <string.h>
+
+static int  string_compare( void *a, void *b)
+{
+   return( strcmp( (char *) a, (char *) b));
+}
+
+
+int  main( void)
+{
+   struct mulle_rbtree   tree;
+
+   mulle_rbtree_init( &tree,
+                      string_compare,
+                      &mulle_container_valuecallback_nonowned_cstring,
+                      NULL);
+
+   // a freshly initialized tree is empty
+   assert( mulle_rbtree_is_empty( &tree));
+
+   mulle_rbtree_add( &tree, "bravo");
+   mulle_rbtree_add( &tree, "alpha");
+   mulle_rbtree_add( &tree, "charlie");
+   assert( ! mulle_rbtree_is_empty( &tree));
+
+   // removing a missing key returns ENOENT
+   assert( mulle_rbtree_remove( &tree, "zulu") == ENOENT);
+
+   // removing all values empties it again
+   assert( mulle_rbtree_remove( &tree, "alpha") == 0);
+   assert( mulle_rbtree_remove( &tree, "bravo") == 0);
+   assert( mulle_rbtree_remove( &tree, "charlie") == 0);
+   assert( mulle_rbtree_is_empty( &tree));
+
+   // a NULL tree is treated as empty
+   assert( mulle_rbtree_is_empty( NULL));
 
    mulle_rbtree_done( &tree);
    return( 0);
