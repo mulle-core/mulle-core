@@ -147,6 +147,8 @@ static inline void
                       size_t page_size,
                       struct mulle_allocator *allocator)
 {
+   MULLE_C_UNUSED( allocator);
+
    if( ! page_size)
       page_size = 4096;
 
