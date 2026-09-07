@@ -461,7 +461,21 @@ static inline size_t
 // Default alignment for allocations made through the mulle_allocator vtable.
 // This matches what malloc() guarantees: suitable for any fundamental type.
 //
-#define MULLE_ARENA_DEFAULT_ALIGNMENT   alignof( max_align_t)
+// We can not use `alignof( max_align_t)` directly: MSVC does not declare
+// max_align_t in C mode (even with <stddef.h>). Instead take the alignment of
+// a union of the widest fundamental types, which yields the same value as
+// max_align_t on every ABI (e.g. 16 on the x86-64 System V ABI where
+// long double is 16-aligned, 8 on Windows x64 where long double == double).
+//
+union mulle_arena_max_align
+{
+   long long        _ll;
+   long double      _ld;
+   void            *_p;
+   void           (*_fp)( void);
+};
+
+#define MULLE_ARENA_DEFAULT_ALIGNMENT   alignof( union mulle_arena_max_align)
 
 
 //
