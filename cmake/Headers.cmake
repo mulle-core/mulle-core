@@ -92,6 +92,7 @@ mintomic/mintomic_stdint.h
 
 include_directories(
 AFTER SYSTEM "${CMAKE_CURRENT_SOURCE_DIR}"
+AFTER SYSTEM "${CMAKE_CURRENT_SOURCE_DIR}/src"
 )
 
 set( MINTOMIC_PRIVATE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/mintomic/private")
