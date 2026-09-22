@@ -54,6 +54,19 @@
 # define MULLE_THREAD_USE_PTHREADS 1
 #endif
 
+// cosmopolitan has a <threads.h> but it only provides thrd_*, not the
+// mtx_t/tss_t types, so __has_include gives a false positive
+#if defined( __COSMOPOLITAN__) && ! defined( MULLE_THREAD_USE_PTHREADS)
+# define MULLE_THREAD_USE_PTHREADS 1
+#endif
+
+// ThreadSanitizer does not intercept thrd_create, so the C11 thread backend
+// would produce threads without TSan state and crash. MULLE_THREAD_TSAN is
+// set by mulle-atomic.h (included above) when a TSan build is detected.
+#if defined( MULLE_THREAD_TSAN) && ! defined( MULLE_THREAD_USE_PTHREADS)
+# define MULLE_THREAD_USE_PTHREADS 1
+#endif
+
 
 // clang lies about __STDC_NO_THREADS__, gcc does not necessary
 // windows thinks it has threads.h but its apparently something else ?

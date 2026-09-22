@@ -35,6 +35,7 @@
 #include "mulle--rbtree.h"
 
 #include <errno.h>
+#include <limits.h>
 
 /*-
  * Copyright (C) 2006 Jason Evans <jasone@FreeBSD.org>.
@@ -97,13 +98,13 @@
 // };
 //
 
-void   _mulle__rbtree_init_with_options( struct mulle__rbtree *a_tree,
-                                         size_t node_extra_size,
-                                         unsigned int options,
-                                         struct mulle_allocator *allocator)
+void   _mulle__rbtree_init_with_config( struct mulle__rbtree *a_tree,
+                                        const struct mulle__rbtree_config *config,
+                                        struct mulle_allocator *allocator)
 {
    struct mulle_rbnode   dummy;
    size_t                extra;
+   unsigned int          capacity;
 
    memset( a_tree, 0, sizeof( struct mulle__rbtree));
 
@@ -112,7 +113,7 @@ void   _mulle__rbtree_init_with_options( struct mulle__rbtree *a_tree,
    a_tree->_nil._parent = &a_tree->_nil;
 
    a_tree->_root        = &a_tree->_nil;
-   a_tree->_options     = options;
+   a_tree->_options     = config->options;
 
    // so possibly extend node_extra for alignment
    // assert( extra && (options & mulle_rbtree_option_use_extra))
@@ -120,15 +121,45 @@ void   _mulle__rbtree_init_with_options( struct mulle__rbtree *a_tree,
    // extra is the total node size including alignment of the extra area
    // _mulle_rbnode_get_extra returns &dummy.payload, so this computes
    // offsetof( payload) + node_extra_size, which IS the total node size needed
-   extra = &((char *) _mulle_rbnode_get_extra( &dummy))[ node_extra_size] - (char *) &dummy;
+   extra = &((char *) _mulle_rbnode_get_extra( &dummy))[ config->node_extra] - (char *) &dummy;
    if( extra < sizeof( struct mulle_rbnode))
       extra = sizeof( struct mulle_rbnode);
+
+   // capacity is the node pool's bucket size. 0 means the caller did not care.
+   capacity = config->capacity;
+   if( ! capacity)
+      capacity = MULLE__RBTREE_DEFAULT_CAPACITY;
+
+   /*
+    * mulle_structqueue's bucket_size is an unsigned short, while capacity is an
+    * unsigned int, and _mulle_storage_init derives the freed array's sizing and
+    * the spare allowance from the same number. Clamp rather than wrap, so a
+    * too-large request does not become a small bucket with a large allowance.
+    */
+   if( capacity > USHRT_MAX)
+      capacity = USHRT_MAX;
 
    _mulle_storage_init( &a_tree->_nodes,
                         extra,
                         alignof( struct mulle_rbnode),
-                        32,
+                        capacity,
                         allocator);
+}
+
+
+// unchanged signature and behaviour: the default-capacity convenience wrapper
+void   _mulle__rbtree_init_with_options( struct mulle__rbtree *a_tree,
+                                         size_t node_extra,
+                                         unsigned int options,
+                                         struct mulle_allocator *allocator)
+{
+   struct mulle__rbtree_config   config;
+
+   config.node_extra = node_extra;
+   config.options    = options;
+   config.capacity   = 0;
+
+   _mulle__rbtree_init_with_config( a_tree, &config, allocator);
 }
 
 

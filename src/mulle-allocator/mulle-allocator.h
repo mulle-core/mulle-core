@@ -55,12 +55,34 @@
 #include <assert.h>
 
 
-#if MULLE__C11_VERSION < ((3 << 20) | (0 << 8) | 0)
+// keep in sync with src/reflect/_mulle-allocator-versioncheck.h
+#if MULLE__C11_VERSION < ((4 << 20) | (9 << 8) | 0)
 # error "mulle_c11 is too old"
 #endif
 
 
-#define MULLE__ALLOCATOR_VERSION  ((8UL << 20) | (1 << 8) | 0)
+#define MULLE__ALLOCATOR_VERSION  ((9UL << 20) | (0 << 8) | 0)
+
+
+//
+// The library trusts the vector functions you install (the direction "up").
+// The funnel (`_mulle_allocator_reallocarray`, and therefore `malloc`,
+// `realloc`, `allocarray` and `reallocarray`) and the calloc path dispatch
+// straight to your vector and never inspect or guard its arguments.
+// Validating a zero count/size and a `count * size` overflow is the vector's
+// responsibility.
+//
+// Inside the built-in default vector we look the other way, "down" to the
+// platform stdlib. A zero count/size is always checked by the default vector
+// (the platform might accept it). reallocarray is not standard C, so the
+// default vector builds it on realloc, performs the count*size multiplication
+// itself and therefore always checks it. calloc does the multiplication
+// itself, so that redundant check is skipped when MULLE_ALLOCATOR_TRUST_STDLIB
+// is 1 (the default, 0, checks calloc's multiplication as well).
+//
+#ifndef MULLE_ALLOCATOR_TRUST_STDLIB
+# define MULLE_ALLOCATOR_TRUST_STDLIB   0
+#endif
 
 
 /**
@@ -113,19 +135,21 @@ void   mulle_allocation_fail( struct mulle_allocator *allocator,
                               size_t size);
 
 /**
- * This function is used as the default `abafree` function for the `mulle_allocator`
- * struct when no custom `abafree` function is provided. It simply aborts the
- * program when the `aba` (Address-Based Allocation) functionality is used but
- * no custom `abafree` function is set.
+ * The default `abafree` reclaimer. It is used whenever ABA-safe freeing is
+ * attempted without installing a real reclaimer. It prints what is missing --
+ * no ABA reclaimer, a concurrent container tried to free retired storage
+ * through this allocator -- names the remedy (`mulle_aba_init()`) and aborts.
  *
- * The `aba` parameter is the opaque `aba` data associated with the allocator.
- * The `free` parameter is a pointer to the custom `abafree` function that should
- * have been set. The `block` parameter is the memory block that needs to be
- * freed, and the `owner` parameter is the opaque owner data associated with the
- * memory block.
+ * It never returns: it is declared `MULLE_C_NO_RETURN` although it returns
+ * `int`, to match the `abafree` vector type.
+ *
+ * @param aba    the opaque ABA context (unused).
+ * @param free   the deferred free callback the reclaimer would have called.
+ * @param block  the block that was to be released.
+ * @param owner  the opaque owner supplied by the allocator.
  */
-// NO_RETURN really but....
 MULLE__ALLOCATOR_GLOBAL
+MULLE_C_NO_RETURN
 int   mulle_allocator_no_aba_abort( void *aba,
                                     void (*free)( void *, void *),
                                     void *block,
@@ -133,17 +157,22 @@ int   mulle_allocator_no_aba_abort( void *aba,
 
 
 // # pragma mark - Petty Accessors
-typedef int   mulle_allocator_aba_t( void *,
-                                     void (*f)( void *, void *),
-                                     void *,
-                                     void *);
+// mulle_allocator_aba_t / mulle_allocator_abafree_t live in
+// mulle-allocator-struct.h next to the struct they describe.
 
 
 /**
- * Checks if the given `mulle_allocator` instance is the `mulle_stdlib_nofree_allocator` global instance.
+ * Checks whether the given `mulle_allocator` dispatches to stdlib via the
+ * stdlib trampoline.
  *
- * @param p The `mulle_allocator` instance to check.
- * @return 1 if the allocator is the `mulle_stdlib_nofree_allocator` instance, 0 otherwise.
+ * Because the trampoline is shared, this returns non-zero for
+ * `mulle_allocator_stdlib`, for `mulle_allocator_stdlib_nofree` (they differ
+ * only in their `free` function) and for any other allocator that reuses the
+ * same `calloc`. It does not identify `stdlib_nofree` specifically.
+ *
+ * @param p The `mulle_allocator` instance to check. `NULL` means the default
+ *          allocator.
+ * @return 1 if the allocator's `calloc` is the stdlib trampoline, 0 otherwise.
  */
 MULLE__ALLOCATOR_GLOBAL
 int   mulle_allocator_is_stdlib_allocator( const struct mulle_allocator *p);
@@ -173,20 +202,70 @@ static inline void   mulle_allocator_set_aba( struct mulle_allocator *p,
 }
 
 
-typedef void  mulle_allocator_fail_t( struct mulle_allocator *allocator,
-                                      void *,
-                                      size_t);
+/*
+ * Failure handling
+ * ----------------
+ *
+ * `fail` is terminal. It is invoked when an allocation can not be satisfied
+ * and it must not return: it aborts, exits or longjmps. The default handler
+ * `mulle_allocation_fail` prints an error and aborts.
+ *
+ * `fail` is NOT a recovery or retry hook. Recovering from memory pressure is
+ * an allocation strategy and belongs in the `calloc`/`realloc` vectors, which
+ * know their own arena, locks and free lists and can release memory and retry
+ * the request themselves. The library calls a vector once and only invokes
+ * `fail` if that vector ultimately returns NULL. This keeps the failure
+ * policy orthogonal and avoids retry loops, retry counters, livelock and the
+ * reentrancy problems of recovering from `fail`.
+ *
+ * Because the library raises `fail` itself, it does so *after* the
+ * `calloc`/`realloc` vector has already returned (see
+ * `_mulle_allocator_reallocarray` and friends). At that point the allocator's
+ * own lock and internal state are not held and are consistent, so `abort`,
+ * `exit` or `longjmp` out of `fail` is safe with respect to the allocator.
+ * The raise is never made from inside an allocation vector, so this holds for
+ * every allocator, not just one implementation.
+ *
+ * That is not a promise that no lock anywhere is held. The caller may hold a
+ * lock of its own, or `fail` may be reached from inside a consumer's
+ * free/reclaim path; the handler contract in mulle-allocator-struct.h
+ * therefore still warns to assume an arbitrary context. What is excluded is
+ * specifically the allocator's own lock, held only for the duration of a
+ * `calloc`/`realloc` vector, which has already been released.
+ *
+ * Programmer errors (zero size, size overflow) are validated by the default
+ * vector and routed through the same `fail` vector (see
+ * `_mulle_allocator_abort`), so a custom handler observes them. A custom
+ * vector performs its own validation and decides whether to route through
+ * `fail`. There is nothing to recover: the handler is terminal just the same.
+ *
+ * The handler receives the allocator, the failing block (may be NULL) and the
+ * requested size in bytes. For a failed `realloc`, `block` is still owned by
+ * the caller and remains valid.
+ *
+ * See MULLE_ALLOCATOR_BASE in mulle-allocator-struct.h for the full handler
+ * contract.
+ */
 
 /**
  * Sets the failure handler function for the given `mulle_allocator` instance.
  *
  * The `f` parameter is a function pointer to the custom failure handler function that should be used when an allocation fails. If `f` is `NULL`, the `mulle_allocation_fail` function will be used as the default failure handler.
  *
+ * A fail handler is terminal: it must not return, just like the default
+ * `mulle_allocation_fail` which prints an error and aborts. Returning from a
+ * handler is undefined behaviour. To recover from memory pressure, implement
+ * the recovery inside your `calloc`/`realloc` vector instead -- `fail` is not
+ * a retry hook.
+ *
+ * See MULLE_ALLOCATOR_BASE in mulle-allocator-struct.h for the full handler
+ * contract.
+ *
  * @param p The `mulle_allocator` instance to set the failure handler for.
  * @param f The custom failure handler function pointer, or `NULL` to use the default `mulle_allocation_fail` function.
  */
 static inline void   mulle_allocator_set_fail( struct mulle_allocator *p,
-                                               mulle_allocator_fail_t *f _MULLE_C_NO_RETURN)
+                                               mulle_allocator_fail_t f)
 {
    if( ! p)
       p = &mulle_allocator_default;
@@ -194,28 +273,44 @@ static inline void   mulle_allocator_set_fail( struct mulle_allocator *p,
    p->fail = f ? f : mulle_allocation_fail;
 }
 
+//
+// Programmer-error terminal. Never returns.
+//
+// Zero-size and size-overflow are not recoverable, but they are still routed
+// through the allocator's `fail` vector, so a custom handler observes them.
+// Like every other `fail` call it must not return (MULLE_C_NO_RETURN); the
+// vector is trusted to honour that.
+//
+MULLE_C_NO_RETURN
+static inline void   _mulle_allocator_abort( struct mulle_allocator *p,
+                                             void *block,
+                                             size_t size)
+{
+   // NULL means "the default allocator", exactly like the public API
+   if( ! p)
+      p = &mulle_allocator_default;
+   (*p->fail)( p, block, size);
+}
 
 
-
-// # pragma mark - Size computation with underflow checking
+// #pragma mark - Size computation with underflow checking
 
 //
 // Used by consumers of this library, not by mulle_allocator itself.
 //
 // Checked size_t multiplication for allocation size calculations.
-// If the product overflows, calls allocator->fail (which does not return).
+// If the product overflows, it is a programmer error and the allocator's `fail`
+// vector is consulted via _mulle_allocator_abort (terminal, never retried).
 // This prevents wrapped-around sizes from reaching the allocator, where they
 // would silently produce an undersized allocation.
-//
-// These functions will move to mulle-allocator eventually.
-//
-static inline size_t
+MULLE_C_STATIC_ALWAYS_INLINE
+size_t
    mulle_allocator_size_multiply( struct mulle_allocator *allocator,
                                   size_t a,
                                   size_t b)
 {
    if( a && b > (size_t) -1 / a)
-      mulle_allocation_fail( allocator, NULL, (size_t) -1);
+      _mulle_allocator_abort( allocator, NULL, (size_t) -1);
    return( a * b);
 }
 
@@ -224,9 +319,11 @@ static inline size_t
 // To be used by consumers of this library, not by mulle_allocator itself.
 //
 // Checked size_t addition for allocation size calculations.
-// If the sum overflows, calls allocator->fail (which does not return).
+// If the sum overflows, it is a programmer error and the allocator's `fail`
+// vector is consulted via _mulle_allocator_abort (terminal, never retried).
 //
-static inline size_t
+MULLE_C_STATIC_ALWAYS_INLINE
+size_t
    mulle_allocator_size_add( struct mulle_allocator *allocator,
                              size_t a,
                              size_t b)
@@ -235,7 +332,7 @@ static inline size_t
 
    total = a + b;
    if( total < a)
-      mulle_allocation_fail( allocator, NULL, (size_t) -1);
+      _mulle_allocator_abort( allocator, NULL, (size_t) -1);
    return( total);
 }
 
@@ -246,17 +343,34 @@ static inline size_t
 
 MULLE_C_NONNULL_RETURN
 static inline void   *
-   _mulle_allocator_malloc( struct mulle_allocator *p, size_t size)
+   _mulle_allocator_reallocarray( struct mulle_allocator *p,
+                                  void *block,
+                                  size_t n,
+                                  size_t size)
 {
    void   *q;
 
-   if( MULLE_C_UNLIKELY( ! size))
-      (*p->fail)( p, NULL, 0);
-
-   q = (*p->realloc)( NULL, size, p);
+   // the installed vector is trusted to validate block/n/size
+   q = (*p->reallocarray)( block, n, size, p);
    if( MULLE_C_UNLIKELY( ! q))
-      (*p->fail)( p, NULL, size);
+      (*p->fail)( p, block, mulle_allocator_size_multiply( p, n, size));
    return( q);
+}
+
+
+MULLE_C_NONNULL_RETURN
+static inline void   *
+   _mulle_allocator_allocarray( struct mulle_allocator *p, size_t n, size_t size)
+{
+   return( _mulle_allocator_reallocarray( p, NULL, n, size));
+}
+
+
+MULLE_C_NONNULL_RETURN
+static inline void   *
+   _mulle_allocator_malloc( struct mulle_allocator *p, size_t size)
+{
+   return( _mulle_allocator_reallocarray( p, NULL, 1, size));
 }
 
 
@@ -266,14 +380,10 @@ static inline void   *
 {
    void   *q;
 
-   // zero size is a programmers error, catch it in all builds
-   if( MULLE_C_UNLIKELY( ! n || ! size))
-      (*p->fail)( p, NULL, 0);
-   assert( size <= SIZE_MAX / n);  // overflow check
-
+   // the installed vector is trusted to validate n/size
    q = (*p->calloc)( n, size, p);
    if( MULLE_C_UNLIKELY( ! q))
-      (*p->fail)( p, NULL, n * size);
+      (*p->fail)( p, NULL, mulle_allocator_size_multiply( p, n, size));
    return( q);
 }
 
@@ -286,25 +396,8 @@ MULLE_C_NONNULL_RETURN
 static inline void *
    _mulle_allocator_realloc( struct mulle_allocator *p, void *block, size_t size)
 {
-   void   *q;
-
-   // zero-size is a programming error, catch it in all builds
-   if( MULLE_C_UNLIKELY( ! size))
-      (*p->fail)( p, NULL, 0);
-
-   q = (*p->realloc)( block, size, p);
-   if( MULLE_C_UNLIKELY( ! q))
-      (*p->fail)( p, block, size);
-   return( q);
+   return( _mulle_allocator_reallocarray( p, block, 1, size));
 }
-
-
-MULLE__ALLOCATOR_GLOBAL
-MULLE_C_NONNULL_RETURN
-void *  _mulle_allocator_reallocarray( struct mulle_allocator *p,
-                                       void *block,
-                                       size_t n,
-                                       size_t size);
 
 
 MULLE__ALLOCATOR_GLOBAL
@@ -322,13 +415,29 @@ static inline void   _mulle_allocator_free( struct mulle_allocator *p,
 
 
 
+//
+// Directly invoke the fail handler. The handler must not return (see
+// MULLE_ALLOCATOR_BASE in mulle-allocator-struct.h). Raw passthrough.
+//
 MULLE_C_NO_RETURN
 static inline void   _mulle_allocator_fail( struct mulle_allocator *p,
                                             void *block,
                                             size_t size)
 {
+   if( ! p)
+      p = &mulle_allocator_default;
    (*p->fail)( p, block, size);
 }
+
+
+//
+// The allocator's deferred-free adapter. Its type is exactly
+// mulle_allocator_deferred_free_t, so an ABA reclaimer can call it with no
+// cast. `owner` must be the struct mulle_allocator * that owns `block`; the
+// block is released through that allocator's `free` vector.
+//
+MULLE__ALLOCATOR_GLOBAL
+void   _mulle_allocator_deferred_free( void *block, void *owner);
 
 
 static inline int   _mulle_allocator_abafree( struct mulle_allocator *p,
@@ -336,7 +445,7 @@ static inline int   _mulle_allocator_abafree( struct mulle_allocator *p,
 {
    if( MULLE_C_UNLIKELY( block == NULL))
       return( 0);
-   return( (*p->abafree)( p->aba, (void (*)( void *, void *)) p->free, block, p));
+   return( (*p->abafree)( p->aba, _mulle_allocator_deferred_free, block, p));
 }
 
 
@@ -368,7 +477,7 @@ static inline void   mulle_allocator_assert( struct mulle_allocator *p)
 {
    // don't assert the allocator itself, it may be NULL (meaning the default)
    assert( (p ? p : &mulle_allocator_default)->calloc);
-   assert( (p ? p : &mulle_allocator_default)->realloc);
+   assert( (p ? p : &mulle_allocator_default)->reallocarray);
    assert( (p ? p : &mulle_allocator_default)->free);
    assert( (p ? p : &mulle_allocator_default)->fail);
 
@@ -387,13 +496,38 @@ static inline void   mulle_allocator_assert( struct mulle_allocator *p)
  * @param p The allocator to use for the allocation. Can be `NULL` to use the
  *          default allocator.
  * @param size The size of the block of memory to allocate, in bytes.
- * @return A pointer to the allocated block of memory, or `NULL` if the allocation
- *         failed.
+ * @return A pointer to the allocated block of memory. This never returns
+ *         `NULL`: if the allocator can not satisfy the request, `fail` aborts.
  */
 MULLE_C_NONNULL_RETURN
 static inline void   *mulle_allocator_malloc( struct mulle_allocator *p, size_t size)
 {
    return( _mulle_allocator_malloc( p ? p : &mulle_allocator_default, size));
+}
+
+
+/**
+ * Allocates an array of `n` elements of `size` bytes using the given
+ * allocator. This is the allocation counterpart of
+ * `mulle_allocator_reallocarray`: `n * size` is checked for overflow by the
+ * allocator's `reallocarray` vector.
+ *
+ * If the `p` parameter is `NULL`, the default allocator (`mulle_default_allocator`)
+ * will be used.
+ *
+ * @param p The allocator to use for the allocation. Can be `NULL` to use the
+ *          default allocator.
+ * @param n The number of elements to allocate.
+ * @param size The size of each element, in bytes.
+ * @return A pointer to the allocated block of memory. This never returns
+ *         `NULL`: if the allocator can not satisfy the request, `fail` aborts.
+ */
+MULLE_C_NONNULL_RETURN
+static inline void   *mulle_allocator_allocarray( struct mulle_allocator *p,
+                                                  size_t n,
+                                                  size_t size)
+{
+   return( _mulle_allocator_allocarray( p ? p : &mulle_allocator_default, n, size));
 }
 
 
@@ -407,8 +541,8 @@ static inline void   *mulle_allocator_malloc( struct mulle_allocator *p, size_t 
  *          default allocator.
  * @param n The number of elements to allocate.
  * @param size The size of each element, in bytes.
- * @return A pointer to the allocated block of memory, or `NULL` if the allocation
- *         failed.
+ * @return A pointer to the allocated block of memory. This never returns
+ *         `NULL`: if the allocator can not satisfy the request, `fail` aborts.
  */
 MULLE_C_NONNULL_RETURN
 static inline void   *mulle_allocator_calloc( struct mulle_allocator *p,
@@ -429,8 +563,8 @@ static inline void   *mulle_allocator_calloc( struct mulle_allocator *p,
  *          default allocator.
  * @param block The block of memory to reallocate.
  * @param size The new size of the block of memory, in bytes.
- * @return A pointer to the reallocated block of memory, or `NULL` if the
- *         reallocation failed.
+ * @return A pointer to the reallocated block of memory. This never returns
+ *         `NULL`: if the allocator can not satisfy the request, `fail` aborts.
  */
 MULLE_C_NONNULL_RETURN
 static inline void   *mulle_allocator_realloc( struct mulle_allocator *p,
@@ -477,8 +611,8 @@ static inline void   *mulle_allocator_realloc_strict( struct mulle_allocator *p,
  * @param block The block of memory to reallocate.
  * @param n The number of elements in the array.
  * @param size The size of each element, in bytes.
- * @return A pointer to the reallocated block of memory, or `NULL` if the
- *         reallocation failed.
+ * @return A pointer to the reallocated block of memory. This never returns
+ *         `NULL`: if the allocator can not satisfy the request, `fail` aborts.
  */
 MULLE_C_NONNULL_RETURN
 static inline void   *mulle_allocator_reallocarray( struct mulle_allocator *p,
@@ -534,8 +668,8 @@ static inline void   mulle_allocator_free( struct mulle_allocator *p,
 
 
 /**
- * Frees a block of memory using the given allocator, and returns a flag indicating
- * whether the block was actually freed.
+ * Frees a block of memory using the given allocator, handing it to the
+ * allocator's ABA reclaimer if one is installed.
  *
  * If the `p` parameter is `NULL`, the default allocator (`mulle_default_allocator`)
  * will be used.
@@ -543,7 +677,9 @@ static inline void   mulle_allocator_free( struct mulle_allocator *p,
  * @param p The allocator to use for the free operation. Can be `NULL` to use the
  *          default allocator.
  * @param block The block of memory to free.
- * @return A non-zero value if the block was freed, zero if the block was not freed.
+ * @return Zero if `block` is `NULL`, otherwise the ABA reclaimer's status
+ *         (zero on success). This is not a "was the block freed" flag: a
+ *         reclaimer may reclaim the block asynchronously or later.
  */
 static inline int   mulle_allocator_abafree( struct mulle_allocator *p,
                                              void *block)
@@ -586,8 +722,8 @@ static inline void   mulle_allocator_fail( struct mulle_allocator *p,
  * uses the default allocator (`mulle_default_allocator`).
  *
  * @param size The size of the block of memory to allocate, in bytes.
- * @return A pointer to the allocated block of memory, or `NULL` if the allocation
- *         failed.
+ * @return A pointer to the allocated block of memory. This never returns
+ *         `NULL`: if the allocator can not satisfy the request, `fail` aborts.
  */
 MULLE_C_NONNULL_RETURN
 static inline void   *mulle_malloc( size_t size)
@@ -605,8 +741,8 @@ static inline void   *mulle_malloc( size_t size)
  *
  * @param n The number of elements to allocate.
  * @param size The size of each element, in bytes.
- * @return A pointer to the allocated block of memory, or `NULL` if the allocation
- *         failed.
+ * @return A pointer to the allocated block of memory. This never returns
+ *         `NULL`: if the allocator can not satisfy the request, `fail` aborts.
  */
 MULLE_C_NONNULL_RETURN
 static inline void   *mulle_calloc( size_t n, size_t size)
@@ -623,8 +759,8 @@ static inline void   *mulle_calloc( size_t n, size_t size)
  *
  * @param block The block of memory to reallocate.
  * @param size The new size of the block of memory, in bytes.
- * @return A pointer to the reallocated block of memory, or `NULL` if the reallocation
- *         failed.
+ * @return A pointer to the reallocated block of memory. This never returns
+ *         `NULL`: if the allocator can not satisfy the request, `fail` aborts.
  */
 MULLE_C_NONNULL_RETURN
 static inline void   *mulle_realloc( void *block, size_t size)
@@ -643,8 +779,8 @@ static inline void   *mulle_realloc( void *block, size_t size)
  * @param block The block of memory to reallocate.
  * @param n The number of elements in the array.
  * @param size The size of each element, in bytes.
- * @return A pointer to the reallocated block of memory, or `NULL` if the reallocation
- *         failed.
+ * @return A pointer to the reallocated block of memory. This never returns
+ *         `NULL`: if the allocator can not satisfy the request, `fail` aborts.
  */
 MULLE_C_NONNULL_RETURN
 static inline void   *mulle_reallocarray( void *block, size_t n, size_t size)
@@ -653,20 +789,38 @@ static inline void   *mulle_reallocarray( void *block, size_t n, size_t size)
 }
 
 
+/**
+ * Allocates an array of `n` elements of `size` bytes using the default
+ * allocator. This is the allocation counterpart of `mulle_reallocarray`:
+ * `n * size` is checked for overflow by the allocator's `malloc` vector. A
+ * zero `n` or `size` is a programmer error and aborts, exactly like
+ * `mulle_malloc` of a zero size.
+ *
+ * @param n The number of elements to allocate.
+ * @param size The size of each element, in bytes.
+ * @return A pointer to the allocated block of memory. This never returns
+ *         `NULL`: if the allocator can not satisfy the request, `fail` aborts.
+ */
+MULLE_C_NONNULL_RETURN
+static inline void   *mulle_allocarray( size_t n, size_t size)
+{
+   return( _mulle_allocator_allocarray( &mulle_allocator_default, n, size));
+}
+
+
 
 
 /**
  * Reallocates the specified block of memory to the given size using the default allocator.
  *
- * This function is a strict version of `mulle_realloc()` that will return `NULL` if the
- * reallocation fails, instead of attempting to return the original block. This can be
- * useful in situations where you need to ensure the reallocation succeeds or the
- * operation fails completely.
+ * This is the strict, stdlib-like variant: if `size` is `0`, `block` is freed
+ * and `NULL` is returned. For any non-zero `size` it never returns `NULL`: if
+ * the allocator can not satisfy the request, `fail` aborts.
  *
  * @param block The block of memory to reallocate.
  * @param size The new size of the block of memory, in bytes.
- * @return A pointer to the reallocated block of memory, or `NULL` if the reallocation
- *         failed.
+ * @return A pointer to the reallocated block of memory, or `NULL` if `size` was
+ *         `0` and the block was freed.
  */
 static inline void   *mulle_realloc_strict( void *block, size_t size)
 {
@@ -751,7 +905,7 @@ char   *_mulle_allocator_strdup( struct mulle_allocator *p, const char *s);
  *
  * This function allocates a new string that is a copy of the input string `s`,
  * using the specified allocator `p`. If `p` is `NULL`, the default allocator
- * `mulle_default_allocator` is used.
+ * `mulle_default_allocator` is used. If `s` is NULL, NULL is returned.
  *
  * @param p The allocator to use for the new string. Can be `NULL` to use the
  *          default allocator.

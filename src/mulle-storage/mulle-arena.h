@@ -53,11 +53,11 @@
 // uses the mulle_allocator protocol.
 //
 // Semantics when used as a mulle_allocator:
-//   calloc  - bump allocate + zero
-//   realloc - if block is NULL, this is malloc (bump allocate)
-//             if block is the last allocation, extend in place if possible
-//             otherwise allocate new + memcpy (old space is abandoned)
-//   free    - no-op (memory reclaimed only on done/reset)
+//   calloc       - bump allocate + zero
+//   reallocarray - if block is NULL, this is malloc (bump allocate)
+//                  if block is the last allocation, extend in place if possible
+//                  otherwise allocate new + memcpy (old space is abandoned)
+//   free         - no-op (memory reclaimed only on done/reset)
 //
 // Oversized allocations (larger than page_size) get their own dedicated page.
 //
@@ -67,7 +67,7 @@ struct mulle_arena
    struct mulle__pointerarray   _pages;
    char                         *_current;
    char                         *_sentinel;
-   char                         *_last;       // start of last allocation (for realloc)
+   char                         *_last;       // start of last allocation (for reallocarray)
    size_t                       _page_size;
    size_t                       _page_index;  // index of current page in _pages
 };
@@ -75,7 +75,7 @@ struct mulle_arena
 
 // forward declarations of vtable functions
 static void   *_mulle_arena_calloc_v( size_t n, size_t size, struct mulle_allocator *allocator);
-static void   *_mulle_arena_realloc_v( void *block, size_t size, struct mulle_allocator *allocator);
+static void   *_mulle_arena_reallocarray_v( void *block, size_t n, size_t size, struct mulle_allocator *allocator);
 static void    _mulle_arena_free_v( void *block, struct mulle_allocator *allocator);
 
 
@@ -154,12 +154,12 @@ static inline void
 
    memset( arena, 0, sizeof( *arena));
 
-   arena->calloc  = _mulle_arena_calloc_v;
-   arena->realloc = _mulle_arena_realloc_v;
-   arena->free    = _mulle_arena_free_v;
-   arena->fail    = mulle_allocation_fail;
-   arena->abafree = NULL;
-   arena->aba     = NULL;
+   arena->calloc       = _mulle_arena_calloc_v;
+   arena->reallocarray = _mulle_arena_reallocarray_v;
+   arena->free         = _mulle_arena_free_v;
+   arena->fail         = mulle_allocation_fail;
+   arena->abafree      = NULL;
+   arena->aba          = NULL;
 
    arena->_page_size = page_size;
    _mulle__pointerarray_init( &arena->_pages, 8, &mulle_allocator_default);
@@ -517,21 +517,33 @@ static inline void *
 
 
 //
-// The vtable realloc: handles malloc (block==NULL) and realloc.
+// The vtable reallocarray: handles allocarray (block==NULL) and reallocarray.
 // All blocks allocated through this vtable have a size header at
 // ((size_t *) block)[-1], so we always know the old size.
 //
+// The vector is trusted to validate n/size: a zero count/size and an
+// overflowing product are programmer errors and are routed through `fail`.
+//
 static inline void *
-   _mulle_arena_realloc_v( void *block, size_t size, struct mulle_allocator *allocator)
+   _mulle_arena_reallocarray_v( void *block,
+                                size_t n,
+                                size_t size,
+                                struct mulle_allocator *allocator)
 {
    struct mulle_arena   *arena = (struct mulle_arena *) allocator;
    char                 *raw;
    char                 *end;
+   size_t               total;
    size_t               old_size;
    void                 *p;
 
+   if( ! n || ! size)
+      _mulle_allocator_abort( allocator, block, 0);
+
+   total = mulle_allocator_size_multiply( allocator, n, size);
+
    if( ! block)
-      return( _mulle_arena_alloc_with_size_header( arena, size));
+      return( _mulle_arena_alloc_with_size_header( arena, total));
 
    old_size = ((size_t *) block)[ -1];
    raw      = (char *) block - sizeof( size_t);
@@ -539,19 +551,19 @@ static inline void *
    // if this is the last allocation, try to extend in place
    if( raw == arena->_last)
    {
-      end = (char *) block + size;
+      end = (char *) block + total;
       if( end <= arena->_sentinel)
       {
          arena->_current = _mulle_arena_align_pointer( end, MULLE_ARENA_DEFAULT_ALIGNMENT);
          arena->_current = arena->_current - sizeof( size_t);
-         ((size_t *) block)[ -1] = size;
+         ((size_t *) block)[ -1] = total;
          return( block);
       }
    }
 
    // allocate new, copy old data
-   p = _mulle_arena_alloc_with_size_header( arena, size);
-   memcpy( p, block, old_size < size ? old_size : size);
+   p = _mulle_arena_alloc_with_size_header( arena, total);
+   memcpy( p, block, old_size < total ? old_size : total);
    return( p);
 }
 
@@ -563,7 +575,10 @@ static inline void *
    size_t               total;
    void                 *p;
 
-   total = n * size;
+   if( ! n || ! size)
+      _mulle_allocator_abort( allocator, NULL, 0);
+
+   total = mulle_allocator_size_multiply( allocator, n, size);
    p     = _mulle_arena_alloc_with_size_header( arena, total);
    memset( p, 0, total);
    return( p);

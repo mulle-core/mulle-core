@@ -49,7 +49,6 @@ int   mulle_unicode16_is_validurlpath( uint16_t c)
    case 0x0022 :
    case 0x0023 :
    case 0x0025 :
-   case 0x003b :
    case 0x003c :
    case 0x003e :
    case 0x003f :

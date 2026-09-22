@@ -235,13 +235,18 @@ static size_t   _mulle_utf32_strspn( mulle_utf32_t *s1, mulle_utf32_t *s2, int f
    if( ! s2_len)
       return( 0);
 
+   /* one member: the same decision the general path makes, without the
+      bsearch. `flag` is what picks the sense - strspn stops on the first
+      character that differs from the member, strcspn on the first that is
+      equal to it. Testing only `c != d` here made strcspn return the strspn
+      answer whenever the set had exactly one character. */
    if( s2_len == 1)
    {
       d = *s2;
 
       --s1;
       while( (c = *++s1))
-         if( c != d)
+         if( (c != d) == flag)
             break;
       return( s1 - start);
    }

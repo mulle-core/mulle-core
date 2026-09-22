@@ -54,10 +54,9 @@ void   _mulle_rbtree_init_with_config( struct mulle_rbtree *a_tree,
    assert( config->comparison);
 
    allocator = allocator ? allocator : &mulle_default_allocator;
-   _mulle__rbtree_init_with_options( (struct mulle__rbtree *) a_tree,
-                                     config->node_extra,
-                                     config->options,
-                                     allocator);
+   _mulle__rbtree_init_with_config( (struct mulle__rbtree *) a_tree,
+                                    (const struct mulle__rbtree_config *) config,
+                                    allocator);
 
    a_tree->callback   = config->callback
                         ? *config->callback

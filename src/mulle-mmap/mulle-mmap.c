@@ -60,10 +60,14 @@ int   _mulle_mmap_map_file_range( struct mulle_mmap *p,
       return( -1);
 
    rval = _mulle_mmap_map_range( p, handle, offset, length);
-   if( ! rval)
-      p->is_handle_internal_ = 1;
+   if( rval)
+   {
+      mulle_mmap_file_close( handle);
+      return( rval);
+   }
 
-   return( rval);
+   p->is_handle_internal_ = 1;
+   return( 0);
 }
 
 int    _mulle_mmap_map_range( struct mulle_mmap *p,

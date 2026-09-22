@@ -501,7 +501,7 @@ static inline void *
 
 /// REMOVE
 
-MULLE_C_NONNULL_FIRST_SECOND_THIRD
+MULLE_C_NONNULL_FIRST_THIRD
 static inline int
    _mulle__map_remove( struct mulle__map *map,
                        const void *key,

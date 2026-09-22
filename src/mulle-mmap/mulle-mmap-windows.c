@@ -275,6 +275,11 @@ int64_t   mulle_mmap_file_query_size( mulle_mmap_file_t handle)
    return( (int64_t) file_size.QuadPart);
 }
 
+int   mulle_mmap_file_close( mulle_mmap_file_t handle)
+{
+   return( CloseHandle( handle) ? 0 : -1);
+}
+
 int   mulle_mmap_memory_map( mulle_mmap_file_t handle,
                             int64_t offset,
                             int64_t length,

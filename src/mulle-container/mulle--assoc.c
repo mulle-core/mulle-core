@@ -180,6 +180,9 @@ int    _mulle__assoc_is_equal( struct mulle__assoc *assoc,
    if( n != _mulle__assoc_get_count( other))
       return( 0);
 
+   if( ! n)
+      return( 1);
+
    _mulle__assoc_qsort_r_if_needed( assoc, compare, userinfo);
    _mulle__assoc_qsort_r_if_needed( other, compare, userinfo);
 

@@ -52,7 +52,61 @@ struct mulle_utf32regex;
 //   dst = `echo src | sed  's/pattern/replacement/'
 //
 
+/*
+ * Character class extensions.
+ *
+ * Without it a backslash is an ordinary character, so `[ \t\n\r]` is the set
+ * { ' ', '\\', 't', 'n', 'r' } - it matches the letter `t` and not a tab.
+ *
+ * With it:
+ *
+ *   * a character class may use the escapes \t \n \r \f \v \a \e and
+ *     \] \\ \- \^
+ *   * a character class may name a class: [[:alpha:]] [[:space:]] [[:digit:]]
+ *     [[:alnum:]] [[:word:]] [[:ident:]] [[:identstart:]] [[:identcont:]]
+ *     [[:punct:]] [[:cntrl:]] [[:upper:]] [[:lower:]] [[:xdigit:]] [[:blank:]]
+ *     These are resolved by mulle-unicode and matched as a predicate, not as
+ *     an expanded member list - [[:alpha:]] alone is 22746 codepoints, which
+ *     as a member list would be some hundred KB scanned for every input
+ *     character.
+ *   * a backslash before an alphanumeric character that is not one of the
+ *     escapes above is a *compile error* (`\d`, `\s`, `\w`, `\q`). Use the
+ *     spelled out class, e.g. [[:digit:]] instead of \d.
+ *
+ * Note that these are escape sequences inside a class, not new atoms: to match
+ * a single tab use `[\t]`. This is not PCRE and not Perl.
+ *
+ * Deliberately absent, and not to be added casually:
+ *
+ *   * no \w \s \d atoms. They are only sugar for a named class, and `\w` in
+ *     particular has two plausible meanings - [[:word:]] and [[:ident:]] are
+ *     1,137 codepoints apart - which would then be guessed at instead of
+ *     written down.
+ *
+ *   * no \b. A word boundary is what a caller wants when it lacks a tokenizer:
+ *     a parser that carries offsets compares tokens and does not need it. It
+ *     would also have to be defined against a class, and every candidate
+ *     definition agrees below 0x80 - so the choice would be invisible in
+ *     ASCII and visible only where nothing tests it. That is how `\t` came to
+ *     mean the letter `t`.
+ *
+ *   * no {n,m} repetition, no lookaround, no backreferences. Each is
+ *     defensible on its own; together they are a PCRE clone, and this engine
+ *     is small on purpose.
+ *
+ * The rule: a pattern feature earns its place when the alternative is a wrong
+ * answer, not when the alternative is a different design.
+ */
+#define MULLE_UTF32REGEX_EXTENDED   0x0001
+
+
 /* may return NULL on failure (malformed regular expression) */
+MULLE__REGEX_GLOBAL
+struct mulle_utf32regex   *mulle_utf32regex_compile_options( const mulle_utf32_t *pattern,
+                                                            unsigned int options);
+
+
+/* same as mulle_utf32regex_compile_options( pattern, 0) */
 MULLE__REGEX_GLOBAL
 struct mulle_utf32regex   *mulle_utf32regex_compile( const mulle_utf32_t *pattern);
 
@@ -121,6 +175,13 @@ static inline size_t
 //
 // use 0 to get range of matched string
 // use 1-9 for \1 to \9
+//
+// A group that did not participate in the match (and an index that is out of
+// range) yields an invalid range: location is mulle_not_found_e (INTPTR_MAX)
+// and length is 0, i.e. what mulle_range_make_invalid() produces. Compare
+// against that, or check mulle_range_is_valid(), do not compare against
+// LONG_MAX or NSNotFound directly - on Windows long is 32 bit while
+// INTPTR_MAX is 64 bit.
 //
 MULLE__REGEX_GLOBAL
 struct mulle_range   mulle_utf32regex_range_for_index( struct mulle_utf32regex *regex, unsigned int i);

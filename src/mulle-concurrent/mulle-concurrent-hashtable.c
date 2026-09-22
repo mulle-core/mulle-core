@@ -71,26 +71,6 @@
 #endif
 
 
-//
-// The topmost bit of the hash word is the FROZEN flag, so a stored hash never
-// uses it. Folding is not the identity, but a hash is a hash. 0 stays
-// reserved as the "unclaimed" token, so a fold to 0 is nudged to 1.
-//
-// IMPORTANT: The topmost bit is reserved for FROZEN. A hash with the topmost
-// bit set will be silently aliased to its & INTPTR_MAX equivalent. The assert
-// catches this in debug builds. On 32-bit platforms this means hashes must be
-// in [1, 0x7FFFFFFF]; on 64-bit in [1, 0x7FFFFFFFFFFFFFFF]. If you use
-// pointer identity as the hash, this is safe on 64-bit (user-space pointers
-// never set bit 63) but UNSAFE on 32-bit where addresses above 0x80000000
-// will alias with their lower-half counterpart.
-//
-static inline uintptr_t   hashtable_fold_user_hash( intptr_t user_hash,
-                                                    uintptr_t hash_mask)
-{
-   assert( ((uintptr_t) user_hash & ~hash_mask) == 0 && "hash has FROZEN bit set — will alias!");
-   return( (uintptr_t) user_hash & hash_mask);
-}
-
 static inline intptr_t   hashtable_unfold_user_hash( uintptr_t hash,
                                                      uintptr_t hash_mask)
 {
@@ -789,10 +769,12 @@ void  *mulle_concurrent_hashtable_lookup( struct mulle_concurrent_hashtable *map
    void                                       *value;
    uintptr_t                                  hash;
 
-   if( ! map || user_hash == MULLE_CONCURRENT_NO_HASH)
+   if( ! map)
+      return( NULL);
+   if( ! mulle_concurrent_hashtable_hash_is_valid( map, user_hash))
       return( NULL);
 
-   hash = hashtable_fold_user_hash( user_hash, map->hash_mask);
+   hash = (uintptr_t) user_hash;
 
 retry:
    p = _mulle_atomic_pointer_read_acquire( &map->storage.pointer);
@@ -815,10 +797,12 @@ int   mulle_concurrent_hashtable_insert( struct mulle_concurrent_hashtable *map,
    size_t                               n;
    uintptr_t                                  hash;
 
-   if( ! map || user_hash == MULLE_CONCURRENT_NO_HASH || value == EMPTY_VALUE)
+   if( ! map || value == EMPTY_VALUE)
+      return( EINVAL);
+   if( ! mulle_concurrent_hashtable_hash_is_valid( map, user_hash))
       return( EINVAL);
 
-   hash = hashtable_fold_user_hash( user_hash, map->hash_mask);
+   hash = (uintptr_t) user_hash;
 
 retry:
    p   = _mulle_atomic_pointer_read( &map->storage.pointer);
@@ -853,10 +837,12 @@ int   mulle_concurrent_hashtable_register( struct mulle_concurrent_hashtable *ma
    void                                       *old;
    uintptr_t                                  hash;
 
-   if( ! map || user_hash == MULLE_CONCURRENT_NO_HASH || value == EMPTY_VALUE)
+   if( ! map || value == EMPTY_VALUE)
+      return( EINVAL);
+   if( ! mulle_concurrent_hashtable_hash_is_valid( map, user_hash))
       return( EINVAL);
 
-   hash = hashtable_fold_user_hash( user_hash, map->hash_mask);
+   hash = (uintptr_t) user_hash;
 
 retry:
    p   = _mulle_atomic_pointer_read( &map->storage.pointer);
@@ -891,10 +877,12 @@ int   mulle_concurrent_hashtable_remove( struct mulle_concurrent_hashtable *map,
    int                                        rval;
    uintptr_t                                  hash;
 
-   if( ! map || user_hash == MULLE_CONCURRENT_NO_HASH || value == EMPTY_VALUE)
+   if( ! map || value == EMPTY_VALUE)
+      return( EINVAL);
+   if( ! mulle_concurrent_hashtable_hash_is_valid( map, user_hash))
       return( EINVAL);
 
-   hash    = hashtable_fold_user_hash( user_hash, map->hash_mask);
+   hash    = (uintptr_t) user_hash;
    removed = 0;
 
 retry:

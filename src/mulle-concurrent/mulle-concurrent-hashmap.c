@@ -37,7 +37,6 @@
 
 #include "mulle-concurrent-types.h"
 #include <assert.h>
-#include <errno.h>
 #include <stdint.h>
 #include <stdlib.h>
 
@@ -60,6 +59,7 @@ static const struct _mulle_concurrent_hashmapstorage   mulle_concurrent_empty_st
 
 
 // n must be a power of 2
+MULLE_C_NONNULL_RETURN
 static struct _mulle_concurrent_hashmapstorage *
    _mulle_concurrent_alloc_hashmapstorage( unsigned int n,
                                            struct mulle_allocator *allocator)
@@ -72,7 +72,7 @@ static struct _mulle_concurrent_hashmapstorage *
       n = 4;
 
    p = _mulle_allocator_calloc( allocator, 1, sizeof( struct _mulle_concurrent_hashvaluepair) * (n - 1) +
-                             sizeof( struct _mulle_concurrent_hashmapstorage));
+                                              sizeof( struct _mulle_concurrent_hashmapstorage));
 
    p->mask = n - 1;
 
@@ -432,8 +432,8 @@ unsigned int  _mulle_concurrent_hashmap_get_size( struct mulle_concurrent_hashma
 }
 
 
-static int  _mulle_concurrent_hashmap_migrate_storage( struct mulle_concurrent_hashmap *map,
-                                                       struct _mulle_concurrent_hashmapstorage *p)
+static void   _mulle_concurrent_hashmap_migrate_storage( struct mulle_concurrent_hashmap *map,
+                                                         struct _mulle_concurrent_hashmapstorage *p)
 {
 
    struct _mulle_concurrent_hashmapstorage   *q;
@@ -453,8 +453,6 @@ static int  _mulle_concurrent_hashmap_migrate_storage( struct mulle_concurrent_h
       // acquire new storage
       alloced = _mulle_concurrent_alloc_hashmapstorage( ((unsigned int) p->mask + 1) * 2,
                                                         allocator);
-      if( MULLE_C_UNLIKELY( ! alloced))
-         return( ENOMEM);
 
       // make this the next world, assume that's still set to 'p' (SIC)
       q = __mulle_atomic_pointer_cas( &map->next_storage.pointer, alloced, p);
@@ -478,8 +476,6 @@ static int  _mulle_concurrent_hashmap_migrate_storage( struct mulle_concurrent_h
    // already gone. this must be an ABA free
    if( previous == p && ! _mulle_concurrent_hashmapstorage_is_const( previous))
       _mulle_allocator_abafree( allocator, previous); // ABA!!
-
-   return( 0);
 }
 
 
@@ -495,8 +491,7 @@ retry:
    value = _mulle_concurrent_hashmapstorage_lookup( p, hash);
    if( MULLE_C_UNLIKELY( value == REDIRECT_VALUE))
    {
-      if( _mulle_concurrent_hashmap_migrate_storage( map, p))
-         return( (void *) MULLE_CONCURRENT_NO_POINTER);
+      _mulle_concurrent_hashmap_migrate_storage( map, p);
       goto retry;
    }
    return( value);
@@ -527,8 +522,7 @@ retry:
       value = _mulle_atomic_pointer_read( &entry->value);
       if( MULLE_C_UNLIKELY( value == REDIRECT_VALUE))
       {
-         if( _mulle_concurrent_hashmap_migrate_storage( map, p))
-            return( ENOMEM);
+         _mulle_concurrent_hashmap_migrate_storage( map, p);
          goto retry;
       }
 
@@ -585,22 +579,14 @@ retry:
 
    if( n >= max)
    {
-      if( _mulle_concurrent_hashmap_migrate_storage( map, p))
-      {
-         errno = ENOMEM;
-         return( MULLE_CONCURRENT_INVALID_POINTER);
-      }
+      _mulle_concurrent_hashmap_migrate_storage( map, p);
       goto retry;
    }
 
    result = _mulle_concurrent_hashmapstorage_register( p, hash, value);
    if( result == MULLE_CONCURRENT_INVALID_POINTER)
    {
-      if( _mulle_concurrent_hashmap_migrate_storage( map, p))
-      {
-         errno = ENOMEM;
-         return( MULLE_CONCURRENT_INVALID_POINTER);
-      }
+      _mulle_concurrent_hashmap_migrate_storage( map, p);
       goto retry;
    }
 
@@ -617,7 +603,6 @@ void   *mulle_concurrent_hashmap_register( struct mulle_concurrent_hashmap *map,
        value == MULLE_CONCURRENT_NO_POINTER ||
        value == MULLE_CONCURRENT_INVALID_POINTER)
    {
-      errno = EINVAL;
       return( MULLE_CONCURRENT_INVALID_POINTER);
    }
 
@@ -647,16 +632,14 @@ retry:
 
    if( n >= max)
    {
-      if( _mulle_concurrent_hashmap_migrate_storage( map, p))
-         return( ENOMEM);
+      _mulle_concurrent_hashmap_migrate_storage( map, p);
       goto retry;
    }
 
    rval = _mulle_concurrent_hashmapstorage_insert( p, hash, value);
    if( MULLE_C_UNLIKELY( rval == EBUSY))
    {
-      if( _mulle_concurrent_hashmap_migrate_storage( map, p))
-         return( ENOMEM);
+      _mulle_concurrent_hashmap_migrate_storage( map, p);
       goto retry;
    }
 

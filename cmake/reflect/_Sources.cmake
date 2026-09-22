@@ -101,6 +101,12 @@ src/mulle-rbtree/mulle-rbtree.c
 src/mulle-regex/mulle-utf32regex.c
 src/mulle-regex/mulle-utf32regex-substitute.c
 src/mulle-slug/mulle-slug.c
+src/mulle-socket/mulle-socket.c
+src/mulle-socket/mulle-socket-posix.c
+src/mulle-socket/mulle-socket-windows.c
+src/mulle-spawn/mulle-spawn.c
+src/mulle-spawn/mulle-spawn-posix.c
+src/mulle-spawn/mulle-spawn-windows.c
 src/mulle-sprintf/mulle-sprintf.c
 src/mulle-sprintf/mulle-sprintf-character.c
 src/mulle-sprintf/mulle-sprintf-escape.c
@@ -142,6 +148,8 @@ src/mulle-url/mulle-unicode-is-validurlfragment.c
 src/mulle-url/mulle-unicode-is-validurlhost.c
 src/mulle-url/mulle-unicode-is-validurlpassword.c
 src/mulle-url/mulle-unicode-is-validurlpath.c
+src/mulle-url/mulle-unicode-is-validurlpercentescape.c
+src/mulle-url/mulle-unicode-is-validurlport.c
 src/mulle-url/mulle-unicode-is-validurlquery.c
 src/mulle-url/mulle-unicode-is-validurlscheme.c
 src/mulle-url/mulle-unicode-is-validurluser.c

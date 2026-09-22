@@ -50,12 +50,12 @@ This section summarizes each constituent. Signatures are copied verbatim from th
 
 ### 3.3. `mulle-allocator` — flexible memory allocation scheme
 
-- Version `MULLE__ALLOCATOR_VERSION ((8UL << 20) | (1 << 8) | 0)`.
+- Version `MULLE__ALLOCATOR_VERSION ((9UL << 20) | (0 << 8) | 0)`.
 - Core type (from `mulle-allocator-struct.h`):
   ```c
   #define MULLE_ALLOCATOR_BASE                                                                         \
      void   *(*calloc)( size_t n, size_t size, struct mulle_allocator *allocator);                     \
-     void   *(*realloc)( void *block, size_t size, struct mulle_allocator *allocator);                 \
+     void   *(*reallocarray)( void *block, size_t n, size_t size, struct mulle_allocator *allocator);  \
      void   (*free)( void *block, struct mulle_allocator *allocator);                                  \
      void   (*fail)( struct mulle_allocator *allocator, void *block, size_t size) _MULLE_C_NO_RETURN;  \
      int    (*abafree)( void *aba, void (*free)( void *, void *), void *block, void *owner);           \
@@ -89,9 +89,9 @@ This section summarizes each constituent. Signatures are copied verbatim from th
   static inline void   mulle_free( void *block)
   static inline char   *mulle_strdup( const char *s)
   ```
-  The `reallocarray*` variants are **NEW**: they multiply `n * size` with overflow checking (`mulle_allocator_size_multiply`), call the vtable `realloc`, and call `fail` on failure. `_strict` frees the block when `n || size` is 0 instead of failing.
+  The `reallocarray*` variants are **NEW**: they multiply `n * size` with overflow checking (`mulle_allocator_size_multiply`), call the vtable `reallocarray`, and call `fail` on failure. `_strict` frees the block when `n || size` is 0 instead of failing.
 - Failure hook: `void   mulle_allocation_fail( struct mulle_allocator *allocator, void *block, size_t size)` (no-return); configurable via `mulle_allocator_set_fail`.
-- `mulle-alloca.h` stack/heap hybrid macros: `mulle_alloca_do( name, type, count)`, `mulle_calloca_do_*`, `mulle_malloc_do`, `mulle_calloc_do`, `mulle_calloc_do_flexible`, ... (alloca when it fits the fixed `MULLE_ALLOCA_STACKSIZE` (128 bytes), else malloc; automatic free at scope end).
+- `mulle-alloca.h` stack/heap hybrid macros: `mulle_alloca_do( name, type, count)`, `mulle_calloca_do_*`, `mulle_malloc_do`, `mulle_calloc_do`, `mulle_alloca_do_flexible`, `mulle_calloca_do_flexible`, ... (alloca when it fits the fixed `MULLE_ALLOCA_STACKSIZE` (128 bytes), else malloc; automatic free at scope end).
 
 ### 3.4. `mulle-data` — hash functions, ranges, qsort
 
@@ -114,7 +114,7 @@ This section summarizes each constituent. Signatures are copied verbatim from th
   static inline uintptr_t  mulle_pointer_hash( const void *p)
   static inline uintptr_t  mulle_double_hash( double f)
   ```
-  plus chained variants (`mulle_hash_chained_32/64/add/final`), FNV-1a (`mulle_fnv1a_32/64`, `_string_hash_32/64`), `mulle_prime_for_depth`, and the full `XXH32/64/XXH3` xxHash API.
+  plus chained variants (`mulle_hash_chained_32/64/add/final`), FNV-1a (`_mulle_fnv1a_32/64`, `_mulle_string_hash_32/64`), `mulle_prime_for_depth`, and the full `XXH32/64/XXH3` xxHash API.
 - Ranges (`mulle-range.h`):
   ```c
   struct mulle_range
@@ -245,7 +245,7 @@ This section summarizes each constituent. Signatures are copied verbatim from th
 ### 3.7. `mulle-container-debug` — container describe helpers
 
 - Version `MULLE__CONTAINER__DEBUG_VERSION ((0UL << 20) | (1 << 8) | 4)`.
-- Provides `mulle_*_describe_buffer`, `mulle_*_describe`, `mulle_*_describe_buffer_callback` for each container type, e.g.:
+- Provides `mulle_*_describe` for most container types; the pointer array also has `mulle_pointerarray_describe_buffer` (and its `_callback` form). e.g.:
   ```c
   typedef void   mulle_container_item_printer_t( struct mulle_buffer *buffer,
                                                  void *item, void *userinfo);
@@ -416,7 +416,7 @@ This section summarizes each constituent. Signatures are copied verbatim from th
   int   mulle_unicode_is_letter( int32_t c);
   int   mulle_unicode_is_letterplane( unsigned int plane);
   ```
-  Predicates: `is_alphanumeric`, `is_capitalized`, `is_control`, `is_decimaldigit`, `is_decomposable`, `is_identifierstart`, `is_identifiercontinuation`, `is_legalcharacter`, `is_lowercase`, `is_newline`, `is_nonbase`, `is_noncharacter`, `is_punctuation`, `is_symbol`, `is_uppercase`, `is_whitespace`, `is_whitespaceornewline`, `is_zerodigit`. Case conversion: `mulle_unicode_tolower/16_tolower`, `mulle_unicode_toupper/16_toupper`, `mulle_unicode_totitlecase/16_totitlecase`. Also supports the `mulle_unicode_is_*` variants taking `mulle_unicode_planeloader` for BMP/supplementary.
+  Predicates: `is_alphanumeric`, `is_capitalized`, `is_control`, `is_decimaldigit`, `is_decomposable`, `is_identifierstart`, `is_identifiercontinuation`, `is_legalcharacter`, `is_lowercase`, `is_newline`, `is_nonbase`, `is_noncharacter`, `is_punctuation`, `is_symbol`, `is_uppercase`, `is_whitespace`, `is_whitespaceornewline`, `is_zerodigit`. Case conversion: `mulle_unicode_tolower/16_tolower`, `mulle_unicode_toupper/16_toupper`, `mulle_unicode_totitlecase/16_totitlecase`. Each predicate also has a per-plane form, `mulle_unicode_is_*plane( unsigned int plane)`, for a whole plane.
 - `mulle-utf`: UTF-8/16/32 analysis and conversion.
   ```c
   typedef uint16_t   mulle_utf16_t;
@@ -494,7 +494,7 @@ This section summarizes each constituent. Signatures are copied verbatim from th
   void  *_mulle_atomic_pointer_decrement( mulle_atomic_pointer_t *address);
   void  *_mulle_atomic_pointer_add( mulle_atomic_pointer_t *address, intptr_t diff);
   ```
-  Library also provides acquire/relaxed load/store variants (`_read_acquire`, `_read_relaxed`, `_write_relaxed`) and a `_functionpointer_*` family. mintomic itself exposes `mint_atomic32_t/64_t/Ptr_t` and `mint_*_{32,64,ptr}_relaxed` load/store/CAS/exchange/fetch-and/or/add operations plus fences. `mint_atomicPtr_t` is `mulle_atomic_pointer_t`.
+  Library also provides acquire/relaxed load/store variants (`_read_acquire`, `_read_relaxed`, `_write_relaxed`) and a `_functionpointer_*` family. mintomic itself exposes `mint_atomic32_t/64_t/Ptr_t` and `mint_*_{32,64,ptr}_relaxed` load/store/CAS/exchange/fetch-and/or/add operations plus fences. Under the mintomic backend `mint_atomicPtr_t` is `mulle_atomic_pointer_t`; under the default C11 backend `mulle_atomic_pointer_t` is `_Atomic( void *)`.
 
 ### 3.16. `mulle-concurrent` — lock-/wait-free hashtables, sets, arrays
 
@@ -673,7 +673,7 @@ This section summarizes each constituent. Signatures are copied verbatim from th
                            double *p_value, char **endptr);
   static inline double   mulle_strtod( const char *s, char **endptr);
   ```
-- `mulle-sprintf`: extensible, `va_list`- and `mulle_vararg_list`-capable sprintf family operating on a `struct mulle_buffer`. Returns `-1` on overflow, always NUL-terminates.
+- `mulle-sprintf`: extensible, `va_list`- and `mulle_vararg_list`-capable sprintf family. The `mulle_buffer_*` variants write into a `struct mulle_buffer` and do **not** append a trailing `'\0'`. The `mulle_*snprintf` variants write into a caller buffer, always append a `'\0'` even on overflow, and return `-1` with `errno == ENOMEM` when the output did not fit.
   ```c
   int   mulle_buffer_sprintf( struct mulle_buffer *buffer, const char *format, ...);
   int   mulle_buffer_vsprintf( struct mulle_buffer *buffer, const char *format, va_list va);
@@ -695,11 +695,11 @@ This section summarizes each constituent. Signatures are copied verbatim from th
   static inline int   mulle_fputs( const char *s, FILE *fp);
   static inline int   mulle_putchar( int c);
   ```
-- `mulle-buffer-stdio.h` adds `mulle_buffer_fprint( FILE *fp, struct mulle_buffer *buffer)`.
+- `mulle-buffer-stdio.h` adds a stdio-like interface for `mulle_buffer` (`mulle_buffer_fread`, `mulle_buffer_fwrite`, `mulle_buffer_fgetc`, ...) plus `mulle_buffer_fmemopen`/`mulle_buffer_fclose`. To write a whole buffer to a `FILE *`, use `fwrite( mulle_buffer_get_bytes( b), 1, mulle_buffer_get_length( b), fp)` or `mulle_flushablebuffer_do_FILE`.
 
 ### 3.21. `mulle-time` — simple time arithmetic
 
-- The three time types are `typedef double` aliases of `mulle_timeinterval_t` (seconds).
+- The four time types are `typedef double` aliases of `mulle_timeinterval_t` (seconds).
   ```c
   typedef double   mulle_timeinterval_t;
   typedef mulle_timeinterval_t   mulle_absolutetime_t;   // monotonic, since boot

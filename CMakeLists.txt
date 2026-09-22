@@ -47,13 +47,15 @@ list( INSERT CMAKE_MODULE_PATH 0 "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 include( Environment)
 
+include_directories( src)
+
 include( Files)
 
 # Don't have this as default
 # include( IDESupport OPTIONAL)
 
 unset( SUB_PROJECT_NAMES)
-file( GLOB SUB_PROJECT_PATHS mulle-core/mulle-*)
+file( GLOB SUB_PROJECT_PATHS src/mulle-*)
 
 foreach( SUB_PROJECT_PATH ${SUB_PROJECT_PATHS})
    if( IS_DIRECTORY "${SUB_PROJECT_PATH}")
@@ -123,9 +125,59 @@ if( NOT MSVC)
    target_compile_options( "${LIBRARY_COMPILE_TARGET}" PUBLIC -Wunused)
 endif()
 
+#
+# The sub-projects above are amalgamated: their sources are compiled straight
+# into this library. Each one marks its exported symbols with
+# <SUB_PROJECT>_GLOBAL / <SUB_PROJECT>_GLOBAL_VAR, and those expand to
+# dllexport only while the sub-project's own <SUB_PROJECT>_BUILD is defined.
+#
+# A standalone build of a sub-project defines it (Library.cmake derives it from
+# the project name), but an amalgamation compiles the vendored sources without
+# it, so their headers declared the globals as dllimport inside the very
+# library that defines them. On Windows such a reference goes through an import
+# thunk, the DLL ends up importing symbols it also defines, and llvm-mingw
+# refuses to export those: they vanish from both the export table and the
+# .dll.a, and consumers fail to link with
+#
+#    undefined symbol: __declspec(dllimport) NSFileTypeDirectory
+#
+# Some sub-projects already cover their amalgamation by naming it in their
+# include.h guard, which is why this went unnoticed. Deriving the identifier
+# here with the same snakeCaseString() rule the sub-project's own
+# .mulle/etc/env/environment-project.sh uses fixes the rest without having to
+# edit every sub-project or maintain a list.
+#
+if( LIBRARY_COMPILE_TARGET)
+   foreach( SUB_PROJECT_NAME ${SUB_PROJECT_NAMES})
+      snakeCaseString( "${SUB_PROJECT_NAME}" SUB_PROJECT_IDENTIFIER)
+      string( TOUPPER "${SUB_PROJECT_IDENTIFIER}" SUB_PROJECT_UPCASE_IDENTIFIER)
+      if( NOT "${SUB_PROJECT_UPCASE_IDENTIFIER}" STREQUAL "${LIBRARY_UPCASE_IDENTIFIER}")
+         message( STATUS "Amalgamating sub-project ${SUB_PROJECT_NAME} as ${SUB_PROJECT_UPCASE_IDENTIFIER}_BUILD")
+         target_compile_definitions( "${LIBRARY_COMPILE_TARGET}" PRIVATE "${SUB_PROJECT_UPCASE_IDENTIFIER}_BUILD")
+         if( LIBRARY_STAGE2_TARGET)
+            target_compile_definitions( "${LIBRARY_STAGE2_TARGET}" PRIVATE "${SUB_PROJECT_UPCASE_IDENTIFIER}_BUILD")
+         endif()
+      endif()
+   endforeach()
+   unset( SUB_PROJECT_IDENTIFIER)
+   unset( SUB_PROJECT_UPCASE_IDENTIFIER)
+endif()
+
 # use LIBRARY_LINK_TARGET for linker options
 if( LINK_PHASE)
    target_link_options( "${LIBRARY_LINK_TARGET}" PUBLIC)
+
+   #
+   # CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS (DLL_EXPORT_ALL) is a no-op for the
+   # llvm-mingw toolchain: it is only implemented for MS linkers. The MinGW
+   # linker exports every defined symbol by default, but it stops doing so as
+   # soon as anything is explicitly dllexport'ed, which the block above now
+   # does. Ask for the full export surface explicitly, so that symbols which
+   # are still declared bare keep their export.
+   #
+   if( (WIN32 OR MINGW) AND NOT MSVC AND BUILD_SHARED_LIBS)
+      target_link_options( "${LIBRARY_LINK_TARGET}" PRIVATE "-Wl,--export-all-symbols")
+   endif()
 endif()
 
 # Install the API TOC of each constituent library.
@@ -160,8 +212,8 @@ endif()
 include( InstallLibrary)
 
 if( LINK_PHASE)
-   include( InstallCMakeInclude)
-   include( InstallCMakePackage)
+   include( AddSubdirectorySupport)
+   include( FindPackageSupport)
 endif()
 
 

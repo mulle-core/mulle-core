@@ -272,6 +272,28 @@ struct mulle__rbtree
 };
 
 
+//
+// The bucket size a tree's node pool gets when its caller does not care.
+// A bucket is committed whole on first use, so a wrong guess is expensive in
+// memory: 32 keeps an unknown-size tree from committing much more than it needs.
+//
+#define MULLE__RBTREE_DEFAULT_CAPACITY   32
+
+//
+// Common leading fields of the high-level mulle_rbtree_config, kept first so a
+// pointer to it can be cast to struct mulle__rbtree_config *.
+//
+#define MULLE__RBTREE_CONFIG_BASE         \
+   size_t         node_extra;             \
+   unsigned int   options;                \
+   unsigned int   capacity                /* 0 -> MULLE__RBTREE_DEFAULT_CAPACITY */
+
+struct mulle__rbtree_config
+{
+   MULLE__RBTREE_CONFIG_BASE;
+};
+
+
 
 MULLE_C_NONNULL_FIRST
 static inline struct mulle_rbnode  *
@@ -412,6 +434,24 @@ static inline void   _mulle__rbtree_init_node( struct mulle__rbtree *a_tree,
 // its position in the tree changes (due to balancing) and on insert
 // node_extra is extra memory added to a node. This memory will be double
 // aligned after sizeof( mulle_rbnode) and pointed to by payload by default
+//
+// config->capacity is the node pool bucket size; 0 selects
+// MULLE__RBTREE_DEFAULT_CAPACITY. The capacity is clamped to USHRT_MAX (the
+// width mulle_structqueue stores it in), so a too-large value does not wrap.
+// The base fields are the leading fields of the high-level
+// struct mulle_rbtree_config, which is cast to this type.
+//
+MULLE__RBTREE_GLOBAL
+MULLE_C_NONNULL_FIRST
+void   _mulle__rbtree_init_with_config( struct mulle__rbtree *a_tree,
+                                        const struct mulle__rbtree_config *config,
+                                        struct mulle_allocator *allocator);
+
+
+//
+// Convenience wrapper: node_extra and options as before, capacity left at 0,
+// so the node pool uses MULLE__RBTREE_DEFAULT_CAPACITY. Signature and behaviour
+// are unchanged.
 //
 MULLE__RBTREE_GLOBAL
 MULLE_C_NONNULL_FIRST
@@ -931,6 +971,12 @@ size_t   __mulle__rbtree_walk_count( struct mulle__rbtree *a_tree,
 }
 
 
+/*
+ * Count the nodes by walking the whole tree. This is O(n) and recursive: it is
+ * not a size accessor. The live count is O(1) through the node pool,
+ * _mulle_storage_get_count( &a_tree->_nodes), but there is deliberately no
+ * public accessor (the caller owns every mutation, so it owns the count).
+ */
 MULLE__RBTREE_GLOBAL
 MULLE_C_NONNULL_FIRST
 size_t   _mulle__rbtree_get_count( struct mulle__rbtree *a_tree);

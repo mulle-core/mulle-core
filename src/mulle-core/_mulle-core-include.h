@@ -3,17 +3,37 @@
  *   `mulle-sde reflect` and any edits will be lost.
  *   Suppress generation of this file with:
  *
- *      mulle-sde environment set MULLE_SOURCETREE_TO_C_INCLUDE_FILE DISABLE
+ *      mulle-sde environment --global set MULLE_SOURCETREE_TO_C_INCLUDE_FILE DISABLE
  *
  *   To not let mulle-sourcetree-to-c generate any header files:
  *
- *      mulle-sde environment set MULLE_SOURCETREE_TO_C_RUN DISABLE
+ *      mulle-sde environment --global set MULLE_SOURCETREE_TO_C_RUN DISABLE
  *
  */
 
 #ifndef _mulle_core_include_h__
 #define _mulle_core_include_h__
 
-/* no headers */
+// To remove the following dependency (headers and library) completely:
+//   `mulle-sde dependency remove pthread`
+// (Use 494B8855-9C99-468E-9900-3C6CB59BA4E6 instead of pthread, if there are duplicate entries)
+//
+// You can tweak the following #include with these commands:
+//    remove #include: `mulle-sde dependency mark pthread no-header`
+//    rename              : `mulle-sde dependency|library set pthread include whatever.h`
+//    reorder             : `mulle-sde dependency move pthread <up|down>`
+//    toggle objc         : `mulle-sde dependency mark pthread [no-]import`
+//    toggle public       : `mulle-sde dependency mark pthread [no-]public`
+//    toggle optional     : `mulle-sde dependency mark pthread [no-]require`
+//    remove for platform : `mulle-sde dependency mark pthread no-platform-<uname>`
+//        (use `mulle-sourcetree-to-c --unames` to list known values)
+# if ! defined( __ANDROID__) && ! defined( _WIN32) && ! defined( _WIN32)
+# ifdef __has_include
+#  if __has_include(<pthread.h>)
+#    include <pthread.h>   // pthread
+#   define HAVE_LIB_PTHREAD
+#  endif
+# endif
+#endif
 
 #endif

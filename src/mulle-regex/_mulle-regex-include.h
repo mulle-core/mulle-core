@@ -3,11 +3,11 @@
  *   `mulle-sde reflect` and any edits will be lost.
  *   Suppress generation of this file with:
  *
- *      mulle-sde environment set MULLE_SOURCETREE_TO_C_INCLUDE_FILE DISABLE
+ *      mulle-sde environment --global set MULLE_SOURCETREE_TO_C_INCLUDE_FILE DISABLE
  *
  *   To not let mulle-sourcetree-to-c generate any header files:
  *
- *      mulle-sde environment set MULLE_SOURCETREE_TO_C_RUN DISABLE
+ *      mulle-sde environment --global set MULLE_SOURCETREE_TO_C_RUN DISABLE
  *
  */
 
@@ -28,5 +28,20 @@
 //    remove for platform : `mulle-sde dependency mark mulle-utf no-platform-<uname>`
 //        (use `mulle-sourcetree-to-c --unames` to list known values)
 #include <mulle-utf/mulle-utf.h>   // mulle-utf
+
+// To remove the following dependency (headers and library) completely:
+//   `mulle-sde dependency remove mulle-unicode`
+// (Use 2E69644F-DC65-4783-9A79-4E9D9C3C2A11 instead of mulle-unicode, if there are duplicate entries)
+//
+// You can tweak the following #include with these commands:
+//    remove #include: `mulle-sde dependency mark mulle-unicode no-header`
+//    rename              : `mulle-sde dependency|library set mulle-unicode include whatever.h`
+//    reorder             : `mulle-sde dependency move mulle-unicode <up|down>`
+//    toggle objc         : `mulle-sde dependency mark mulle-unicode [no-]import`
+//    toggle public       : `mulle-sde dependency mark mulle-unicode [no-]public`
+//    toggle optional     : `mulle-sde dependency mark mulle-unicode [no-]require`
+//    remove for platform : `mulle-sde dependency mark mulle-unicode no-platform-<uname>`
+//        (use `mulle-sourcetree-to-c --unames` to list known values)
+#include <mulle-unicode/mulle-unicode.h>   // mulle-unicode
 
 #endif

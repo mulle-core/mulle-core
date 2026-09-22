@@ -78,13 +78,26 @@ static inline void
 }
 
 
+//
+// `capacity` is the node pool's bucket size: how many nodes are handed out per
+// system allocation, and how much memory is committed as soon as the tree needs
+// one node. 0 selects MULLE__RBTREE_DEFAULT_CAPACITY (32). Pick roughly the
+// expected number of live nodes; a bucket is committed whole, so a wrong guess
+// costs memory, which is why the default stays small. Values above USHRT_MAX are
+// clamped (mulle_structqueue stores the bucket size in an unsigned short).
+//
+// node_extra and options are the leading fields (MULLE__RBTREE_CONFIG_BASE),
+// shared with the low-level struct mulle__rbtree_config, which this struct is
+// cast to. A config must be zeroed or fully designated: an unset capacity is
+// otherwise garbage (the clamp keeps it from wrapping, but it can still ask for
+// a needlessly large bucket).
+//
 struct mulle_rbtree_config
 {
+   MULLE__RBTREE_CONFIG_BASE;
    int                                     (*comparison)( void *a, void *b);
    void                                    (*dirty)( void *a, void *b, void *c);
    struct mulle_container_valuecallback    *callback;
-   size_t                                  node_extra;
-   unsigned int                            options;
 };
 
 
@@ -152,6 +165,11 @@ static inline int
 {
    return( a_tree ? _mulle_rbtree_is_empty( a_tree) : 1);
 }
+
+
+// No count accessor by design: the caller mutates the tree itself, so it owns
+// the count, and mulle_rbtree_is_empty() covers emptiness. Rank/select is a
+// different structure. See asset/dox/api/toc/index.md.
 
 
 

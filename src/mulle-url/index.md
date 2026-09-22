@@ -20,7 +20,7 @@ The current version is 2.4.0 (`MULLE__URL_VERSION ((2UL << 20) | (4 << 8) | 0)`)
 ## 2. Key Concepts & Design Philosophy
 
 - **Component-Based Validation:** Each URL part (scheme, host, user, password,
-  path, query, fragment) has its own narrowly-scoped valid character class.
+  port, path, query, fragment) has its own narrowly-scoped valid character class.
 - **Dual-Width API:** Every check exists in a UTF-16 form taking `uint16_t`
   (covers the BMP only) and a UTF-32 form taking `int32_t` (full Unicode).
   The `int32_t` form delegates to the `uint16_t` form for code points
@@ -31,8 +31,11 @@ The current version is 2.4.0 (`MULLE__URL_VERSION ((2UL << 20) | (4 << 8) | 0)`)
   (BMP) ever reports valid characters.
 - **ASCII-Centric Ranges:** All validators restrict themselves to the ASCII
   printable range (roughly `0x21`..`0x7e`) and exclude specific reserved
-  characters for each component. Non-ASCII code points are always invalid
-  except where component rules allow `%` (percent-encoding) or `~`.
+  characters for each component. Non-ASCII code points are always invalid.
+  `~` is valid only where a component lists it. `%` is excluded from every
+  component classifier, because a lone `%` is not a valid code point:
+  percent-encoding is the three-byte `%XX` triplet (`pct-encoded = "%" HEXDIG
+  HEXDIG`, RFC 3986), which the pair-aware functions in §3.10 check.
 - **Non-Destructive & Pure:** Functions only inspect a code point; they never
   modify state, allocate, or touch global memory.
 
@@ -111,8 +114,9 @@ Valid password characters: same exclusions as the user class
 ### 3.6. `mulle-unicode-is-validurlpath.h`
 
 Valid path characters (RFC 3986 `pchar`): printable ASCII `0x21..0x7e` minus
-`" # % ; < > ? [ \ ] ^ `` ` { | } ``. Note `/` **is** allowed, `?` is not
-(query separator).
+`" # % < > ? [ \ ] ^ `` ` { | } ``. Note `/` **is** allowed, `?` is not
+(query separator), and `;` **is** allowed (RFC 3986 `sub-delims`, so matrix
+parameters such as `/path;p=1` validate).
 
 - `int mulle_unicode16_is_validurlpath( uint16_t c)` — UTF-16 check.
 - `int mulle_unicode_is_validurlpath( int32_t c)` — UTF-32 check (BMP only).
@@ -138,6 +142,38 @@ Valid fragment characters: same exclusions as the query class
 - `int mulle_unicode_is_validurlfragment( int32_t c)` — UTF-32 check (BMP only).
 - `int mulle_unicode_is_validurlfragmentplane( unsigned int plane)` — returns 1
   only for plane 0.
+
+### 3.9. `mulle-unicode-is-validurlport.h`
+
+Valid port characters (RFC 3986 `port = *DIGIT`): the ASCII digits `0`..`9`
+only. Every other code point, including non-ASCII digits, is invalid. The empty
+port (`http://host:/`) and the 16-bit port range limit are not code-point
+questions and stay the caller's.
+
+- `int mulle_unicode16_is_validurlport( uint16_t c)` — UTF-16 check.
+- `int mulle_unicode_is_validurlport( int32_t c)` — UTF-32 check (BMP only).
+- `int mulle_unicode_is_validurlportplane( unsigned int plane)` — returns 1
+  only for plane 0.
+
+### 3.10. `mulle-unicode-is-validurlpercentescape.h`
+
+Pair-aware checks for RFC 3986 `pct-encoded = "%" HEXDIG HEXDIG`. Unlike the
+per-code-point classifiers, these take a byte slice (`const char *s`,
+`size_t len`) because a percent-escape spans three bytes. They check the
+well-formedness of percent-encoding only; they do not check that the decoded
+character is legal in any particular component, and they do not decode.
+
+- `int mulle_unicode_is_validurlpercentescape_triplet( const char *s, size_t len)`
+  — returns 1 iff `len >= 3`, `s[0] == '%'` and `s[1]`/`s[2]` are hex digits
+  (`0-9`, `A-F`, `a-f`); 0 otherwise.
+- `int mulle_unicode_is_validurlpercentencoding( const char *s, size_t len)` —
+  walks `s[0..len)`; every `%` must open a well-formed triplet, bytes that are
+  not `%` are not inspected. Returns 1 if all `%` are well formed (vacuously 1
+  when the slice has no `%`), 0 on the first malformed one.
+
+There is deliberately no single-code-point percent-escape function: that would
+be an `isxdigit` under a name that promises escape validation. The eight
+`validurl*` classifiers keep rejecting a bare `%`.
 
 ## 4. Performance Characteristics
 
@@ -175,9 +211,13 @@ Valid fragment characters: same exclusions as the query class
 
 - **BMP-only behavior:** `int32_t` functions return 0 for all code points
   `> 0xFFFF`. Do not expect validation of supplementary-plane characters.
-- **`%` handling is per-component:** `%` is excluded by every
-  `validurl*` validator; only `mulle_unicode_is_nonpercentescape` reports `%`-like
-  characters. Percent-escaped triplets must be validated elsewhere.
+- **`%` handling is pair-wise and per-component:** `%` is excluded by every
+  `validurl*` classifier; only `mulle_unicode_is_nonpercentescape` reports
+  `%`-like characters. A percent-escape is a three-byte `%XX` triplet, not a
+  code point, so check its well-formedness with
+  `mulle_unicode_is_validurlpercentescape_triplet` /
+  `mulle_unicode_is_validurlpercentencoding` (§3.10) and the decoded
+  character's component validity with the matching classifier.
 - **Reserved characters differ per component:** e.g. `/` is valid in path and
   query but not in host/user/password; `?` is valid in query but excluded from
   path. Do not assume one component's allowed set for another.

@@ -22,6 +22,8 @@ src/mulle-mmap
 src/mulle-multififo
 src/mulle-regex
 src/mulle-slug
+src/mulle-socket
+src/mulle-spawn
 src/mulle-sprintf
 src/mulle-storage
 src/mulle-thread
@@ -57,6 +59,8 @@ src/mulle-mmap/include-private.h
 src/mulle-multififo/include-private.h
 src/mulle-regex/include-private.h
 src/mulle-slug/include-private.h
+src/mulle-socket/include-private.h
+src/mulle-spawn/include-private.h
 src/mulle-sprintf/include-private.h
 src/mulle-storage/include-private.h
 src/mulle-thread/include-private.h
@@ -82,6 +86,8 @@ src/mulle-multififo/_mulle-multififo-include-private.h
 src/mulle-regex/_mulle-regex-include-private.h
 src/mulle-regex/mulle-utf32regex-private.h
 src/mulle-slug/_mulle-slug-include-private.h
+src/mulle-socket/_mulle-socket-include-private.h
+src/mulle-spawn/_mulle-spawn-include-private.h
 src/mulle-sprintf/_mulle-sprintf-include-private.h
 src/mulle-storage/_mulle-storage-include-private.h
 src/mulle-thread/_mulle-thread-include-private.h
@@ -209,6 +215,8 @@ src/mulle-rbtree-debug/include.h
 src/mulle-rbtree/include.h
 src/mulle-regex/include.h
 src/mulle-slug/include.h
+src/mulle-socket/include.h
+src/mulle-spawn/include.h
 src/mulle-sprintf/include.h
 src/mulle-storage/include.h
 src/mulle-thread/include.h
@@ -403,6 +411,12 @@ src/mulle-slug/mulle-slug.h
 src/mulle-slug/_mulle-slug-include.h
 src/mulle-slug/_mulle-slug-provide.h
 src/mulle-slug/_mulle-slug-versioncheck.h
+src/mulle-socket/mulle-socket.h
+src/mulle-socket/_mulle-socket-include.h
+src/mulle-socket/_mulle-socket-provide.h
+src/mulle-spawn/mulle-spawn.h
+src/mulle-spawn/_mulle-spawn-include.h
+src/mulle-spawn/_mulle-spawn-provide.h
 src/mulle-sprintf/mulle-sprintf-character.h
 src/mulle-sprintf/mulle-sprintf-decimal-jeaiii.h
 src/mulle-sprintf/mulle-sprintf-escape.h
@@ -445,6 +459,7 @@ src/mulle-unicode/mulle-unicode-ctype.h
 src/mulle-unicode/mulle-unicode.h
 src/mulle-unicode/_mulle-unicode-include.h
 src/mulle-unicode/mulle-unicode-is-alphanumeric.h
+src/mulle-unicode/mulle-unicode-is-ascii.h
 src/mulle-unicode/mulle-unicode-is-capitalized.h
 src/mulle-unicode/mulle-unicode-is-control.h
 src/mulle-unicode/mulle-unicode-is-decimaldigit.h
@@ -471,6 +486,8 @@ src/mulle-url/mulle-unicode-is-validurlfragment.h
 src/mulle-url/mulle-unicode-is-validurlhost.h
 src/mulle-url/mulle-unicode-is-validurlpassword.h
 src/mulle-url/mulle-unicode-is-validurlpath.h
+src/mulle-url/mulle-unicode-is-validurlpercentescape.h
+src/mulle-url/mulle-unicode-is-validurlport.h
 src/mulle-url/mulle-unicode-is-validurlquery.h
 src/mulle-url/mulle-unicode-is-validurlscheme.h
 src/mulle-url/mulle-unicode-is-validurluser.h

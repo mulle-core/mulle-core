@@ -134,8 +134,14 @@ The low-level tree structure.
 
 **Lifecycle Functions:**
 - `_mulle__rbtree_init()`: Initialize tree with allocator
-- `_mulle__rbtree_init_with_options()`: Initialize with extra memory size and options
+- `_mulle__rbtree_init_with_options()`: Initialize with extra memory size and options (default-capacity convenience wrapper: capacity 0, so `MULLE__RBTREE_DEFAULT_CAPACITY`)
+- `_mulle__rbtree_init_with_config( struct mulle__rbtree *, const struct mulle__rbtree_config *, struct mulle_allocator *)`: Initialize from a `struct mulle__rbtree_config`; reads `node_extra`, `options` and `capacity` (the node pool bucket size, 0 = 32, clamped to `USHRT_MAX`)
 - `_mulle__rbtree_done()`: Destroy tree structure (does not release payloads)
+
+**`struct mulle__rbtree_config`:**
+Common configuration for the low-level tree. Its fields are `node_extra`,
+`options` and `capacity`, in that order, so a high-level
+`struct mulle_rbtree_config *` can be cast to it.
 
 **Node Creation:**
 - `_mulle__rbtree_new_node()`: Allocate and initialize new node with payload
@@ -170,7 +176,7 @@ The low-level tree structure.
 - `_mulle__rbtree_get_nil_node( const struct mulle__rbtree *a_tree)`: Get sentinel nil node (takes a const tree, returns non-const node)
 - `_mulle__rbtree_is_nil_node()`: Check if node is nil sentinel
 - `_mulle__rbtree_get_allocator()`: Get allocator
-- `_mulle__rbtree_get_count()`: Get number of nodes in tree (recursive count)
+- `_mulle__rbtree_get_count()`: Count the nodes by walking the whole tree; O(n), recursive, not a size accessor (see "No size / order statistics by design")
 - `_mulle__rbtree_is_dirty()`: Check if tree has dirty nodes
 - `_mulle__rbtree_get_extra_size()`: Get size of extra memory per node (storage element size minus `offsetof( struct mulle_rbnode, payload)`, not `sizeof( struct mulle_rbnode)`)
 
@@ -216,6 +222,21 @@ Configuration structure for advanced initialization.
 - `callback`: Pointer to value callback structure
 - `node_extra`: Size of extra memory per node (for extra mode)
 - `options`: Option flags (allow_duplicates, use_extra, use_dirty, use_marker)
+- `capacity`: Node pool bucket size. `0` (the default) means
+  `MULLE__RBTREE_DEFAULT_CAPACITY` (32). A bucket is committed whole the first
+  time the tree needs a node, so pick roughly the expected number of live nodes;
+  a wrong guess costs memory, which is why the default stays at 32. Values above
+  `USHRT_MAX` are clamped.
+
+A config must be zeroed or fully designated before use: an unset `capacity` is
+otherwise garbage. The clamp keeps a garbage value from wrapping into a small
+bucket with a large spare allowance, but it can still ask for a needlessly large
+bucket.
+
+The `node_extra`, `options` and `capacity` fields lead the structure
+(`MULLE__RBTREE_CONFIG_BASE`), so a `struct mulle_rbtree_config *` is also a
+valid `struct mulle__rbtree_config *` for the low-level initializer
+`_mulle__rbtree_init_with_config()`.
 
 **Core Operations:**
 - `mulle_rbtree_add()`: Add value to tree; returns 0 on success, errno on failure (NULL-safe)
@@ -274,6 +295,24 @@ Reverse enumerator for tree values.
 
 **Convenience Macro:**
 - `mulle_rbtree_reversefor( tree, item)`: Foreach-style reverse iteration over values
+
+### No size / order statistics by design
+
+`mulle_rbtree` deliberately has no `mulle_rbtree_get_count()` and no rank/select.
+It is a direct-mutation container: the caller inserts and removes every value
+itself, so it already owns the count. `mulle_rbtree_is_empty()` covers
+emptiness, and size is caller-owned. (The live node count is already available
+in O(1) as `_mulle_storage_get_count( &a_tree->_nodes)`, but exposing it would
+also promote `_nodes` — an implementation detail — to a public guarantee.)
+
+Rank/select/percentile is a different structure, not a missing accessor: a
+subtree size costs every node 8 bytes — measured 40 → 48 bytes at
+`node_extra = 8`, +20% — and must be maintained through every insert, delete
+and rotation. If it is ever wanted it is an opt-in
+`mulle_rbtree_option_use_size`, never a per-node field.
+
+For completeness, `_mulle__rbtree_get_count()` is a deliberate O(n) recursive
+walk; it is not a size accessor and there is intentionally no public count.
 
 ## 4. Performance Characteristics
 
@@ -600,6 +639,7 @@ int   main( void)
    config.callback   = NULL;
    config.node_extra = sizeof( struct entry) - sizeof( void *);
    config.options    = mulle_rbtree_option_use_extra;
+   config.capacity   = 0;   // 0 = default (32); must be set when assigning fields
 
    mulle_rbtree_init_with_config( &tree, &config, NULL);
 

@@ -5,10 +5,213 @@
 #
 # Disable generation of this file with:
 #
-# mulle-sde environment set MULLE_SOURCETREE_TO_CMAKE_LIBRARIES_FILE DISABLE
+# mulle-sde environment --global set MULLE_SOURCETREE_TO_CMAKE_LIBRARIES_FILE DISABLE
 #
 if( MULLE_TRACE_INCLUDE)
    message( STATUS "# Include \"${CMAKE_CURRENT_LIST_FILE}\"" )
 endif()
 
-# there are no libraries in the sourcetree
+#
+# Generated from sourcetree: 4E5C5743-E0CB-494A-B836-9E6970C9D9CE;stdthreads;no-all-load,no-build,no-delete,no-dependency,no-fs,no-header,no-import,no-update,only-platform-freebsd;
+# Disable with : `mulle-sourcetree mark stdthreads `
+# Disable for this platform: `mulle-sourcetree mark stdthreads no-cmake-platform-${MULLE_UNAME}`
+# Disable for a sdk: `mulle-sourcetree mark stdthreads no-cmake-sdk-<name>`
+#
+if( ${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
+   if( COLLECT_OS_SPECIFIC_LIBRARIES_AS_NAMES)
+      list( APPEND OS_SPECIFIC_LIBRARIES "stdthreads")
+   else()
+      if( NOT STDTHREADS_LIBRARY)
+         foreach( _TMP_STDTHREADS_LIBRARY_TARGET stdthreads)
+            if( TARGET ${_TMP_STDTHREADS_LIBRARY_TARGET})
+               set( STDTHREADS_LIBRARY ${_TMP_STDTHREADS_LIBRARY_TARGET})
+               break()
+            endif()
+         endforeach()
+         if( NOT STDTHREADS_LIBRARY)
+            find_library( STDTHREADS_LIBRARY NAMES
+               stdthreads
+            )
+         endif()
+         message( STATUS "STDTHREADS_LIBRARY is ${STDTHREADS_LIBRARY}")
+      endif()
+      if( STDTHREADS_LIBRARY)
+            #
+            # Add STDTHREADS_LIBRARY to OS_SPECIFIC_LIBRARIES list.
+            # Disable with: `mulle-sourcetree mark stdthreads no-cmake-add`
+            #
+            if( NOT ${STDTHREADS_LIBRARY} IN_LIST OS_SPECIFIC_LIBRARIES)
+               list( APPEND OS_SPECIFIC_LIBRARIES ${STDTHREADS_LIBRARY})
+            endif()
+            #
+            # Inherit information from dependency.
+            # Encompasses: no-cmake-searchpath,no-cmake-dependency,no-cmake-loader
+            # Disable with: `mulle-sourcetree mark stdthreads no-cmake-inherit`
+            #
+            # temporarily expand CMAKE_MODULE_PATH
+            get_filename_component( _TMP_STDTHREADS_ROOT "${STDTHREADS_LIBRARY}" DIRECTORY)
+            get_filename_component( _TMP_STDTHREADS_ROOT "${_TMP_STDTHREADS_ROOT}" DIRECTORY)
+            #
+            #
+            # Search for "Definitions.cmake" and "DependenciesAndLibraries.cmake" to include.
+            # Disable with: `mulle-sourcetree mark stdthreads no-cmake-dependency`
+            #
+            foreach( _TMP_STDTHREADS_NAME "stdthreads")
+               set( _TMP_STDTHREADS_DIR "${_TMP_STDTHREADS_ROOT}/include/${_TMP_STDTHREADS_NAME}/cmake")
+               # use explicit path to avoid "surprises"
+               if( IS_DIRECTORY "${_TMP_STDTHREADS_DIR}")
+                  list( INSERT CMAKE_MODULE_PATH 0 "${_TMP_STDTHREADS_DIR}")
+                  # we only want top level INHERIT_OBJC_DEPS, so disable them
+                  if( NOT NO_INHERIT_OBJC_DEPS)
+                     set( NO_INHERIT_OBJC_DEPS OFF)
+                  endif()
+                  list( APPEND _TMP_INHERIT_OBJC_DEPS ${NO_INHERIT_OBJC_DEPS})
+                  set( NO_INHERIT_OBJC_DEPS ON)
+                  #
+                  include( "${_TMP_STDTHREADS_DIR}/DependenciesAndLibraries.cmake" OPTIONAL)
+                  #
+                  list( GET _TMP_INHERIT_OBJC_DEPS -1 NO_INHERIT_OBJC_DEPS)
+                  list( REMOVE_AT _TMP_INHERIT_OBJC_DEPS -1)
+                  list( REMOVE_ITEM CMAKE_MODULE_PATH "${_TMP_STDTHREADS_DIR}")
+                  #
+                  unset( STDTHREADS_DEFINITIONS)
+                  unset( STDTHREADS_RENDEZVOUS_GLOBALS)
+                  include( "${_TMP_STDTHREADS_DIR}/Definitions.cmake" OPTIONAL)
+                  list( APPEND INHERITED_DEFINITIONS ${STDTHREADS_DEFINITIONS})
+                  include( "${_TMP_STDTHREADS_DIR}/Definitions.cmake" OPTIONAL)
+                  list( APPEND RENDEZVOUS_GLOBALS ${STDTHREADS_RENDEZVOUS_GLOBALS})
+                  break()
+               else()
+                  message( STATUS "${_TMP_STDTHREADS_DIR} not found")
+               endif()
+            endforeach()
+      else()
+         # Disable with: `mulle-sourcetree mark stdthreads no-require-link`
+         message( SEND_ERROR "STDTHREADS_LIBRARY was not found in stdthreads")
+      endif()
+   endif()
+endif()
+
+
+#
+# Generated from sourcetree: 494B8855-9C99-468E-9900-3C6CB59BA4E6;pthread;no-all-load,no-build,no-delete,no-dependency,no-fs,no-import,no-platform-android,no-platform-mingw,no-platform-windows,no-require,no-update;pthreads,pthread
+# Disable with : `mulle-sourcetree mark pthread `
+# Disable for this platform: `mulle-sourcetree mark pthread no-cmake-platform-${MULLE_UNAME}`
+# Disable for a sdk: `mulle-sourcetree mark pthread no-cmake-sdk-<name>`
+#
+if( NOT (${CMAKE_SYSTEM_NAME} MATCHES "Android" OR ${CMAKE_SYSTEM_NAME} MATCHES "Windows"))
+   if( COLLECT_OS_SPECIFIC_LIBRARIES_AS_NAMES)
+      list( APPEND OS_SPECIFIC_LIBRARIES "pthreads")
+   else()
+      if( NOT PTHREAD_LIBRARY)
+         foreach( _TMP_PTHREAD_LIBRARY_TARGET pthreads pthread)
+            if( TARGET ${_TMP_PTHREAD_LIBRARY_TARGET})
+               set( PTHREAD_LIBRARY ${_TMP_PTHREAD_LIBRARY_TARGET})
+               break()
+            endif()
+         endforeach()
+         if( NOT PTHREAD_LIBRARY)
+            find_library( PTHREAD_LIBRARY NAMES
+               pthreads
+               pthread
+            )
+         endif()
+         message( STATUS "PTHREAD_LIBRARY is ${PTHREAD_LIBRARY}")
+      endif()
+      if( PTHREAD_LIBRARY)
+            #
+            # Add PTHREAD_LIBRARY to OS_SPECIFIC_LIBRARIES list.
+            # Disable with: `mulle-sourcetree mark pthread no-cmake-add`
+            #
+            if( NOT ${PTHREAD_LIBRARY} IN_LIST OS_SPECIFIC_LIBRARIES)
+               list( APPEND OS_SPECIFIC_LIBRARIES ${PTHREAD_LIBRARY})
+            endif()
+            #
+            # Inherit information from dependency.
+            # Encompasses: no-cmake-searchpath,no-cmake-dependency,no-cmake-loader
+            # Disable with: `mulle-sourcetree mark pthread no-cmake-inherit`
+            #
+            # temporarily expand CMAKE_MODULE_PATH
+            get_filename_component( _TMP_PTHREAD_ROOT "${PTHREAD_LIBRARY}" DIRECTORY)
+            get_filename_component( _TMP_PTHREAD_ROOT "${_TMP_PTHREAD_ROOT}" DIRECTORY)
+            #
+            #
+            # Search for "Definitions.cmake" and "DependenciesAndLibraries.cmake" to include.
+            # Disable with: `mulle-sourcetree mark pthread no-cmake-dependency`
+            #
+            foreach( _TMP_PTHREAD_NAME "pthreads" "pthread")
+               set( _TMP_PTHREAD_DIR "${_TMP_PTHREAD_ROOT}/include/${_TMP_PTHREAD_NAME}/cmake")
+               # use explicit path to avoid "surprises"
+               if( IS_DIRECTORY "${_TMP_PTHREAD_DIR}")
+                  list( INSERT CMAKE_MODULE_PATH 0 "${_TMP_PTHREAD_DIR}")
+                  # we only want top level INHERIT_OBJC_DEPS, so disable them
+                  if( NOT NO_INHERIT_OBJC_DEPS)
+                     set( NO_INHERIT_OBJC_DEPS OFF)
+                  endif()
+                  list( APPEND _TMP_INHERIT_OBJC_DEPS ${NO_INHERIT_OBJC_DEPS})
+                  set( NO_INHERIT_OBJC_DEPS ON)
+                  #
+                  include( "${_TMP_PTHREAD_DIR}/DependenciesAndLibraries.cmake" OPTIONAL)
+                  #
+                  list( GET _TMP_INHERIT_OBJC_DEPS -1 NO_INHERIT_OBJC_DEPS)
+                  list( REMOVE_AT _TMP_INHERIT_OBJC_DEPS -1)
+                  list( REMOVE_ITEM CMAKE_MODULE_PATH "${_TMP_PTHREAD_DIR}")
+                  #
+                  unset( PTHREAD_DEFINITIONS)
+                  unset( PTHREAD_RENDEZVOUS_GLOBALS)
+                  include( "${_TMP_PTHREAD_DIR}/Definitions.cmake" OPTIONAL)
+                  list( APPEND INHERITED_DEFINITIONS ${PTHREAD_DEFINITIONS})
+                  include( "${_TMP_PTHREAD_DIR}/Definitions.cmake" OPTIONAL)
+                  list( APPEND RENDEZVOUS_GLOBALS ${PTHREAD_RENDEZVOUS_GLOBALS})
+                  break()
+               else()
+                  message( STATUS "${_TMP_PTHREAD_DIR} not found")
+               endif()
+            endforeach()
+      else()
+         # Enable with: `mulle-sourcetree mark pthread require`
+         message( STATUS "PTHREAD_LIBRARY is missing but it is marked as \"no-require\"")
+      endif()
+   endif()
+endif()
+
+
+#
+# Generated from sourcetree: 5A95F503-A344-4E2E-939C-55623D5954CB;ws2_32;no-all-load,no-build,no-cmake-inherit,no-delete,no-dependency,no-fs,no-header,no-import,no-share,no-update,only-platform-windows;
+# Disable with : `mulle-sourcetree mark ws2_32 `
+# Disable for this platform: `mulle-sourcetree mark ws2_32 no-cmake-platform-${MULLE_UNAME}`
+# Disable for a sdk: `mulle-sourcetree mark ws2_32 no-cmake-sdk-<name>`
+#
+if( ${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+   if( COLLECT_OS_SPECIFIC_LIBRARIES_AS_NAMES)
+      list( APPEND OS_SPECIFIC_LIBRARIES "ws2_32")
+   else()
+      if( NOT WS2_32_LIBRARY)
+         foreach( _TMP_WS2_32_LIBRARY_TARGET ws2_32)
+            if( TARGET ${_TMP_WS2_32_LIBRARY_TARGET})
+               set( WS2_32_LIBRARY ${_TMP_WS2_32_LIBRARY_TARGET})
+               break()
+            endif()
+         endforeach()
+         if( NOT WS2_32_LIBRARY)
+            find_library( WS2_32_LIBRARY NAMES
+               ws2_32
+            )
+         endif()
+         message( STATUS "WS2_32_LIBRARY is ${WS2_32_LIBRARY}")
+      endif()
+      if( WS2_32_LIBRARY)
+            #
+            # Add WS2_32_LIBRARY to OS_SPECIFIC_LIBRARIES list.
+            # Disable with: `mulle-sourcetree mark ws2_32 no-cmake-add`
+            #
+            if( NOT ${WS2_32_LIBRARY} IN_LIST OS_SPECIFIC_LIBRARIES)
+               list( APPEND OS_SPECIFIC_LIBRARIES ${WS2_32_LIBRARY})
+            endif()
+            # intentionally left blank
+      else()
+         # Disable with: `mulle-sourcetree mark ws2_32 no-require-link`
+         message( SEND_ERROR "WS2_32_LIBRARY was not found in ws2_32")
+      endif()
+   endif()
+endif()

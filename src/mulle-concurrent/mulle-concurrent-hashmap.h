@@ -174,7 +174,7 @@ static inline unsigned int
 // Return value (rval):
 //
 //     MULLE_CONCURRENT_NO_POINTER      : means it did insert
-//     MULLE_CONCURRENT_INVALID_POINTER : error (errno is EINVAL or EEXIST)
+//     MULLE_CONCURRENT_INVALID_POINTER : error (invalid argument)
 //     other                            : value that was already registered
 //
 // Do not use hash=0
@@ -282,7 +282,6 @@ static inline struct mulle_concurrent_hashmapenumerator
 //  1         : OK
 //  0         : nothing left
 // ECANCELLED : mutation alert
-// ENOMEM     : out of memory
 // EINVAL     : wrong parameter value
 
 static inline int

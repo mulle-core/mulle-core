@@ -48,6 +48,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <mulle-unicode/mulle-unicode.h>
+
 /* (nat) to unconfuse/confuse the code, the "program space" is pointed
  *       by a unknown pointer called node. This should make arithmetic harder,
  *       which is good, because it catches more errors. Also inside the code,
@@ -109,6 +111,14 @@ typedef struct _anonymous_node   node;
 /*	OPEN+1 is number 1, etc. */
 #define  CLOSE   256 /* no	Analogous to OPEN, but goes down so CLOSE - 1. */
                      /* matches OPEN + 1*/
+
+/*
+ * ANYCLASS carries a charset rather than a list of members. The opcodes below
+ * OPEN are all taken and OPEN+n / CLOSE-n are the capture groups, so this lives
+ * between the groups and the closes.
+ */
+#define  ANYCLASS 32  /* charset  Match a named character class. */
+#define  REGEX_CLASS_NEGATED   0x01
 
 /*
  * Opcode notes:
@@ -202,6 +212,7 @@ struct comp
    int             regnpar;       /* () count. */
    node            *regcode;      /* Code-emit pointer; &regdummy = don't. */
    long            regsize;       /* Code size. */
+   unsigned int    options;       /* MULLE_UTF32REGEX_* */
    char            regdummy[4];   /* NOTHING, 0 next ptr */
    jmp_buf         bail;
 };
@@ -302,7 +313,7 @@ struct mulle_range   mulle_utf32regex_range_for_index( struct mulle_utf32regex *
    p = rp;
    if( i >= MULLE_UTF32REGEX_NSUBEXP || ! p->startp[ i])
    {
-      range.location = LONG_MAX;
+      range.location = mulle_not_found_e;
       range.length   = 0;
       return( range);
    }
@@ -328,7 +339,8 @@ struct mulle_range   mulle_utf32regex_range_for_index( struct mulle_utf32regex *
  * Beware that the optimization-preparation code in here knows about some
  * of the structure of the compiled regexp.
  */
-struct mulle_utf32regex   *mulle_utf32regex_compile( const mulle_utf32_t *exp)
+struct mulle_utf32regex   *mulle_utf32regex_compile_options( const mulle_utf32_t *exp,
+                                                           unsigned int options)
 {
    regexp        *r;
    node          *scan;
@@ -341,6 +353,7 @@ struct mulle_utf32regex   *mulle_utf32regex_compile( const mulle_utf32_t *exp)
    co.regparse    = (mulle_utf32_t *) exp;
    co.regnpar     = 1;
    co.regsize     = 0L;
+   co.options     = options;
    co.regdummy[0] = NOTHING;
    co.regdummy[1] = co.regdummy[2] = co.regdummy[3] = 0;
    co.regcode     = (node *) co.regdummy;
@@ -420,6 +433,12 @@ struct mulle_utf32regex   *mulle_utf32regex_compile( const mulle_utf32_t *exp)
    }
 
    return( (struct mulle_utf32regex  *) r);
+}
+
+
+struct mulle_utf32regex   *mulle_utf32regex_compile( const mulle_utf32_t *exp)
+{
+   return( mulle_utf32regex_compile_options( exp, 0));
 }
 
 
@@ -652,6 +671,438 @@ static size_t   mulle_utf32_metacspn( mulle_utf32_t *s1)
 }
 
 
+// --------------------------------------------------------------------------- #
+//  named character classes
+//
+//  [[:alpha:]] is 22746 codepoints. As a member list that would be some
+//  hundred KB, scanned linearly for every input character, so a named class is
+//  kept as a predicate and answered from a bitmap for the codepoints below
+//  256, which is what source text actually contains. Above that the plane mask
+//  rejects a whole plane at once, and only then is the predicate asked.
+//
+//  The predicates come from mulle-unicode. The names are deliberately not
+//  PCRE's: `word` is alphanumeric plus underscore, `ident` is unicode
+//  ID_Start/ID_Continue, which is the one a parser wants. See
+//  mulle-utf32regex.h for the list.
+// --------------------------------------------------------------------------- #
+
+#define  REGEX_CLASS_MAX_PARTS      8
+#define  REGEX_CLASS_MAX_LITERALS   256
+
+
+static int   regex_is_word( int32_t c)
+{
+   return( !! mulle_unicode_is_alphanumeric( c) || c == '_');
+}
+
+
+static int   regex_is_wordplane( unsigned int plane)
+{
+   return( plane == 0);
+}
+
+
+static int   regex_is_identifier( int32_t c)
+{
+   return( !! mulle_unicode_is_identifierstart( c) ||
+           !! mulle_unicode_is_identifiercontinuation( c));
+}
+
+
+static int   regex_is_identifierplane( unsigned int plane)
+{
+   return( !! mulle_unicode_is_identifierstartplane( plane) ||
+           !! mulle_unicode_is_identifiercontinuationplane( plane));
+}
+
+
+// POSIX [:xdigit:] is the ASCII set, there is no unicode property behind it
+static int   regex_is_xdigit( int32_t c)
+{
+   return( (c >= '0' && c <= '9') ||
+           (c >= 'a' && c <= 'f') ||
+           (c >= 'A' && c <= 'F'));
+}
+
+
+static int   regex_is_xdigitplane( unsigned int plane)
+{
+   return( plane == 0);
+}
+
+
+struct regex_namedclass
+{
+   const char   *name;
+   int          (*member)( int32_t);
+   int          (*plane)( unsigned int);
+};
+
+
+static struct regex_namedclass   regex_namedclasses[] =
+{
+   { "alnum",      mulle_unicode_is_alphanumeric,            mulle_unicode_is_alphanumericplane },
+   { "alpha",      mulle_unicode_is_letter,                  mulle_unicode_is_letterplane },
+   { "blank",      mulle_unicode_is_whitespace,              mulle_unicode_is_whitespaceplane },
+   { "cntrl",      mulle_unicode_is_control,                 mulle_unicode_is_controlplane },
+   { "digit",      mulle_unicode_is_decimaldigit,            mulle_unicode_is_decimaldigitplane },
+   { "ident",      regex_is_identifier,                      regex_is_identifierplane },
+   { "identcont",  mulle_unicode_is_identifiercontinuation,   mulle_unicode_is_identifiercontinuationplane },
+   { "identstart", mulle_unicode_is_identifierstart,         mulle_unicode_is_identifierstartplane },
+   { "lower",      mulle_unicode_is_lowercase,               mulle_unicode_is_lowercaseplane },
+   { "punct",      mulle_unicode_is_punctuation,             mulle_unicode_is_punctuationplane },
+   { "space",      mulle_unicode_is_whitespaceornewline,     mulle_unicode_is_whitespaceornewlineplane },
+   { "upper",      mulle_unicode_is_uppercase,               mulle_unicode_is_uppercaseplane },
+   { "word",       regex_is_word,                            regex_is_wordplane },
+   { "xdigit",     regex_is_xdigit,                          regex_is_xdigitplane },
+   { NULL, NULL, NULL }
+};
+
+
+/*
+ *  - regex_class_matches - is c a member of the class node's charset ?
+ *
+ * The layout is the one regex_named_class emits: the flags, the bitmap for
+ * the codepoints below 256, the plane mask, the ids of the named parts, and
+ * then the members that did not fit into the bitmap.
+ */
+static int   regex_class_matches( mulle_utf32_t *opnd, mulle_utf32_t c)
+{
+   uint32_t        plane;
+   uint32_t        *ascii;
+   mulle_utf32_t   *p;
+   unsigned int    nparts;
+
+   nparts = ((unsigned int) opnd[ 0] >> 8) & 0xFF;
+   ascii  = (uint32_t *) &opnd[ 1];
+   plane  = (uint32_t) opnd[ 9];
+
+   if( c < 256)
+      return( (ascii[ c >> 5] & ((uint32_t) 1 << (c & 31))) ? 1 : 0);
+
+   if( c >= 65536 && ! (plane & ((uint32_t) 1 << (c >> 16))))
+      return( 0);
+
+   p = &opnd[ 10];
+   while( nparts--)
+      if( regex_namedclasses[ *p++].member( (int32_t) c))
+         return( 1);
+
+   while( *p)
+      if( *p++ == c)
+         return( 1);
+
+   return( 0);
+}
+
+
+/*
+ *  - regex_class_value - one member of a class, with escapes resolved
+ *
+ * Without MULLE_UTF32REGEX_EXTENDED a backslash is an ordinary member, which
+ * is what this engine has always done. With it, an escape is resolved - and an
+ * escape that is not one of the known ones and is alphanumeric fails the
+ * compile. `\t` quietly meaning the letter `t` is the bug this prevents.
+ */
+static int   regex_class_value( struct comp *co, int c)
+{
+   if( c != '\\' || ! (co->options & MULLE_UTF32REGEX_EXTENDED))
+      return( c);
+
+   if( ! *co->regparse)
+      FAIL_COMPILE( co, EINVAL, "trailing \\ in character class");
+
+   c = *co->regparse++;
+   switch( c)
+   {
+   case 'a' : return( '\a');
+   case 'e' : return( 033);
+   case 'f' : return( '\f');
+   case 'n' : return( '\n');
+   case 'r' : return( '\r');
+   case 't' : return( '\t');
+   case 'v' : return( '\v');
+   }
+
+   if( c < 128 && isalnum( c))
+      FAIL_COMPILE( co, EINVAL, "unknown escape in character class");
+
+   return( c);
+}
+
+
+struct regex_classstate
+{
+   uint32_t        ascii[ 8];
+   mulle_utf32_t   parts[ REGEX_CLASS_MAX_PARTS];
+   mulle_utf32_t   literals[ REGEX_CLASS_MAX_LITERALS];
+   int             nparts;
+   int             nliterals;
+};
+
+
+struct regex_classsink
+{
+   struct comp             *co;
+   struct regex_classstate *cs;   // NULL: emit straight into the node
+};
+
+
+static void   regex_class_put( struct regex_classsink *sink, int c)
+{
+   if( ! sink->cs)
+   {
+      regex_c( sink->co, c);
+      return;
+   }
+
+   if( c < 256)
+   {
+      sink->cs->ascii[ c >> 5] |= (uint32_t) 1 << (c & 31);
+      return;
+   }
+
+   if( sink->cs->nliterals >= REGEX_CLASS_MAX_LITERALS)
+      FAIL_COMPILE( sink->co, EINVAL, "too many members in character class");
+
+   sink->cs->literals[ sink->cs->nliterals++] = (mulle_utf32_t) c;
+}
+
+
+/*
+ *  - regex_class_add_named - a [[:name:]] part
+ *
+ * On entry regparse is on the ':' of the '[['.
+ */
+static void   regex_class_add_named( struct comp *co, struct regex_classstate *cs)
+{
+   char            name[ 40];
+   mulle_utf32_t   c;
+   size_t          i, len;
+
+   co->regparse++;                                 /* the ':' */
+
+   len = 0;
+   while( (c = *co->regparse) && c != ':' && c != ']')
+   {
+      if( len + 1 >= sizeof( name))
+         FAIL_COMPILE( co, EINVAL, "character class name too long");
+      name[ len++] = (char) c;
+      co->regparse++;
+   }
+   name[ len] = 0;
+
+   if( c != ':' || co->regparse[ 1] != ']')
+      FAIL_COMPILE( co, EINVAL, "malformed [[:name:]]");
+
+   co->regparse += 2;                              /* ':' and ']' */
+
+   for( i = 0; regex_namedclasses[ i].name; i++)
+      if( ! strcmp( regex_namedclasses[ i].name, name))
+      {
+         if( cs->nparts >= REGEX_CLASS_MAX_PARTS)
+            FAIL_COMPILE( co, EINVAL, "too many named classes in character class");
+         cs->parts[ cs->nparts++] = (mulle_utf32_t) i;
+         return;
+      }
+
+   FAIL_COMPILE( co, EINVAL, "unknown character class");
+}
+
+
+/*
+ *  - regex_class_members - everything between the [ and the ]
+ *
+ * The original code read the character in front of a '-' back out of the
+ * pattern to build a range, which cannot survive escapes: in `[\t-a]` the
+ * character before the '-' is the 't'. So the previous member is carried in a
+ * variable here.
+ *
+ * Returns non-zero when the class is not terminated, the caller reports it.
+ */
+static int   regex_class_members( struct comp *co, struct regex_classstate *cs)
+{
+   struct regex_classsink   sink;
+   int                      c, previous, hi, lo, value;
+
+   sink.co = co;
+   sink.cs = cs;
+
+   previous = -1;
+   if( ((c = *co->regparse) == ']') || (c == '-'))
+   {
+      regex_class_put( &sink, c);
+      previous = c;
+      co->regparse++;
+   }
+
+   while( (c = *co->regparse) && c != ']')
+   {
+      co->regparse++;
+
+      if( cs && c == '[' && *co->regparse == ':')
+      {
+         regex_class_add_named( co, cs);
+         previous = -1;
+         continue;
+      }
+
+      if( c == '-')
+      {
+         // a trailing '-' is a member, not a range
+         if( ! *co->regparse || *co->regparse == ']')
+         {
+            regex_class_put( &sink, '-');
+            previous = '-';
+            continue;
+         }
+         if( previous < 0)
+            FAIL_COMPILE( co, EINVAL, "invalid [] range");
+
+         c  = *co->regparse++;
+         hi = regex_class_value( co, c);
+         if( previous > hi)
+            FAIL_COMPILE( co, EINVAL, "invalid [] range");
+         for( lo = previous + 1; lo <= hi; lo++)
+            regex_class_put( &sink, lo);
+         previous = hi;
+         continue;
+      }
+
+      value = regex_class_value( co, c);
+      regex_class_put( &sink, value);
+      previous = value;
+   }
+
+   if( c != ']')
+      return( -1);
+
+   co->regparse++;
+   return( 0);
+}
+
+
+/* the ordinary [ ...], with a plain member list */
+static node   *regex_plain_class( struct comp *co, int negated)
+{
+   node   *ret;
+
+   ret = regex_node( co, negated ? ANYBUT : ANYOF);
+   if( regex_class_members( co, NULL))
+      FAIL_COMPILE( co, EINVAL, "unmatched []");
+   regex_c( co, 0);
+
+   return( ret);
+}
+
+
+/* a [ ...] that names at least one class */
+static node   *regex_named_class( struct comp *co, int negated)
+{
+   struct regex_classstate   cs;
+   struct regex_namedclass   *nc;
+   uint32_t                  plane;
+   node                      *ret;
+   int                       i, j;
+
+   memset( &cs, 0, sizeof( cs));
+
+   if( regex_class_members( co, &cs))
+      FAIL_COMPILE( co, EINVAL, "unmatched []");
+
+   /*
+    * Building the bitmap means asking the predicate 256 times, so it is only
+    * done while emitting, never during the size counting pass.
+    */
+   plane = 0;
+   if( EMITTING(co))
+      for( i = 0; i < cs.nparts; i++)
+      {
+         nc = &regex_namedclasses[ cs.parts[ i]];
+
+         for( j = 0; j < 256; j++)
+            if( nc->member( j))
+               cs.ascii[ j >> 5] |= (uint32_t) 1 << (j & 31);
+
+         for( j = 0; j <= 0x10; j++)
+            if( nc->plane( (unsigned int) j))
+               plane |= (uint32_t) 1 << j;
+      }
+
+   ret = regex_node( co, ANYCLASS);
+   regex_c( co, (negated ? REGEX_CLASS_NEGATED : 0) | (cs.nparts << 8));
+   for( i = 0; i < 8; i++)
+      regex_c( co, (int) cs.ascii[ i]);
+   regex_c( co, (int) plane);
+   for( i = 0; i < cs.nparts; i++)
+      regex_c( co, (int) cs.parts[ i]);
+   for( i = 0; i < cs.nliterals; i++)
+      regex_c( co, (int) cs.literals[ i]);
+   regex_c( co, 0);
+
+   return( ret);
+}
+
+
+/*
+ *  - regex_class_lookahead - does this class name a class ?
+ *
+ * Looks only, regparse is left alone. The escape skipping depends on the
+ * option, because without it a backslash is a member.
+ */
+static int   regex_class_lookahead( struct comp *co)
+{
+   mulle_utf32_t   *p;
+   int             c;
+
+   p = co->regparse;
+   if( *p == '^')
+      p++;
+
+   if( ! (co->options & MULLE_UTF32REGEX_EXTENDED))
+      return( 0);
+
+   while( (c = *p++) && c != ']')
+   {
+      if( c == '\\' && *p)
+      {
+         p++;
+         continue;
+      }
+      if( c == '[' && *p == ':')
+         return( 1);
+   }
+   return( 0);
+}
+
+
+/*
+ *  - regex_class - the [ ...] construct
+ *
+ * The caller has seen the '['. Consumes through the closing ']'.
+ */
+static node   *regex_class( struct comp *co, int *flagp)
+{
+   node   *ret;
+   int    negated;
+
+   negated = 0;
+   if( *co->regparse == '^')
+   {
+      negated = 1;
+      co->regparse++;
+   }
+
+   if( regex_class_lookahead( co))
+      ret = regex_named_class( co, negated);
+   else
+      ret = regex_plain_class( co, negated);
+
+   *flagp |= HASWIDTH | SIMPLE;
+   return( ret);
+}
+
+
 /*
  *  - regex_atom - the lowest level
  *
@@ -683,55 +1134,8 @@ static node   *regex_atom( struct comp *co, int *flagp)
          break;
 
       case '[':
-      {
-         int   range;
-         int   rangeend;
-         int   c;
-
-         if( *co->regparse == '^')     /* Complement of range. */
-         {
-            ret = regex_node(co, ANYBUT);
-            co->regparse++;
-         }
-         else
-            ret = regex_node(co, ANYOF);
-
-         if( ((c = *co->regparse) == ']') || (c == '-'))
-         {
-            regex_c(co, c);
-            co->regparse++;
-         }
-
-         while( (c = *co->regparse++) && c != ']')
-         {
-            if( c != '-')
-               regex_c(co, c);
-            else
-               if( ((c = *co->regparse) == ']') || (c == '\0'))
-                  regex_c(co, '-');
-               else
-               {
-                  range    = (unsigned char) *(co->regparse - 2);
-                  rangeend = (unsigned char) c;
-
-                  if( range > rangeend)
-                     FAIL_COMPILE( co, EINVAL, "invalid [] range");
-
-                  for( range++; range <= rangeend; range++)
-                     regex_c(co, range);
-
-                  co->regparse++;
-               }
-         }
-
-         regex_c( co, '\0');
-
-         if( c != ']')
-            FAIL_COMPILE( co, EINVAL, "unmatched []");
-
-         *flagp |= HASWIDTH | SIMPLE;
+         ret = regex_class( co, flagp);
          break;
-      }
 
       case '(':
          ret = regex_generic( co, 1, &flags);
@@ -755,6 +1159,16 @@ static node   *regex_atom( struct comp *co, int *flagp)
 
          if( *co->regparse == '\0')
             FAIL_COMPILE( co, EINVAL, "trailing \\");
+
+         /*
+          * Escapes are a character class thing, there are no new atoms: to
+          * match a tab you write `[\t]`. An alphanumeric escape that is not
+          * defined is a compile error, because without that `\t` silently
+          * matches the letter `t`.
+          */
+         if((co->options & MULLE_UTF32REGEX_EXTENDED) &&
+             *co->regparse < 128 && isalnum( *co->regparse))
+            FAIL_COMPILE( co, EINVAL, "unknown escape");
 
          ret = regex_node(co, EXACTLY);
          regex_c(co, *co->regparse++);
@@ -1110,6 +1524,21 @@ static int  regex_match( struct exec *ep, node *prog)
          ep->reginput++;
          break;
 
+      case ANYCLASS:
+      {
+         int   member;
+
+         c = *ep->reginput;
+         if( ! c)     /* a class never contains the terminator */
+            return( 0);
+
+         member = regex_class_matches( OPERAND(scan), c);
+         if((OPERAND(scan)[ 0] & REGEX_CLASS_NEGATED) ? member : ! member)
+            return( 0);
+         ep->reginput++;
+         break;
+      }
+
       case NOTHING:
          break;
 
@@ -1282,6 +1711,24 @@ static size_t   regex_repeat( struct exec *ep, node *p)
 
       break;
 
+   case ANYCLASS:
+   {
+      mulle_utf32_t   *opnd = OPERAND( p);
+      int             negated;
+
+      negated = (opnd[ 0] & REGEX_CLASS_NEGATED) ? 1 : 0;
+      count   = 0;
+
+      for( scan = ep->reginput; *scan; scan++)
+      {
+         if( negated ? regex_class_matches( opnd, *scan)
+                     : ! regex_class_matches( opnd, *scan))
+            break;
+         count++;
+      }
+      return( count);
+   }
+
    default:    /* Oh dear.  Called inappropriately. */
 #if DEBUG
       abort();  /* terrible internal corruption */
@@ -1348,7 +1795,15 @@ void   mulle_utf32regex_dump( regexp *r)
 
       p = _NEXT( p);
 
-      if( op == ANYOF || op == ANYBUT || op == EXACTLY)
+      if( op == ANYCLASS)     /* skip flags, bitmap, planes and the part ids */
+      {
+         unsigned int   nparts;
+
+         nparts = ((unsigned int) ((mulle_utf32_t *) p)[ 0] >> 8) & 0xFF;
+         p      = (void *) (((mulle_utf32_t *) p) + 10 + nparts);
+      }
+
+      if( op == ANYOF || op == ANYBUT || op == EXACTLY || op == ANYCLASS)
       {
          s = (mulle_utf32_t *) p;
 
@@ -1405,6 +1860,7 @@ static char    *regex_string_from_opcode( node *op, char buf[64])
    case ANY     : s = "ANY"; break;
    case ANYOF   : s = "ANYOF"; break;
    case ANYBUT  : s = "ANYBUT"; break;
+   case ANYCLASS: s = "ANYCLASS"; break;
    case BRANCH  : s = "BRANCH"; break;
    case EXACTLY : s = "EXACTLY"; break;
    case NOTHING : s = "NOTHING"; break;

@@ -236,6 +236,9 @@ mulle_mmap_file_t   mulle_mmap_file_open( const char *path,
 MULLE__MMAP_GLOBAL
 int64_t   mulle_mmap_file_query_size( mulle_mmap_file_t handle);
 
+MULLE__MMAP_GLOBAL
+int   mulle_mmap_file_close( mulle_mmap_file_t handle);
+
 // Memory mapping result structure (needs to handle Windows mapping handle)
 struct mulle_mmap_result
 {

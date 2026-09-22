@@ -274,6 +274,11 @@ int64_t   mulle_mmap_file_query_size( mulle_mmap_file_t handle)
    return( sbuf.st_size);
 }
 
+int   mulle_mmap_file_close( mulle_mmap_file_t handle)
+{
+   return( close( handle));
+}
+
 int   mulle_mmap_memory_map( mulle_mmap_file_t handle,
                             int64_t offset,
                             int64_t length,

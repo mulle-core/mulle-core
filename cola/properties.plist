@@ -10,7 +10,6 @@
       repo="mulle-core";
       homepage="https://github.com/mulle-core/mulle-core";
       license="BSD-3-Clause";
-      version="0.8.1";
    };
    amalgamated =
    (
@@ -21,6 +20,14 @@
          repo="mintomic";
          url="https://github.com/mulle-concurrent/mintomic";
          user="mulle-concurrent";
+      },
+      {
+         description="dlfcn-win32 [![Build status](https://ci.appveyor.com/api/projects/status/celmbkqj0k41fk04/branch/master?svg=true)](https://ci.appveyor.com/project/dlfcn-win32/dlfcn-win32/branch/master)";
+         domain="clib";
+         name="dlfcn-win32";
+         repo="dlfcn-win32@*";
+         url="https://github.com/mulle-core/dlfcn-win32@*";
+         user="mulle-core";
       },
       {
          description="🚮 A lock-free, cross-platform solution to the ABA problem";
@@ -55,7 +62,7 @@
          user="mulle-c";
       },
       {
-         description="📶 A lock- and wait-free hashtable (and an array too), written in C";
+         description="📶 A lock- and wait-free hashtable, pointer array and pointer set, written in C";
          domain="clib";
          name="mulle-core/mulle-concurrent";
          repo="mulle-concurrent@*";
@@ -85,6 +92,14 @@
          repo="mulle-data@*";
          url="https://github.com/mulle-c/mulle-data@*";
          user="mulle-c";
+      },
+      {
+         description="♿️ Shared library helper";
+         domain="clib";
+         name="mulle-core/mulle-dlfcn";
+         repo="mulle-dlfcn@*";
+         url="https://github.com/mulle-core/mulle-dlfcn@*";
+         user="mulle-core";
       },
       {
          description="🧶 Double to string conversion";
@@ -119,7 +134,7 @@
          user="mulle-c";
       },
       {
-         description="🔂 mulle-linkedlist a wait and lock-free linked list";
+         description="🔂 mulle-linkedlist a lock-free intrusive linked list";
          domain="clib";
          name="mulle-core/mulle-linkedlist";
          repo="mulle-linkedlist@*";

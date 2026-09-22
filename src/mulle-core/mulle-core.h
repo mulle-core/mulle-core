@@ -63,6 +63,8 @@ uint32_t   mulle_core_get_version( void);
 
 # include <mulle-dlfcn/mulle-dlfcn.h>
 # include <mulle-mmap/mulle-mmap.h>
+# include <mulle-socket/mulle-socket.h>
+# include <mulle-spawn/mulle-spawn.h>
 # include <mulle-dtostr/mulle-dtostr.h>
 # include <mulle-fprintf/mulle-fprintf.h>
 # include <mulle-sprintf/mulle-sprintf.h>

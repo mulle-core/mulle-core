@@ -52,7 +52,16 @@ typedef struct mulle_utf32regex
    mulle_utf32_t   *regmust;
    int             regmlen;
    short           reganch;
-   char            program[ 1];
+   /*
+    * The program is read and written as mulle_utf32_t, but addressed with
+    * char pointer arithmetic. A union with a mulle_utf32_t member aligns the
+    * buffer without changing the type of `program`.
+    */
+   union
+   {
+      mulle_utf32_t   alignment;
+      char            program[ 1];
+   };
 } regexp;
 
 

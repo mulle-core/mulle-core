@@ -77,6 +77,7 @@ This section is organized by the primary public header: mulle-mmap.h
 #### Platform / file-level API
 - mulle_mmap_file_open( const char *path, enum mulle_mmap_accessmode mode) -> mulle_mmap_file_t (uses `mode & mulle_mmap_write` to pick O_RDWR/GENERIC_READ|GENERIC_WRITE vs read-only)
 - mulle_mmap_file_query_size( mulle_mmap_file_t handle) -> int64_t
+- mulle_mmap_file_close( mulle_mmap_file_t handle) -> int (close a handle from mulle_mmap_file_open; needed to release file_open + file_query_size without mapping)
 - mulle_mmap_memory_map( handle, int64_t offset, int64_t length, mode, struct mulle_mmap_result *ctx) -> int (Windows now closes the file-mapping handle and returns -1 when MapViewOfFile fails)
 - mulle_mmap_get_system_pagesize() -> size_t
 
