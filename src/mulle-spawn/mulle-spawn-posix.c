@@ -51,7 +51,17 @@
 #include <sys/wait.h>
 
 #if defined( __APPLE__)
+# include <crt_externs.h>
 # include <mach-o/dyld.h>
+
+/*
+ * Darwin has no `environ` to assign to: the environment lives behind the dyld
+ * accessor, which is also what the `environ` every caller sees expands to.
+ */
+# define mulle_spawn_environ   (*_NSGetEnviron())
+#else
+extern char **environ;
+# define mulle_spawn_environ   environ
 #endif
 
 
@@ -448,12 +458,13 @@ static void   mulle_spawn_record_fate( int status,
 }
 
 
-int   mulle_spawn_open( struct mulle_spawn_handle *h,
-                        char * const *argv,
-                        int in_mode,
-                        int out_mode,
-                        int err_mode)
+int   mulle_spawn_open_with_options( struct mulle_spawn_handle *h,
+                                     char * const *argv,
+                                     struct mulle_spawn_options const *options)
 {
+   /* a zeroed one is the default: inherited environment, inherited streams */
+   static struct mulle_spawn_options const   default_options;
+
    struct mulle_spawn_platform   *platform;
    struct pollfd                 pfd;
    int                           errfds[ 2];
@@ -472,6 +483,9 @@ int   mulle_spawn_open( struct mulle_spawn_handle *h,
 
    if( ! h || ! argv || ! argv[ 0])
       return( -1);
+
+   if( ! options)
+      options = &default_options;
 
    memset( h, 0, sizeof( *h));
    h->in  = -1;
@@ -496,7 +510,7 @@ int   mulle_spawn_open( struct mulle_spawn_handle *h,
     * X, or -1 to leave that one alone. Only a pipe also leaves the parent
     * something to hold on to.
     */
-   switch( in_mode)
+   switch( options->in_mode)
    {
    case MULLE_SPAWN_DISCARD :
       child_in = open( "/dev/null", O_RDWR);
@@ -512,10 +526,10 @@ int   mulle_spawn_open( struct mulle_spawn_handle *h,
       break;
    }
 
-   if( child_in < 0 && in_mode != MULLE_SPAWN_INHERIT)
+   if( child_in < 0 && options->in_mode != MULLE_SPAWN_INHERIT)
       goto fail;
 
-   switch( out_mode)
+   switch( options->out_mode)
    {
    case MULLE_SPAWN_DISCARD :
       child_out = open( "/dev/null", O_RDWR);
@@ -531,10 +545,10 @@ int   mulle_spawn_open( struct mulle_spawn_handle *h,
       break;
    }
 
-   if( child_out < 0 && out_mode != MULLE_SPAWN_INHERIT)
+   if( child_out < 0 && options->out_mode != MULLE_SPAWN_INHERIT)
       goto fail;
 
-   switch( err_mode)
+   switch( options->err_mode)
    {
    case MULLE_SPAWN_DISCARD :
       child_err = open( "/dev/null", O_RDWR);
@@ -550,7 +564,7 @@ int   mulle_spawn_open( struct mulle_spawn_handle *h,
       break;
    }
 
-   if( child_err < 0 && err_mode != MULLE_SPAWN_INHERIT)
+   if( child_err < 0 && options->err_mode != MULLE_SPAWN_INHERIT)
       goto fail;
 
    /*
@@ -609,6 +623,20 @@ int   mulle_spawn_open( struct mulle_spawn_handle *h,
          close( outfds[ 0]);
       if( errfds[ 0] >= 0)
          close( errfds[ 0]);
+
+      /*
+       * `execvp` resolves `argv[ 0]` against the PATH of the *current*
+       * environment, and on every platform that is this pointer -- so
+       * replacing it is what makes a replaced PATH the one that gets searched,
+       * which is what a caller who passes an environment means. It is the
+       * child's own copy of the global, taken after the fork, so the parent's
+       * cannot be affected.
+       *
+       * Guarded on the pointer and not on what it points at: `{ NULL }` is an
+       * environment of nothing, and NULL is the parent's.
+       */
+      if( options->env)
+         mulle_spawn_environ = (char **) options->env;
 
       execvp( argv[ 0], argv);
 
@@ -682,11 +710,11 @@ int   mulle_spawn_open( struct mulle_spawn_handle *h,
    }
 
    /* a null device opened for the child is not the parent's to keep */
-   if( in_mode == MULLE_SPAWN_DISCARD)
+   if( options->in_mode == MULLE_SPAWN_DISCARD)
       close( child_in);
-   if( out_mode == MULLE_SPAWN_DISCARD)
+   if( options->out_mode == MULLE_SPAWN_DISCARD)
       close( child_out);
-   if( err_mode == MULLE_SPAWN_DISCARD)
+   if( options->err_mode == MULLE_SPAWN_DISCARD)
       close( child_err);
 
    h->in     = infds[ 1];
@@ -714,11 +742,11 @@ fail:
    if( execfds[ 1] >= 0)
       close( execfds[ 1]);
 
-   if( in_mode == MULLE_SPAWN_DISCARD && child_in >= 0)
+   if( options->in_mode == MULLE_SPAWN_DISCARD && child_in >= 0)
       close( child_in);
-   if( out_mode == MULLE_SPAWN_DISCARD && child_out >= 0)
+   if( options->out_mode == MULLE_SPAWN_DISCARD && child_out >= 0)
       close( child_out);
-   if( err_mode == MULLE_SPAWN_DISCARD && child_err >= 0)
+   if( options->err_mode == MULLE_SPAWN_DISCARD && child_err >= 0)
       close( child_err);
 
    h->in  = -1;

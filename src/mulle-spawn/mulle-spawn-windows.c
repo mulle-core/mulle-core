@@ -382,6 +382,56 @@ static void   mulle_spawn_command_done( struct mulle_spawn_command *p)
 }
 
 
+/*
+ * The environment block CreateProcessW wants: the `NAME=VALUE` strings as
+ * UTF-16, each with its own terminator, and one more to end the block. It is
+ * the one thing in here that is not a string.
+ *
+ * The caller's order is kept. Windows documents the block as sorted
+ * alphabetically, and has never required it -- the child walks it, and the
+ * block NSTask builds is built the same way.
+ *
+ * `capacity` is measured first and then filled, so a failure to convert costs
+ * a NULL rather than a half written block. The count includes the extra
+ * terminator, which is why the arithmetic below is exactly in bounds.
+ */
+static wchar_t   *mulle_spawn_environment_block( struct mulle_allocator *allocator,
+                                                 char * const *env)
+{
+   size_t    offset;
+   size_t    capacity;
+   wchar_t   *block;
+   int       count;
+   int       i;
+   int       n;
+
+   capacity = 2;                 /* the two terminators, which an empty block is */
+   for( count = 0; env[ count]; count++)
+      capacity += (size_t) MultiByteToWideChar( CP_UTF8, 0, env[ count], -1, NULL, 0);
+
+   block = mulle_allocator_malloc( allocator, capacity * sizeof( wchar_t));
+   if( ! block)
+      return( NULL);
+
+   offset = 0;
+   for( i = 0; i < count; i++)
+   {
+      n = MultiByteToWideChar( CP_UTF8, 0, env[ i], -1,
+                               &block[ offset], (int) (capacity - offset));
+      if( ! n)
+      {
+         mulle_allocator_free( allocator, block);
+         return( NULL);
+      }
+      offset += (size_t) n;
+   }
+
+   block[ offset]     = 0;
+   block[ offset + 1] = 0;
+   return( block);
+}
+
+
 int   mulle_spawn_run( char * const *argv,
                        mulle_relativetime_t timeout,
                        struct mulle_spawn_result *p)
@@ -697,17 +747,19 @@ static void   mulle_spawn_record_fate( DWORD exit_code,
 }
 
 
-int   mulle_spawn_open( struct mulle_spawn_handle *h,
-                        char * const *argv,
-                        int in_mode,
-                        int out_mode,
-                        int err_mode)
+int   mulle_spawn_open_with_options( struct mulle_spawn_handle *h,
+                                     char * const *argv,
+                                     struct mulle_spawn_options const *options)
 {
+   /* a zeroed one is the default: inherited environment, inherited streams */
+   static struct mulle_spawn_options const   default_options;
+
    struct mulle_spawn_command    command;
    struct mulle_spawn_platform   *platform;
    PROCESS_INFORMATION           pi    = { 0 };
    SECURITY_ATTRIBUTES           sa    = { 0 };
    STARTUPINFOW                  si    = { 0 };
+   wchar_t                       *environment = NULL;
    HANDLE                        child_err  = INVALID_HANDLE_VALUE;
    HANDLE                        child_in   = INVALID_HANDLE_VALUE;
    HANDLE                        child_out  = INVALID_HANDLE_VALUE;
@@ -724,6 +776,9 @@ int   mulle_spawn_open( struct mulle_spawn_handle *h,
 
    if( ! h || ! argv || ! argv[ 0])
       return( -1);
+
+   if( ! options)
+      options = &default_options;
 
    memset( h, 0, sizeof( *h));
    h->in  = -1;
@@ -757,7 +812,7 @@ int   mulle_spawn_open( struct mulle_spawn_handle *h,
     * re-flag as inheritable; DISCARD is the null device; PIPE gives the parent
     * the end it needs and leaves only the child's end inheritable.
     */
-   switch( in_mode)
+   switch( options->in_mode)
    {
    case MULLE_SPAWN_PIPE :
       if( ! CreatePipe( &child_in, &parent_in, &sa, 0))
@@ -775,10 +830,10 @@ int   mulle_spawn_open( struct mulle_spawn_handle *h,
    }
 
    /* an inherited stream may legitimately be absent; a made one may not */
-   if( child_in == INVALID_HANDLE_VALUE && in_mode != MULLE_SPAWN_INHERIT)
+   if( child_in == INVALID_HANDLE_VALUE && options->in_mode != MULLE_SPAWN_INHERIT)
       goto done;
 
-   switch( out_mode)
+   switch( options->out_mode)
    {
    case MULLE_SPAWN_PIPE :
       if( ! CreatePipe( &parent_out, &child_out, &sa, 0))
@@ -795,10 +850,10 @@ int   mulle_spawn_open( struct mulle_spawn_handle *h,
       break;
    }
 
-   if( child_out == INVALID_HANDLE_VALUE && out_mode != MULLE_SPAWN_INHERIT)
+   if( child_out == INVALID_HANDLE_VALUE && options->out_mode != MULLE_SPAWN_INHERIT)
       goto done;
 
-   switch( err_mode)
+   switch( options->err_mode)
    {
    case MULLE_SPAWN_PIPE :
       if( ! CreatePipe( &parent_err, &child_err, &sa, 0))
@@ -815,7 +870,7 @@ int   mulle_spawn_open( struct mulle_spawn_handle *h,
       break;
    }
 
-   if( child_err == INVALID_HANDLE_VALUE && err_mode != MULLE_SPAWN_INHERIT)
+   if( child_err == INVALID_HANDLE_VALUE && options->err_mode != MULLE_SPAWN_INHERIT)
       goto done;
 
    si.cb         = sizeof( si);
@@ -824,9 +879,21 @@ int   mulle_spawn_open( struct mulle_spawn_handle *h,
    si.hStdOutput = child_out;
    si.hStdError  = child_err;
 
+   /*
+    * NULL is CreateProcessW's "the same environment as the parent", which is
+    * what an absent `env` means -- so a block is only built when there is one
+    * to build.
+    */
+   if( options->env)
+   {
+      environment = mulle_spawn_environment_block( NULL, options->env);
+      if( ! environment)
+         goto done;
+   }
+
    if( ! CreateProcessW( command.application, command.commandline,
                          NULL, NULL, TRUE,
-                         CREATE_NO_WINDOW, NULL, NULL, &si, &pi))
+                         CREATE_NO_WINDOW, (LPVOID) environment, NULL, &si, &pi))
       goto done;
 
    created = 1;
@@ -863,11 +930,11 @@ int   mulle_spawn_open( struct mulle_spawn_handle *h,
 
 done:
    /* the child's ends are not the parent's to keep, started or not */
-   if( child_in != INVALID_HANDLE_VALUE && (own_in || in_mode != MULLE_SPAWN_INHERIT))
+   if( child_in != INVALID_HANDLE_VALUE && (own_in || options->in_mode != MULLE_SPAWN_INHERIT))
       CloseHandle( child_in);
-   if( child_out != INVALID_HANDLE_VALUE && (own_out || out_mode != MULLE_SPAWN_INHERIT))
+   if( child_out != INVALID_HANDLE_VALUE && (own_out || options->out_mode != MULLE_SPAWN_INHERIT))
       CloseHandle( child_out);
-   if( child_err != INVALID_HANDLE_VALUE && (own_err || err_mode != MULLE_SPAWN_INHERIT))
+   if( child_err != INVALID_HANDLE_VALUE && (own_err || options->err_mode != MULLE_SPAWN_INHERIT))
       CloseHandle( child_err);
 
    /*
@@ -906,6 +973,9 @@ done:
       h->out = -1;
       h->err = -1;
    }
+
+   if( environment)
+      mulle_allocator_free( NULL, environment);
 
    mulle_spawn_command_done( &command);
    return( rval);

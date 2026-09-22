@@ -224,6 +224,58 @@ int   mulle_spawn_get_executable_path( char *buf, size_t length);
 
 
 /*
+ * Everything `open` needs besides the program and its arguments.
+ *
+ * A struct rather than a longer argument list because these are independent of
+ * each other, most callers want none of them, and one can be added without
+ * every existing call site changing. A zeroed struct *is* the default -- an
+ * inherited environment and three inherited streams -- because
+ * `MULLE_SPAWN_INHERIT` is 0 and `env` is NULL, so `mulle_spawn_options_init`
+ * exists for the reader rather than for the backend.
+ */
+struct mulle_spawn_options
+{
+   /*
+    * The child's environment as `NAME=VALUE` strings, NULL terminated -- `envp`
+    * as `execve` takes it. It *replaces* the parent's environment rather than
+    * being merged into it, so:
+    *
+    *    NULL              the parent's environment, unchanged
+    *    { "A=B", NULL }   that one variable, and nothing else
+    *    { NULL }          no environment at all
+    *
+    * Not copied and not kept: it has to stay valid until `open` returns, which
+    * is when the child is given it.
+    *
+    * A replaced `PATH` is the one that gets searched for `argv[ 0]` -- the
+    * child is looked up the way the environment it is about to receive would
+    * resolve it, not the way the parent's would.
+    */
+   char * const   *env;
+
+   int            in_mode;
+   int            out_mode;
+   int            err_mode;
+};
+
+
+static inline void   _mulle_spawn_options_init( struct mulle_spawn_options *p)
+{
+   p->env      = NULL;
+   p->in_mode  = MULLE_SPAWN_INHERIT;
+   p->out_mode = MULLE_SPAWN_INHERIT;
+   p->err_mode = MULLE_SPAWN_INHERIT;
+}
+
+
+static inline void   mulle_spawn_options_init( struct mulle_spawn_options *p)
+{
+   if( p)
+      _mulle_spawn_options_init( p);
+}
+
+
+/*
  * `in`, `out` and `err` are descriptors owned by this handle: `close` closes
  * them. If you close one yourself, set the field to -1 so it is not closed
  * twice -- descriptor numbers get reused, and the second close would land on
@@ -285,7 +337,8 @@ static inline void   mulle_spawn_handle_init( struct mulle_spawn_handle *h)
  * later for want of a DLL -- a failure it does not report and cannot.
  *
  * The three modes say what becomes of the child's stdin, stdout and stderr, in
- * that order.
+ * that order. The child inherits the parent's environment; for one it does not,
+ * use `mulle_spawn_open_with_options`.
  */
 MULLE__SPAWN_GLOBAL
 int   mulle_spawn_open( struct mulle_spawn_handle *h,
@@ -293,6 +346,22 @@ int   mulle_spawn_open( struct mulle_spawn_handle *h,
                         int in_mode,
                         int out_mode,
                         int err_mode);
+
+
+/*
+ * `mulle_spawn_open` with the launch described rather than fixed. Today that is
+ * the child's environment, which `open` cannot express anything but an
+ * inherited one for; the same call grows the rest of what a launch can be set
+ * to as it is needed.
+ *
+ * `options` may be NULL for the defaults. This is the real entry point --
+ * `mulle_spawn_open` is this call with a zeroed struct -- and it returns 0 or
+ * -1 exactly as that one does, `errno` included.
+ */
+MULLE__SPAWN_GLOBAL
+int   mulle_spawn_open_with_options( struct mulle_spawn_handle *h,
+                                     char * const *argv,
+                                     struct mulle_spawn_options const *options);
 
 
 /*

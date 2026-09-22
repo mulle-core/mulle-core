@@ -97,3 +97,26 @@ void   mulle_spawn_result_done( struct mulle_spawn_result *p)
    }
    _mulle_spawn_result_init( p, p->allocator);
 }
+
+
+/*
+ * The one entry point that has no platform in it, which is why it is here
+ * rather than in both backends: `open` is the shape its callers already use --
+ * a mode per stream -- expressed in terms of the call that can be told more.
+ * A wrapper written twice is a wrapper that drifts.
+ */
+int   mulle_spawn_open( struct mulle_spawn_handle *h,
+                        char * const *argv,
+                        int in_mode,
+                        int out_mode,
+                        int err_mode)
+{
+   struct mulle_spawn_options   options;
+
+   mulle_spawn_options_init( &options);
+   options.in_mode  = in_mode;
+   options.out_mode = out_mode;
+   options.err_mode = err_mode;
+
+   return( mulle_spawn_open_with_options( h, argv, &options));
+}
