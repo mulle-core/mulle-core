@@ -38,6 +38,7 @@
 #include "include-private.h"
 
 #include <windows.h>
+#include <errno.h>
 #include <fcntl.h>
 #include <io.h>
 #include <stdio.h>
@@ -708,6 +709,47 @@ static int   mulle_spawn_take_fd( HANDLE *p_handle, int flags)
 }
 
 
+/*
+ * A descriptor the caller already holds, made inheritable for the child.
+ *
+ * The kernel handle behind a CRT descriptor is not ours and need not be
+ * inheritable, and CreateProcessW can only pass on what the child is allowed to
+ * inherit -- so it is duplicated as inheritable. The duplicate is this call's
+ * to close once the child has it; the caller's descriptor is untouched, which
+ * is the point of the mode.
+ *
+ * `_get_osfhandle` is the question, and it is the same one POSIX asks with
+ * `fcntl`: a descriptor that is not open comes back INVALID_HANDLE_VALUE with
+ * `errno` as EBADF. A CRT descriptor with no kernel handle behind it answers
+ * the same way, which is the right answer -- there would be nothing to pass on.
+ */
+static HANDLE   mulle_spawn_inheritable_descriptor( int fd)
+{
+   HANDLE     handle;
+   HANDLE     duplicate;
+   intptr_t   value;
+
+   if( fd < 0)
+   {
+      errno = EBADF;
+      return( INVALID_HANDLE_VALUE);
+   }
+
+   value = _get_osfhandle( fd);
+   if( value == (intptr_t) -1)
+      return( INVALID_HANDLE_VALUE);
+
+   handle = (HANDLE) value;
+
+   if( ! DuplicateHandle( GetCurrentProcess(), handle,
+                          GetCurrentProcess(), &duplicate,
+                          0, TRUE, DUPLICATE_SAME_ACCESS))
+      return( INVALID_HANDLE_VALUE);
+
+   return( duplicate);
+}
+
+
 static HANDLE   mulle_spawn_null_handle( DWORD access)
 {
    SECURITY_ATTRIBUTES   sa;
@@ -825,6 +867,12 @@ int   mulle_spawn_open_with_options( struct mulle_spawn_handle *h,
       child_in = mulle_spawn_null_handle( GENERIC_READ);
       break;
 
+   case MULLE_SPAWN_DESCRIPTOR :
+      /* the duplicate is ours, so `own_in` says the child's end is closed */
+      child_in = mulle_spawn_inheritable_descriptor( options->in_descriptor);
+      own_in   = 1;
+      break;
+
    default :
       child_in = mulle_spawn_inheritable_handle( STD_INPUT_HANDLE, &own_in);
       break;
@@ -846,6 +894,11 @@ int   mulle_spawn_open_with_options( struct mulle_spawn_handle *h,
       child_out = mulle_spawn_null_handle( GENERIC_WRITE);
       break;
 
+   case MULLE_SPAWN_DESCRIPTOR :
+      child_out = mulle_spawn_inheritable_descriptor( options->out_descriptor);
+      own_out   = 1;
+      break;
+
    default :
       child_out = mulle_spawn_inheritable_handle( STD_OUTPUT_HANDLE, &own_out);
       break;
@@ -864,6 +917,11 @@ int   mulle_spawn_open_with_options( struct mulle_spawn_handle *h,
 
    case MULLE_SPAWN_DISCARD :
       child_err = mulle_spawn_null_handle( GENERIC_WRITE);
+      break;
+
+   case MULLE_SPAWN_DESCRIPTOR :
+      child_err = mulle_spawn_inheritable_descriptor( options->err_descriptor);
+      own_err   = 1;
       break;
 
    default :
@@ -1100,6 +1158,44 @@ int   mulle_spawn_close( struct mulle_spawn_handle *h,
       if( p && platform->reaped)
          mulle_spawn_record_fate( platform->exit_code, killed, p);
 
+      if( platform->thread)
+         CloseHandle( platform->thread);
+      if( platform->process)
+         CloseHandle( platform->process);
+   }
+
+   if( h->in >= 0)
+      _close( h->in);
+   if( h->out >= 0)
+      _close( h->out);
+   if( h->err >= 0)
+      _close( h->err);
+
+   memset( h, 0, sizeof( *h));
+   h->in  = -1;
+   h->out = -1;
+   h->err = -1;
+   return( 0);
+}
+
+
+/*
+ * The opposite of close: the child is not terminated and not waited for, only
+ * let go -- and here that means closing the two kernel handles this backend was
+ * holding for it. With the last handle closed the process keeps running and its
+ * exit code is never collected by anybody, which is what detaching gives up.
+ */
+int   mulle_spawn_detach( struct mulle_spawn_handle *h)
+{
+   struct mulle_spawn_platform   *platform;
+
+   if( ! h)
+      return( -1);
+
+   platform = MULLE_SPAWN_PROCESS( h);
+
+   if( h->opened)
+   {
       if( platform->thread)
          CloseHandle( platform->thread);
       if( platform->process)

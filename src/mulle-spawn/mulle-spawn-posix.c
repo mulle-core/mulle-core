@@ -486,6 +486,26 @@ static int   mulle_spawn_check_directory( char const *path)
 }
 
 
+/*
+ * Checked in the parent, like the directory and for the same reason: a
+ * descriptor that is not open would come back as a child that started and died
+ * on its first write, which reads as the child's fault and not as the caller's
+ * mistake. `fcntl` is the question -- it fails with EBADF, which is what
+ * `errno` then says. A negative descriptor is refused without asking, since
+ * -1 is the "nothing here" this header uses everywhere.
+ */
+static int   mulle_spawn_check_descriptor( int fd)
+{
+   if( fd < 0)
+   {
+      errno = EBADF;
+      return( -1);
+   }
+
+   return( fcntl( fd, F_GETFD) < 0 ? -1 : 0);
+}
+
+
 int   mulle_spawn_open_with_options( struct mulle_spawn_handle *h,
                                      char * const *argv,
                                      struct mulle_spawn_options const *options)
@@ -550,6 +570,12 @@ int   mulle_spawn_open_with_options( struct mulle_spawn_handle *h,
       child_in = infds[ 0];
       break;
 
+   case MULLE_SPAWN_DESCRIPTOR :
+      child_in = options->in_descriptor;
+      if( mulle_spawn_check_descriptor( child_in))
+         goto fail;
+      break;
+
    default :
       break;
    }
@@ -569,6 +595,12 @@ int   mulle_spawn_open_with_options( struct mulle_spawn_handle *h,
       child_out = outfds[ 1];
       break;
 
+   case MULLE_SPAWN_DESCRIPTOR :
+      child_out = options->out_descriptor;
+      if( mulle_spawn_check_descriptor( child_out))
+         goto fail;
+      break;
+
    default :
       break;
    }
@@ -586,6 +618,12 @@ int   mulle_spawn_open_with_options( struct mulle_spawn_handle *h,
       if( pipe( errfds))
          goto fail;
       child_err = errfds[ 1];
+      break;
+
+   case MULLE_SPAWN_DESCRIPTOR :
+      child_err = options->err_descriptor;
+      if( mulle_spawn_check_descriptor( child_err))
+         goto fail;
       break;
 
    default :
@@ -918,6 +956,36 @@ int   mulle_spawn_close( struct mulle_spawn_handle *h,
       if( p && platform->reaped)
          mulle_spawn_record_fate( platform->status, killed, p);
    }
+
+   if( h->in >= 0)
+      close( h->in);
+   if( h->out >= 0)
+      close( h->out);
+   if( h->err >= 0)
+      close( h->err);
+
+   memset( h, 0, sizeof( *h));
+   h->in  = -1;
+   h->out = -1;
+   h->err = -1;
+   return( 0);
+}
+
+
+/*
+ * The opposite of close: the child is not killed and not waited for, only let
+ * go. There is nothing platform specific to do beyond dropping the descriptors
+ * -- the process is not ours to reap or to hold, and the waiting that would
+ * have been done here is what is being given up.
+ *
+ * Note that the pid is dropped with the rest. A caller that wants it has to
+ * read `h->pid` before calling this, and after this the kernel is the only
+ * thing that knows the child exists until it exits, when init collects it.
+ */
+int   mulle_spawn_detach( struct mulle_spawn_handle *h)
+{
+   if( ! h)
+      return( -1);
 
    if( h->in >= 0)
       close( h->in);

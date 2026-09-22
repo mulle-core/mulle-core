@@ -218,9 +218,10 @@ int   mulle_spawn_get_executable_path( char *buf, size_t length);
  * over them is the same code on both. They are binary: nothing translates
  * underneath a caller that has its own idea of line endings.
  */
-#define MULLE_SPAWN_INHERIT   0   /* the parent's own stream, untouched */
-#define MULLE_SPAWN_PIPE      1   /* a pipe, and a descriptor in the handle */
-#define MULLE_SPAWN_DISCARD   2   /* the null device, for output nobody wants */
+#define MULLE_SPAWN_INHERIT     0   /* the parent's own stream, untouched */
+#define MULLE_SPAWN_PIPE        1   /* a pipe, and a descriptor in the handle */
+#define MULLE_SPAWN_DISCARD     2   /* the null device, for output nobody wants */
+#define MULLE_SPAWN_DESCRIPTOR  3   /* the descriptor named alongside, as it is */
 
 
 /*
@@ -267,6 +268,32 @@ struct mulle_spawn_options
     */
    char const     *directory;
 
+   /*
+    * The descriptor the child gets on that stream, used when the matching mode
+    * is `MULLE_SPAWN_DESCRIPTOR` and ignored otherwise. A POSIX descriptor
+    * number; on Windows a CRT descriptor, the number `_open` or `_fileno`
+    * hands you.
+    *
+    * It stays the caller's. The child is given a copy of it, the handle does
+    * not take it over, and `close` does not close it -- so a caller that keeps
+    * talking on the same file, socket or pipe afterwards is not surprised. That
+    * is the whole difference from `MULLE_SPAWN_PIPE`, which can only ever make
+    * a *new* pipe and hand back one end of it: this is the "use this one" the
+    * NSPipe and file-redirection cases need.
+    *
+    * A descriptor that is not open fails the launch instead of starting a child
+    * that dies on its first write: on POSIX it is checked in the parent, before
+    * anything is created, with `errno` as `EBADF`; on Windows
+    * `CreateProcessW` is handed no inheritable handle for it and the launch is
+    * refused. -1 is not open. Here the defaults from
+    * `mulle_spawn_options_init` are as useful as they are for the modes: a
+    * zeroed struct names 0, 1 and 2 and uses none of them, because a zeroed
+    * struct also says `MULLE_SPAWN_INHERIT`.
+    */
+   int            in_descriptor;
+   int            out_descriptor;
+   int            err_descriptor;
+
    int            in_mode;
    int            out_mode;
    int            err_mode;
@@ -275,11 +302,14 @@ struct mulle_spawn_options
 
 static inline void   _mulle_spawn_options_init( struct mulle_spawn_options *p)
 {
-   p->env       = NULL;
-   p->directory = NULL;
-   p->in_mode   = MULLE_SPAWN_INHERIT;
-   p->out_mode  = MULLE_SPAWN_INHERIT;
-   p->err_mode  = MULLE_SPAWN_INHERIT;
+   p->env            = NULL;
+   p->directory      = NULL;
+   p->in_descriptor  = -1;
+   p->out_descriptor = -1;
+   p->err_descriptor = -1;
+   p->in_mode        = MULLE_SPAWN_INHERIT;
+   p->out_mode       = MULLE_SPAWN_INHERIT;
+   p->err_mode       = MULLE_SPAWN_INHERIT;
 }
 
 
@@ -364,10 +394,11 @@ int   mulle_spawn_open( struct mulle_spawn_handle *h,
 
 
 /*
- * `mulle_spawn_open` with the launch described rather than fixed. Today that is
- * the environment the child starts with and the directory it runs in, neither
- * of which `open` can say anything about; the same call grows the rest of what
- * a launch can be set to as it is needed.
+ * `mulle_spawn_open` with the launch described rather than fixed: the
+ * environment the child starts with, the directory it runs in, and a
+ * descriptor of your own per stream in place of a new pipe -- none of which
+ * `open` can say anything about. The same call grows the rest of what a launch
+ * can be set to as it is needed.
  *
  * `options` may be NULL for the defaults. This is the real entry point --
  * `mulle_spawn_open` is this call with a zeroed struct -- and it returns 0 or
@@ -420,6 +451,34 @@ int   mulle_spawn_terminate( struct mulle_spawn_handle *h);
 MULLE__SPAWN_GLOBAL
 int   mulle_spawn_close( struct mulle_spawn_handle *h,
                          struct mulle_spawn_result *p);
+
+
+/*
+ * Lets the child go, alive.
+ *
+ * `close` is the right verb for a helper you started and are done with, and
+ * the wrong one for a child that is meant to outlive you -- a daemon, or a
+ * relauncher that starts something and exits. Detach does neither of the things
+ * close does: it does not terminate the child and it does not wait for it. It
+ * closes the descriptors this handle holds, so nothing of ours is left in the
+ * child's streams, and then forgets the child.
+ *
+ * Returns 0, or -1 for a NULL handle. It is not an error to detach a child that
+ * has already stopped.
+ *
+ * What it costs, stated plainly: nothing here will ever wait for that process
+ * again, so its exit is nobody's to collect. On Windows that only means the
+ * handle is closed and the exit code is never read; on POSIX the child becomes
+ * an orphan for init to reap -- with the handle gone it cannot be waited for
+ * from here, and nothing short of exiting this process would release it.
+ *
+ * The handle is reset exactly as `close` leaves it, `pid` included -- so read
+ * `h->pid` *before* detaching if the child's process id is wanted. Afterwards
+ * `wait`, `terminate` and `close` on that handle have nothing to act on and
+ * report it.
+ */
+MULLE__SPAWN_GLOBAL
+int   mulle_spawn_detach( struct mulle_spawn_handle *h);
 
 
 
