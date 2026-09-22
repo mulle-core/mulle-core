@@ -253,6 +253,20 @@ struct mulle_spawn_options
     */
    char * const   *env;
 
+   /*
+    * The directory the child runs in, or NULL for the one it would inherit.
+    *
+    * A directory that is not there, or is not a directory, fails the launch
+    * rather than starting a program in the wrong place -- which is the failure
+    * this exists to prevent, because a child that quietly runs somewhere else
+    * looks exactly like a child that worked. On POSIX the check happens in the
+    * parent and `errno` says why; on Windows `CreateProcessW` refuses it
+    * itself.
+    *
+    * Not copied and not kept: it has to stay valid until `open` returns.
+    */
+   char const     *directory;
+
    int            in_mode;
    int            out_mode;
    int            err_mode;
@@ -261,10 +275,11 @@ struct mulle_spawn_options
 
 static inline void   _mulle_spawn_options_init( struct mulle_spawn_options *p)
 {
-   p->env      = NULL;
-   p->in_mode  = MULLE_SPAWN_INHERIT;
-   p->out_mode = MULLE_SPAWN_INHERIT;
-   p->err_mode = MULLE_SPAWN_INHERIT;
+   p->env       = NULL;
+   p->directory = NULL;
+   p->in_mode   = MULLE_SPAWN_INHERIT;
+   p->out_mode  = MULLE_SPAWN_INHERIT;
+   p->err_mode  = MULLE_SPAWN_INHERIT;
 }
 
 
@@ -350,9 +365,9 @@ int   mulle_spawn_open( struct mulle_spawn_handle *h,
 
 /*
  * `mulle_spawn_open` with the launch described rather than fixed. Today that is
- * the child's environment, which `open` cannot express anything but an
- * inherited one for; the same call grows the rest of what a launch can be set
- * to as it is needed.
+ * the environment the child starts with and the directory it runs in, neither
+ * of which `open` can say anything about; the same call grows the rest of what
+ * a launch can be set to as it is needed.
  *
  * `options` may be NULL for the defaults. This is the real entry point --
  * `mulle_spawn_open` is this call with a zeroed struct -- and it returns 0 or

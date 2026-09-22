@@ -759,6 +759,7 @@ int   mulle_spawn_open_with_options( struct mulle_spawn_handle *h,
    PROCESS_INFORMATION           pi    = { 0 };
    SECURITY_ATTRIBUTES           sa    = { 0 };
    STARTUPINFOW                  si    = { 0 };
+   wchar_t                       *directory   = NULL;
    wchar_t                       *environment = NULL;
    HANDLE                        child_err  = INVALID_HANDLE_VALUE;
    HANDLE                        child_in   = INVALID_HANDLE_VALUE;
@@ -891,9 +892,22 @@ int   mulle_spawn_open_with_options( struct mulle_spawn_handle *h,
          goto done;
    }
 
+   /*
+    * No check of our own here, unlike POSIX: CreateProcessW refuses an
+    * `lpCurrentDirectory` that is not a directory, which is the failure the
+    * caller asked for. NULL is its "the directory this process is in".
+    */
+   if( options->directory)
+   {
+      directory = mulle_spawn_utf8_to_utf16( NULL, options->directory);
+      if( ! directory)
+         goto done;
+   }
+
    if( ! CreateProcessW( command.application, command.commandline,
                          NULL, NULL, TRUE,
-                         CREATE_NO_WINDOW, (LPVOID) environment, NULL, &si, &pi))
+                         CREATE_NO_WINDOW, (LPVOID) environment, directory,
+                         &si, &pi))
       goto done;
 
    created = 1;
@@ -974,6 +988,8 @@ done:
       h->err = -1;
    }
 
+   if( directory)
+      mulle_allocator_free( NULL, directory);
    if( environment)
       mulle_allocator_free( NULL, environment);
 

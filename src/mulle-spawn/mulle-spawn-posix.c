@@ -47,6 +47,7 @@
 #include <string.h>
 #include <time.h>
 #include <unistd.h>
+#include <sys/stat.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 
@@ -458,6 +459,33 @@ static void   mulle_spawn_record_fate( int status,
 }
 
 
+/*
+ * Done in the parent, before anything is created. The child could choke on the
+ * directory itself, but its complaint would arrive as an exit code and its own
+ * copy of an errno -- and the launch would have "succeeded", which is the
+ * wrong answer for a caller who named a directory. `errno` is set, so the
+ * reason survives: ENOENT for one that is not there, ENOTDIR for one that is
+ * not a directory, EACCES for one that cannot be entered.
+ */
+static int   mulle_spawn_check_directory( char const *path)
+{
+   struct stat   st;
+
+   if( ! path)
+      return( 0);
+
+   if( stat( path, &st))
+      return( -1);
+
+   if( ! S_ISDIR( st.st_mode))
+   {
+      errno = ENOTDIR;
+      return( -1);
+   }
+   return( 0);
+}
+
+
 int   mulle_spawn_open_with_options( struct mulle_spawn_handle *h,
                                      char * const *argv,
                                      struct mulle_spawn_options const *options)
@@ -567,6 +595,9 @@ int   mulle_spawn_open_with_options( struct mulle_spawn_handle *h,
    if( child_err < 0 && options->err_mode != MULLE_SPAWN_INHERIT)
       goto fail;
 
+   if( mulle_spawn_check_directory( options->directory))
+      goto fail;
+
    /*
     * A third pipe carries the errno back if the exec fails, its write end
     * close-on-exec. That is what lets `open` tell "no such program" from
@@ -638,19 +669,38 @@ int   mulle_spawn_open_with_options( struct mulle_spawn_handle *h,
       if( options->env)
          mulle_spawn_environ = (char **) options->env;
 
+      /*
+       * Checked in the parent, so this should not fail -- but "should not" is
+       * not a reason to let a child run in the wrong directory if it does. The
+       * errno goes back over the same pipe the exec failure uses, so the parent
+       * refuses the launch exactly as it would for a program that is not there.
+       */
+      if( options->directory && chdir( options->directory))
+      {
+         spawn_errno = errno;
+         fprintf( stderr, "mulle-spawn: cannot change to \"%s\": %s\n",
+                  options->directory, strerror( spawn_errno));
+         goto child_cannot_run;
+      }
+
       execvp( argv[ 0], argv);
 
       spawn_errno = errno;
+      fprintf( stderr, "mulle-spawn: cannot run \"%s\": %s\n",
+               argv[ 0], strerror( spawn_errno));
+
+child_cannot_run:
       if( execfds[ 1] >= 0)
       {
          ssize_t   written;
 
+         /* the parent waits for this to learn *why*. If the write fails, the
+          * pipe just closes and the parent falls back to the exit status, so
+          * the result is consumed but not used. */
          written = write( execfds[ 1], &spawn_errno, sizeof( spawn_errno));
          (void) written;
       }
 
-      fprintf( stderr, "mulle-spawn: cannot run \"%s\": %s\n",
-               argv[ 0], strerror( spawn_errno));
       _exit( 127);
    }
 
