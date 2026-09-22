@@ -680,6 +680,18 @@ struct mulle_spawn_platform
    HANDLE   thread;
    DWORD    exit_code;
    int      reaped;
+
+   /* created with CREATE_NEW_PROCESS_GROUP, which is what interrupt needs */
+   int      own_group;
+
+   /*
+    * Somebody asked for this child to end (`terminate` or `close`), which the
+    * platform cannot say afterwards: `TerminateProcess` leaves an exit code of
+    * 1 behind, and "terminated" would then be indistinguishable from a child
+    * that exited 1. NSTask has been reporting exactly that for as long as it
+    * has had a Windows port. So it is remembered instead of guessed.
+    */
+   int      terminated;
 };
 
 
@@ -801,6 +813,7 @@ int   mulle_spawn_open_with_options( struct mulle_spawn_handle *h,
    PROCESS_INFORMATION           pi    = { 0 };
    SECURITY_ATTRIBUTES           sa    = { 0 };
    STARTUPINFOW                  si    = { 0 };
+   DWORD                         creation_flags = 0;
    wchar_t                       *directory   = NULL;
    wchar_t                       *environment = NULL;
    HANDLE                        child_err  = INVALID_HANDLE_VALUE;
@@ -828,10 +841,12 @@ int   mulle_spawn_open_with_options( struct mulle_spawn_handle *h,
    h->out = -1;
    h->err = -1;
 
-   platform          = MULLE_SPAWN_PROCESS( h);
-   platform->process = NULL;
-   platform->thread  = NULL;
-   platform->reaped  = 0;
+   platform              = MULLE_SPAWN_PROCESS( h);
+   platform->process     = NULL;
+   platform->thread      = NULL;
+   platform->reaped      = 0;
+   platform->own_group   = 0;
+   platform->terminated  = 0;
 
    command.application = NULL;
    command.commandline = NULL;
@@ -962,9 +977,18 @@ int   mulle_spawn_open_with_options( struct mulle_spawn_handle *h,
          goto done;
    }
 
+   /*
+    * CREATE_NO_WINDOW, because a child of this library is not something to put
+    * a window on the screen -- and, when the caller asked for it, a process
+    * group of its own, which is the only way `interrupt` can be aimed.
+    */
+   creation_flags = CREATE_NO_WINDOW;
+   if( options->new_process_group)
+      creation_flags |= CREATE_NEW_PROCESS_GROUP;
+
    if( ! CreateProcessW( command.application, command.commandline,
                          NULL, NULL, TRUE,
-                         CREATE_NO_WINDOW, (LPVOID) environment, directory,
+                         creation_flags, (LPVOID) environment, directory,
                          &si, &pi))
       goto done;
 
@@ -991,10 +1015,11 @@ int   mulle_spawn_open_with_options( struct mulle_spawn_handle *h,
          goto done;
    }
 
-   platform->process = pi.hProcess;
-   platform->thread  = pi.hThread;
-   pi.hProcess       = NULL;
-   pi.hThread        = NULL;
+   platform->process   = pi.hProcess;
+   platform->thread    = pi.hThread;
+   platform->own_group = options->new_process_group ? 1 : 0;
+   pi.hProcess         = NULL;
+   pi.hThread          = NULL;
 
    h->pid    = (unsigned long) GetProcessId( platform->process);
    h->opened = 1;
@@ -1092,7 +1117,7 @@ int   mulle_spawn_wait( struct mulle_spawn_handle *h,
    h->opened           = 0;
    h->pid              = 0;
 
-   mulle_spawn_record_fate( exit_code, 0, p);
+   mulle_spawn_record_fate( exit_code, platform->terminated, p);
    return( 1);
 }
 
@@ -1110,6 +1135,104 @@ int   mulle_spawn_terminate( struct mulle_spawn_handle *h)
 
    /* there is no SIGTERM to send, so this is as abrupt as the platform gets */
    if( ! TerminateProcess( platform->process, 1))
+      return( -1);
+
+   /* so that the wait that follows does not have to call this an exit */
+   platform->terminated = 1;
+   return( 0);
+}
+
+
+/*
+ * `NtSuspendProcess` and `NtResumeProcess` are in `ntdll`, and they are what
+ * the platform actually offers for this: the documented API has no way to stop
+ * a running process except to end it. The Foundation has resolved them the same
+ * lazy way for as long as it has had a Windows `NSTask`; here the resolution
+ * failing is a real answer rather than a crash, so it is reported as ENOTSUP.
+ */
+typedef LONG (NTAPI *MulleSpawnNtProcessProc)( HANDLE);
+
+
+static MulleSpawnNtProcessProc   mulle_spawn_nt_process_proc( const char *name)
+{
+   HMODULE   ntdll;
+
+   ntdll = GetModuleHandleW( L"ntdll.dll");
+   if( ! ntdll)
+      return( NULL);
+
+   return( (MulleSpawnNtProcessProc) (void *) GetProcAddress( ntdll, name));
+}
+
+
+static int   mulle_spawn_nt_process_call( struct mulle_spawn_handle *h,
+                                          const char *name)
+{
+   struct mulle_spawn_platform   *platform;
+   MulleSpawnNtProcessProc       proc;
+
+   if( ! h || ! h->opened)
+      return( -1);
+
+   platform = MULLE_SPAWN_PROCESS( h);
+   if( platform->reaped || ! platform->process)
+      return( 0);
+
+   proc = mulle_spawn_nt_process_proc( name);
+   if( ! proc)
+   {
+      errno = ENOTSUP;
+      return( -1);
+   }
+
+   if( proc( platform->process) < 0)
+      return( -1);
+
+   return( 0);
+}
+
+
+int   mulle_spawn_suspend( struct mulle_spawn_handle *h)
+{
+   return( mulle_spawn_nt_process_call( h, "NtSuspendProcess"));
+}
+
+
+int   mulle_spawn_resume( struct mulle_spawn_handle *h)
+{
+   return( mulle_spawn_nt_process_call( h, "NtResumeProcess"));
+}
+
+
+/*
+ * Ctrl+Break, aimed at the child's own group.
+ *
+ * IT IS NOT CTRL_C_EVENT, and that is the point: Ctrl+C cannot be sent to a
+ * group other than the caller's own, so the only way to interrupt a child
+ * without interrupting everything else on this console is Ctrl+Break plus a
+ * child that was created with a group of its own. Without
+ * `options.new_process_group` there is no such group to aim at, and this
+ * refuses -- which is the honest answer, and what the old "interrupt means
+ * terminate" was standing in for.
+ */
+int   mulle_spawn_interrupt( struct mulle_spawn_handle *h)
+{
+   struct mulle_spawn_platform   *platform;
+
+   if( ! h || ! h->opened)
+      return( -1);
+
+   platform = MULLE_SPAWN_PROCESS( h);
+   if( platform->reaped || ! platform->process)
+      return( 0);
+
+   if( ! platform->own_group)
+   {
+      errno = ENOTSUP;
+      return( -1);
+   }
+
+   if( ! GenerateConsoleCtrlEvent( CTRL_BREAK_EVENT, (DWORD) h->pid))
       return( -1);
 
    return( 0);

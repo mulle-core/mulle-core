@@ -910,6 +910,53 @@ int   mulle_spawn_terminate( struct mulle_spawn_handle *h)
 }
 
 
+/*
+ * The three calls that are a signal each, so they share their shape: a handle
+ * that was never opened or whose child has already been waited for has nothing
+ * to aim at (the second is not an error, exactly as in `terminate`), and then
+ * one `kill`.
+ *
+ * `kill` reporting success is not the child obeying. SIGINT and SIGSTOP are
+ * delivered, and what happens next belongs to the child: one that handles
+ * SIGINT keeps running, and SIGSTOP cannot be caught or ignored at all -- which
+ * is the property the suspend case in the test leans on.
+ */
+static int   mulle_spawn_signal( struct mulle_spawn_handle *h, int signal_number)
+{
+   struct mulle_spawn_platform   *platform;
+
+   if( ! h || ! h->opened)
+      return( -1);
+
+   platform = (struct mulle_spawn_platform *) h->platform;
+   if( platform->reaped)
+      return( 0);
+
+   if( kill( (pid_t) h->pid, signal_number) < 0)
+      return( -1);
+
+   return( 0);
+}
+
+
+int   mulle_spawn_interrupt( struct mulle_spawn_handle *h)
+{
+   return( mulle_spawn_signal( h, SIGINT));
+}
+
+
+int   mulle_spawn_suspend( struct mulle_spawn_handle *h)
+{
+   return( mulle_spawn_signal( h, SIGSTOP));
+}
+
+
+int   mulle_spawn_resume( struct mulle_spawn_handle *h)
+{
+   return( mulle_spawn_signal( h, SIGCONT));
+}
+
+
 int   mulle_spawn_close( struct mulle_spawn_handle *h,
                          struct mulle_spawn_result *p)
 {

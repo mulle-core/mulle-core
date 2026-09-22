@@ -294,6 +294,23 @@ struct mulle_spawn_options
    int            out_descriptor;
    int            err_descriptor;
 
+   /*
+    * Windows: give the child a console process group of its own.
+    *
+    * Ctrl+C and Ctrl+Break are not addressed to a process there but to a
+    * process *group*, so `mulle_spawn_interrupt` has nothing to aim at while
+    * the child sits in this process's group -- and aiming at that group means
+    * signalling this process too. This flag is what makes interrupt possible:
+    * the child gets a group, and interrupt is refused (rather than going off
+    * in every direction) when the flag is not set.
+    *
+    * It is opt-in because it is not neutral: the child also stops handling
+    * Ctrl+C itself, which is a decision for the caller and not a default. On
+    * Windows it is `CREATE_NEW_PROCESS_GROUP`; POSIX has no use for it, because
+    * a pid is already something a signal can be aimed at on its own.
+    */
+   int            new_process_group;
+
    int            in_mode;
    int            out_mode;
    int            err_mode;
@@ -302,14 +319,15 @@ struct mulle_spawn_options
 
 static inline void   _mulle_spawn_options_init( struct mulle_spawn_options *p)
 {
-   p->env            = NULL;
-   p->directory      = NULL;
-   p->in_descriptor  = -1;
-   p->out_descriptor = -1;
-   p->err_descriptor = -1;
-   p->in_mode        = MULLE_SPAWN_INHERIT;
-   p->out_mode       = MULLE_SPAWN_INHERIT;
-   p->err_mode       = MULLE_SPAWN_INHERIT;
+   p->env               = NULL;
+   p->directory         = NULL;
+   p->in_descriptor     = -1;
+   p->out_descriptor    = -1;
+   p->err_descriptor    = -1;
+   p->new_process_group = 0;
+   p->in_mode           = MULLE_SPAWN_INHERIT;
+   p->out_mode          = MULLE_SPAWN_INHERIT;
+   p->err_mode          = MULLE_SPAWN_INHERIT;
 }
 
 
@@ -437,6 +455,48 @@ int   mulle_spawn_wait( struct mulle_spawn_handle *h,
  */
 MULLE__SPAWN_GLOBAL
 int   mulle_spawn_terminate( struct mulle_spawn_handle *h);
+
+
+/*
+ * Asks the child to stop *cooperatively* -- the "are you still there" of the
+ * three, and the only one a child is expected to survive. POSIX sends SIGINT;
+ * on Windows it is `CTRL_BREAK_EVENT`, aimed at the child's console process
+ * group, which is why it needs `options.new_process_group` and returns -1 with
+ * `errno` as ENOTSUP without it.
+ *
+ * Returns 0 if the request was delivered, -1 if it could not be (no child,
+ * already reaped, or a platform that has no way to aim one). Delivered is all
+ * this can promise: whether the child listens is the child's business, and a
+ * child that does not is still running afterwards.
+ *
+ * This is not `terminate`. On Windows the two used to be the same call, which
+ * made "interrupt" a lie -- it killed the child and reported the exit status
+ * the kill produced.
+ */
+MULLE__SPAWN_GLOBAL
+int   mulle_spawn_interrupt( struct mulle_spawn_handle *h);
+
+
+/*
+ * Stops the child where it stands, and lets it carry on.
+ *
+ * POSIX is SIGSTOP and SIGCONT, which cannot be caught or ignored -- a
+ * suspended child is really suspended. Windows resolves `NtSuspendProcess` and
+ * `NtResumeProcess` from `ntdll` lazily, the way the Foundation has had to all
+ * along; they are undocumented, and a system that does not export them gets -1
+ * and `errno` as ENOTSUP rather than a silent success.
+ *
+ * A stopped child is not a stopped *handle*: `wait` reports it as still running
+ * (it is), and `close` still ends it. What `terminate` does to a stopped child
+ * differs, and the difference is the platform's: POSIX delivers the signal and
+ * it stays pending until the process is resumed, while Windows ends it there
+ * and then.
+ */
+MULLE__SPAWN_GLOBAL
+int   mulle_spawn_suspend( struct mulle_spawn_handle *h);
+
+MULLE__SPAWN_GLOBAL
+int   mulle_spawn_resume( struct mulle_spawn_handle *h);
 
 
 /*
