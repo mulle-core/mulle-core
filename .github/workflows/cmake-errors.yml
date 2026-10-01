@@ -92,3 +92,20 @@ jobs:
 
     - name: Compile source code
       run: cmake --build ${{ matrix.build-dir || '.' }} --config ${{ matrix.build-config || 'Release' }}
+
+  freebsd:
+    name: FreeBSD Clang
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Build in FreeBSD VM
+      uses: vmactions/freebsd-vm@v1
+      with:
+        release: "14"
+        prepare: pkg install -y cmake ninja
+        run: |
+          cmake -S . -B build -G Ninja -D CMAKE_BUILD_TYPE=Release -D CMAKE_C_FLAGS="-Werror -Wall -Wextra"
+          cmake --build build
