@@ -51,8 +51,8 @@ jobs:
       run: mulle-sde fetch
 
     - name: Mulle-SDE Craft
-      run: mulle-sde -DCC=filcc craft --${BUILD_TYPE:-release}
+      run: mulle-sde -DCC=/opt/fil/bin/filcc craft --${BUILD_TYPE:-release}
 
     - name: Mulle-SDE Test
       run: |
-        [ ! -d test ] || mulle-sde -DCC=filcc test
+        [ ! -d test ] || mulle-sde -DCC=/opt/fil/bin/filcc test
