@@ -8,14 +8,12 @@ on:
   workflow_dispatch:
 
 env:
-  FILC_VERSION: "0.678"
   BUILD_TYPE: release
 
 jobs:
   fil-c:
     name: Ubuntu FIL-C
     runs-on: ubuntu-latest
-    continue-on-error: true
 
     steps:
     - name: Set MULLE_HOSTNAME
@@ -30,10 +28,19 @@ jobs:
     - uses: actions/checkout@v4
 
     - name: Install FIL-C
+      env:
+        GH_TOKEN: ${{ github.token }}
       run: |
-        curl -L -o filc.tar.xz "https://github.com/pizlonator/fil-c/releases/download/v${FILC_VERSION}/filc-${FILC_VERSION}-linux-x86_64.tar.xz"
-        tar xf filc.tar.xz
-        echo "${PWD}/pizfix/bin" >> $GITHUB_PATH
+        set -euo pipefail
+        tag=$(gh api repos/pizlonator/fil-c/releases/latest --jq .tag_name)
+        version="${tag#v}"
+        arch="$(uname -m)"
+        echo "Installing Fil-C ${version} (${arch}) into /opt/fil"
+        curl -fL -o optfil.tar.xz "https://github.com/pizlonator/fil-c/releases/download/${tag}/optfil-${version}-linux-${arch}.tar.xz"
+        tar xf optfil.tar.xz
+        cd "optfil-${version}-linux-${arch}"
+        sudo ./setup.sh --unattended
+        echo "/opt/fil/bin" >> "$GITHUB_PATH"
 
     - name: Verify FIL-C
       run: filcc --version
