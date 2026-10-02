@@ -17,8 +17,8 @@
          description="For more information, see [the documentation](http://mintomic.github.io/) or the accompanying blog post, [Introducing Mintomic](http://preshing.com/20130505/introducing-mintomic-a-small-portable-lock-free-api).";
          domain="clib";
          name="mintomic";
-         repo="mintomic";
-         url="https://github.com/mulle-concurrent/mintomic";
+         repo="mintomic@*";
+         url="https://github.com/mulle-concurrent/mintomic@*";
          user="mulle-concurrent";
       },
       {
@@ -32,7 +32,7 @@
       {
          description="🚮 A lock-free, cross-platform solution to the ABA problem";
          domain="clib";
-         name="mulle-core/mulle-aba";
+         name="src/mulle-aba";
          repo="mulle-aba@*";
          url="https://github.com/mulle-concurrent/mulle-aba@*";
          user="mulle-concurrent";
@@ -40,7 +40,7 @@
       {
          description="🔄 Flexible C memory allocation scheme";
          domain="clib";
-         name="mulle-core/mulle-allocator";
+         name="src/mulle-allocator";
          repo="mulle-allocator@*";
          url="https://github.com/mulle-c/mulle-allocator@*";
          user="mulle-c";
@@ -48,7 +48,7 @@
       {
          description="↗️  A growable C char array and also a stream - on stack and heap";
          domain="clib";
-         name="mulle-core/mulle-buffer";
+         name="src/mulle-buffer";
          repo="mulle-buffer@*";
          url="https://github.com/mulle-c/mulle-buffer@*";
          user="mulle-c";
@@ -56,7 +56,7 @@
       {
          description="🔀 Cross-platform C compiler glue (and some cpp conveniences)";
          domain="clib";
-         name="mulle-core/mulle-c11";
+         name="src/mulle-c11";
          repo="mulle-c11@*";
          url="https://github.com/mulle-c/mulle-c11@*";
          user="mulle-c";
@@ -64,7 +64,7 @@
       {
          description="📶 A lock- and wait-free hashtable, pointer array and pointer set, written in C";
          domain="clib";
-         name="mulle-core/mulle-concurrent";
+         name="src/mulle-concurrent";
          repo="mulle-concurrent@*";
          url="https://github.com/mulle-concurrent/mulle-concurrent@*";
          user="mulle-concurrent";
@@ -72,7 +72,7 @@
       {
          description="🛄 Debugging support for mulle-container";
          domain="clib";
-         name="mulle-core/mulle-container-debug";
+         name="src/mulle-container-debug";
          repo="mulle-container-debug@*";
          url="https://github.com/mulle-c/mulle-container-debug@*";
          user="mulle-c";
@@ -80,7 +80,7 @@
       {
          description="🛄 Arrays, hashtables and a queue";
          domain="clib";
-         name="mulle-core/mulle-container";
+         name="src/mulle-container";
          repo="mulle-container@*";
          url="https://github.com/mulle-c/mulle-container@*";
          user="mulle-c";
@@ -88,7 +88,7 @@
       {
          description="#️⃣  A collection of hash functions";
          domain="clib";
-         name="mulle-core/mulle-data";
+         name="src/mulle-data";
          repo="mulle-data@*";
          url="https://github.com/mulle-c/mulle-data@*";
          user="mulle-c";
@@ -96,7 +96,7 @@
       {
          description="♿️ Shared library helper";
          domain="clib";
-         name="mulle-core/mulle-dlfcn";
+         name="src/mulle-dlfcn";
          repo="mulle-dlfcn@*";
          url="https://github.com/mulle-core/mulle-dlfcn@*";
          user="mulle-core";
@@ -104,7 +104,7 @@
       {
          description="🧶 Double to string conversion";
          domain="clib";
-         name="mulle-core/mulle-dtostr";
+         name="src/mulle-dtostr";
          repo="mulle-dtostr@*";
          url="https://github.com/mulle-core/mulle-dtostr@*";
          user="mulle-core";
@@ -112,7 +112,7 @@
       {
          description="🐍 mulle-fifo fixed sized producer/consumer FIFOs holding `void *`";
          domain="clib";
-         name="mulle-core/mulle-fifo";
+         name="src/mulle-fifo";
          repo="mulle-fifo@*";
          url="https://github.com/mulle-concurrent/mulle-fifo@*";
          user="mulle-concurrent";
@@ -120,7 +120,7 @@
       {
          description="🔢 mulle-fprintf marries mulle-sprintf to stdio.h";
          domain="clib";
-         name="mulle-core/mulle-fprintf";
+         name="src/mulle-fprintf";
          repo="mulle-fprintf@*";
          url="https://github.com/mulle-core/mulle-fprintf@*";
          user="mulle-core";
@@ -128,7 +128,7 @@
       {
          description="🈚 http URL parser";
          domain="clib";
-         name="mulle-core/mulle-http";
+         name="src/mulle-http";
          repo="mulle-http@*";
          url="https://github.com/mulle-c/mulle-http@*";
          user="mulle-c";
@@ -136,7 +136,7 @@
       {
          description="🔂 mulle-linkedlist a lock-free intrusive linked list";
          domain="clib";
-         name="mulle-core/mulle-linkedlist";
+         name="src/mulle-linkedlist";
          repo="mulle-linkedlist@*";
          url="https://github.com/mulle-concurrent/mulle-linkedlist@*";
          user="mulle-concurrent";
@@ -144,7 +144,7 @@
       {
          description="🇧🇿 Memory mapped file access";
          domain="clib";
-         name="mulle-core/mulle-mmap";
+         name="src/mulle-mmap";
          repo="mulle-mmap@*";
          url="https://github.com/mulle-core/mulle-mmap@*";
          user="mulle-core";
@@ -152,7 +152,7 @@
       {
          description="🐛 mulle-multififo multi-producer/multi-consumer FIFO holding `void *`";
          domain="clib";
-         name="mulle-core/mulle-multififo";
+         name="src/mulle-multififo";
          repo="mulle-multififo@*";
          url="https://github.com/mulle-concurrent/mulle-multififo@*";
          user="mulle-concurrent";
@@ -160,7 +160,7 @@
       {
          description="🍫 mulle-rbtree organizes data in a red/black tree";
          domain="clib";
-         name="mulle-core/mulle-rbtree";
+         name="src/mulle-rbtree";
          repo="mulle-rbtree@*";
          url="https://github.com/mulle-c/mulle-rbtree@*";
          user="mulle-c";
@@ -168,7 +168,7 @@
       {
          description="🍫 mulle-rbtree-debug organizes data in a red/black tree";
          domain="clib";
-         name="mulle-core/mulle-rbtree-debug";
+         name="src/mulle-rbtree-debug";
          repo="mulle-rbtree-debug@*";
          url="https://github.com/mulle-core/mulle-rbtree-debug@*";
          user="mulle-core";
@@ -176,7 +176,7 @@
       {
          description="📣 Unicode regex library";
          domain="clib";
-         name="mulle-core/mulle-regex";
+         name="src/mulle-regex";
          repo="mulle-regex@*";
          url="https://github.com/mulle-c/mulle-regex@*";
          user="mulle-c";
@@ -184,7 +184,7 @@
       {
          description="🐌 Creates URL slugs";
          domain="clib";
-         name="mulle-core/mulle-slug";
+         name="src/mulle-slug";
          repo="mulle-slug@*";
          url="https://github.com/mulle-c/mulle-slug@*";
          user="mulle-c";
@@ -192,7 +192,7 @@
       {
          description="🔢 An extensible sprintf function supporting stdarg and mulle-vararg";
          domain="clib";
-         name="mulle-core/mulle-sprintf";
+         name="src/mulle-sprintf";
          repo="mulle-sprintf@*";
          url="https://github.com/mulle-core/mulle-sprintf@*";
          user="mulle-core";
@@ -200,7 +200,7 @@
       {
          description="🛅 Memory management for tree nodes";
          domain="clib";
-         name="mulle-core/mulle-storage";
+         name="src/mulle-storage";
          repo="mulle-storage@*";
          url="https://github.com/mulle-c/mulle-storage@*";
          user="mulle-c";
@@ -208,7 +208,7 @@
       {
          description="🔠 Cross-platform thread/mutex/tss/atomic operations in C";
          domain="clib";
-         name="mulle-core/mulle-thread";
+         name="src/mulle-thread";
          repo="mulle-thread@*";
          url="https://github.com/mulle-concurrent/mulle-thread@*";
          user="mulle-concurrent";
@@ -216,7 +216,7 @@
       {
          description="🕕 Simple time types with arithmetic on timespec and timeval";
          domain="clib";
-         name="mulle-core/mulle-time";
+         name="src/mulle-time";
          repo="mulle-time@*";
          url="https://github.com/mulle-core/mulle-time@*";
          user="mulle-core";
@@ -224,7 +224,7 @@
       {
          description="🈚 Unicode ctype like library";
          domain="clib";
-         name="mulle-core/mulle-unicode";
+         name="src/mulle-unicode";
          repo="mulle-unicode@*";
          url="https://github.com/mulle-c/mulle-unicode@*";
          user="mulle-c";
@@ -232,7 +232,7 @@
       {
          description="🈷️ Support for URL parsing";
          domain="clib";
-         name="mulle-core/mulle-url";
+         name="src/mulle-url";
          repo="mulle-url@*";
          url="https://github.com/mulle-c/mulle-url@*";
          user="mulle-c";
@@ -240,7 +240,7 @@
       {
          description="🔤 UTF8-16-32 analysis and manipulation library";
          domain="clib";
-         name="mulle-core/mulle-utf";
+         name="src/mulle-utf";
          repo="mulle-utf@*";
          url="https://github.com/mulle-c/mulle-utf@*";
          user="mulle-c";
@@ -248,10 +248,26 @@
       {
          description="⏪ Access variable arguments in struct layout fashion in C";
          domain="clib";
-         name="mulle-core/mulle-vararg";
+         name="src/mulle-vararg";
          repo="mulle-vararg@*";
          url="https://github.com/mulle-c/mulle-vararg@*";
          user="mulle-c";
+      },
+      {
+         description="🛸 Run a program, keep its output, outlive it if need be";
+         domain="clib";
+         name="src/mulle-spawn";
+         repo="mulle-spawn@*";
+         url="https://github.com/mulle-core/mulle-spawn@*";
+         user="mulle-core";
+      },
+      {
+         description="🧦 TCP that reads the same on both sides of the fence";
+         domain="clib";
+         name="src/mulle-socket";
+         repo="mulle-socket@*";
+         url="https://github.com/mulle-core/mulle-socket@*";
+         user="mulle-core";
       }
    );
 }

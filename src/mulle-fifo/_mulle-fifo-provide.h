@@ -13,19 +13,19 @@
 #define _mulle__fifo__provide_h__
 
 
+#include "mulle-pointerfifo.h"
 #include "mulle--pointerfifo1024.h"
 #include "mulle--pointerfifo128.h"
 #include "mulle--pointerfifo16.h"
 #include "mulle--pointerfifo2048.h"
 #include "mulle--pointerfifo256.h"
 #include "mulle--pointerfifo32.h"
-#include "mulle--pointerfifo4096.h"
 #include "mulle--pointerfifo4.h"
+#include "mulle--pointerfifo4096.h"
 #include "mulle--pointerfifo512.h"
 #include "mulle--pointerfifo64.h"
-#include "mulle--pointerfifo8192.h"
 #include "mulle--pointerfifo8.h"
-#include "mulle-pointerfifo.h"
+#include "mulle--pointerfifo8192.h"
 
 
 #endif

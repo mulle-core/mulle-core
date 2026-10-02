@@ -1119,3 +1119,9 @@ test/mulle-slug/coverage.json/coverage.json
 test/mulle-sprintf/coverage.json/coverage.json
 test/mulle-unicode/coverage.json/coverage.json
 test/mulle-utf/coverage.json/coverage.json
+.vscode/
+.touch
+*.orig
+*.workspace
+*.*-workspace
+research/
