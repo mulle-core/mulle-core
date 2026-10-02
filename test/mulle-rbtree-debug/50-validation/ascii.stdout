@@ -1,0 +1,5 @@
+ASCII tree output:
+Red-Black Tree (r=red, b=black, R=red+dirty, B=black+dirty):
+   5(b)
+   // \\
+3(r)  7(r)

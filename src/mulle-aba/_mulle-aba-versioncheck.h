@@ -25,7 +25,7 @@
 #endif
 #if defined( MULLE__LINKEDLIST_VERSION)
 # ifndef MULLE__LINKEDLIST_VERSION_MIN
-#  define MULLE__LINKEDLIST_VERSION_MIN  ((0UL << 20) | (1 << 8) | 0)
+#  define MULLE__LINKEDLIST_VERSION_MIN  ((0UL << 20) | (1 << 8) | 1)
 # endif
 # ifndef MULLE__LINKEDLIST_VERSION_MAX
 #  define MULLE__LINKEDLIST_VERSION_MAX  ((0UL << 20) | (2 << 8) | 0)
@@ -43,7 +43,7 @@
 #endif
 #if defined( MULLE__THREAD_VERSION)
 # ifndef MULLE__THREAD_VERSION_MIN
-#  define MULLE__THREAD_VERSION_MIN  ((4UL << 20) | (10 << 8) | 0)
+#  define MULLE__THREAD_VERSION_MIN  ((4UL << 20) | (11 << 8) | 0)
 # endif
 # ifndef MULLE__THREAD_VERSION_MAX
 #  define MULLE__THREAD_VERSION_MAX  ((5UL << 20) | (0 << 8) | 0)

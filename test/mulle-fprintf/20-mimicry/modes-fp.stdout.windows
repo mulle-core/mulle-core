@@ -1,0 +1,1 @@
+modes-fp tests skipped on Windows (fmemopen not available)

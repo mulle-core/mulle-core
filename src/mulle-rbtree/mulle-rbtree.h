@@ -40,7 +40,7 @@
 #include <errno.h>
 
 
-#define MULLE__RBTREE_VERSION   ((0UL << 20) | (2 << 8) | 0)
+#define MULLE__RBTREE_VERSION   ((0UL << 20) | (2 << 8) | 1)
 
 
 //
@@ -51,9 +51,20 @@
 // function. The payload will be retain/release with the callback. By default
 // the values are assumed to be non-owned c-strings (no strdup, no free!)
 //
+// The public struct holds the internal one as a real member. It used to repeat
+// the internal fields by macro, which made `struct mulle_rbtree` and
+// `struct mulle__rbtree` distinct types of identical layout. Accessing an
+// object of one through a pointer to the other is a strict-aliasing violation
+// (C11 6.5p7) that GCC exploits at -O2/-O3 (see mulle-container's
+// mulle-array.h for the same pattern). An actual member gives the inner
+// functions a genuine object of their own type, so the wrappers hand out
+// `&tree->base` instead of casting.
+//
+#define MULLE_RBTREE_BASE   struct mulle__rbtree base
+
 struct mulle_rbtree
 {
-   MULLE__RBTREE_BASE;
+   MULLE_RBTREE_BASE;
    int                                     (*comparison)( void *a, void *b);
    void                                    (*dirty)( void *a, void *b, void *c);
    struct mulle_container_valuecallback    callback;
@@ -86,11 +97,12 @@ static inline void
 // costs memory, which is why the default stays small. Values above USHRT_MAX are
 // clamped (mulle_structqueue stores the bucket size in an unsigned short).
 //
-// node_extra and options are the leading fields (MULLE__RBTREE_CONFIG_BASE),
-// shared with the low-level struct mulle__rbtree_config, which this struct is
-// cast to. A config must be zeroed or fully designated: an unset capacity is
-// otherwise garbage (the clamp keeps it from wrapping, but it can still ask for
-// a needlessly large bucket).
+// node_extra, options and capacity (MULLE__RBTREE_CONFIG_BASE) mirror the
+// leading fields of the low-level struct mulle__rbtree_config; the initializer
+// copies them into a local internal config instead of casting this struct, so
+// there is no type pun. A config must be zeroed or fully designated: an unset
+// capacity is otherwise garbage (the clamp keeps it from wrapping, but it can
+// still ask for a needlessly large bucket).
 //
 struct mulle_rbtree_config
 {
@@ -136,14 +148,14 @@ MULLE_C_NONNULL_FIRST
 static inline struct mulle_allocator    *
    _mulle_rbtree_get_allocator( struct mulle_rbtree *a_tree)
 {
-   return( _mulle__rbtree_get_allocator( (struct mulle__rbtree *) a_tree));
+   return( _mulle__rbtree_get_allocator( &a_tree->base));
 }
 
 
 static inline struct mulle_allocator    *
    mulle_rbtree_get_allocator( struct mulle_rbtree *a_tree)
 {
-   return( a_tree ? _mulle__rbtree_get_allocator( (struct mulle__rbtree *) a_tree) : NULL);
+   return( a_tree ? _mulle__rbtree_get_allocator( &a_tree->base) : NULL);
 }
 
 
@@ -153,7 +165,7 @@ static inline int
 {
    const struct mulle__rbtree   *rb__tree;
 
-   rb__tree = (const struct mulle__rbtree *) a_tree;
+   rb__tree = &a_tree->base;
 
    return( _mulle__rbtree_get_root_node( rb__tree)
            == _mulle__rbtree_get_nil_node( rb__tree));
@@ -175,7 +187,7 @@ static inline int
 
 static inline void   _mulle_rbtree_walk_dirty( struct mulle_rbtree *a_tree)
 {
-   _mulle__rbtree_walk_dirty( (struct mulle__rbtree *) a_tree,
+   _mulle__rbtree_walk_dirty( &a_tree->base,
                               a_tree->dirty);
 
 }
@@ -243,10 +255,10 @@ static inline void    *
    if( ! a_tree)
       return( NULL);
 
-   node = _mulle__rbtree_find_node( (struct mulle__rbtree *) a_tree,
+   node = _mulle__rbtree_find_node( &a_tree->base,
                                     a_key,
                                     a_tree->comparison);
-   return( _mulle__rbtree_get_node_value( (struct mulle__rbtree *) a_tree, node));
+   return( _mulle__rbtree_get_node_value( &a_tree->base, node));
 }
 
 
@@ -262,10 +274,10 @@ static inline void *
    if( ! a_tree)
       return( NULL);
 
-   node = _mulle__rbtree_find_node_equal_or_greater( (struct mulle__rbtree *) a_tree,
+   node = _mulle__rbtree_find_node_equal_or_greater( &a_tree->base,
                                                      a_key,
                                                      a_tree->comparison);
-   return( _mulle__rbtree_get_node_value( (struct mulle__rbtree *) a_tree, node));
+   return( _mulle__rbtree_get_node_value( &a_tree->base, node));
 }
 
 
@@ -282,12 +294,12 @@ void   mulle_rbtree_walk( struct mulle_rbtree *a_tree,
    if( ! a_tree)
       return;
 
-   a__tree = (struct mulle__rbtree *) a_tree;
+   a__tree = &a_tree->base;
    a_node  = _mulle__rbtree_find_leftmost_node( a__tree,
                                               _mulle__rbtree_get_root_node( a__tree));
    while( a_node != _mulle__rbtree_get_nil_node( a__tree))
    {
-      value = _mulle__rbtree_get_node_value( (struct mulle__rbtree *) a_tree, a_node);
+      value = _mulle__rbtree_get_node_value( a__tree, a_node);
       if( ! (*callback)( value, userinfo))
          break;
       a_node = _mulle__rbtree_next_node( a__tree, a_node);
@@ -313,7 +325,7 @@ static inline struct mulle_rbtreeenumerator
    if( ! a_tree)
       return( rover);
 
-   rover._tree = (struct mulle__rbtree *) a_tree;
+   rover._tree = &a_tree->base;
    rover._node = _mulle__rbtree_find_leftmost_node( rover._tree,
                                                     _mulle__rbtree_get_root_node( rover._tree));
    return( rover);
@@ -329,7 +341,7 @@ static inline int
    if( rover->_node == _mulle__rbtree_get_nil_node( rover->_tree))
       return( 0);
    if( item)
-      *item = _mulle__rbtree_get_node_value( (struct mulle__rbtree *) rover->_tree, rover->_node);
+      *item = _mulle__rbtree_get_node_value( rover->_tree, rover->_node);
    rover->_node = _mulle__rbtree_next_node( rover->_tree, rover->_node);
    return( 1);
 }
@@ -375,7 +387,7 @@ static inline struct mulle_rbtreereverseenumerator
    if( ! a_tree)
       return( rover);
 
-   rover._tree = (struct mulle__rbtree *) a_tree;
+   rover._tree = &a_tree->base;
    rover._node = _mulle__rbtree_find_rightmost_node( rover._tree,
                                                     _mulle__rbtree_get_root_node( rover._tree));
    return( rover);
@@ -391,7 +403,7 @@ static inline int
    if( rover->_node == _mulle__rbtree_get_nil_node( rover->_tree))
       return( 0);
    if( item)
-      *item = _mulle__rbtree_get_node_value( (struct mulle__rbtree *) rover->_tree, rover->_node);
+      *item = _mulle__rbtree_get_node_value( rover->_tree, rover->_node);
    rover->_node = _mulle__rbtree_previous_node( rover->_tree, rover->_node);
    return( 1);
 }

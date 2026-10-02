@@ -1,0 +1,128 @@
+
+1: abc abc y & abc:  match
+2: abc xbc n - -: expected execution failure
+3: abc axc n - -: expected execution failure
+4: abc abx n - -: expected execution failure
+5: abc xabcy y & abc:  match
+6: abc ababc y & abc:  match
+7: ab*c abc y & abc:  match
+8: ab*bc abc y & abc:  match
+9: ab*bc abbc y & abbc:  match
+10: ab*bc abbbbc y & abbbbc:  match
+11: ab+bc abbc y & abbc:  match
+12: ab+bc abc n - -: expected execution failure
+13: ab+bc abq n - -: expected execution failure
+14: ab+bc abbbbc y & abbbbc:  match
+15: ab?bc abbc y & abbc:  match
+16: ab?bc abc y & abc:  match
+17: ab?bc abbbbc n - -: expected execution failure
+18: ab?c abc y & abc:  match
+19: ^abc$ abc y & abc:  match
+20: ^abc$ abcc n - -: expected execution failure
+21: ^abc abcc y & abc:  match
+22: ^abc$ aabc n - -: expected execution failure
+23: abc$ aabc y & abc:  match
+24: ^ abc y & :  match
+25: $ abc y & :  match
+26: a.c abc y & abc:  match
+27: a.c axc y & axc:  match
+28: a.*c axyzc y & axyzc:  match
+29: a.*c axyzd n - -: expected execution failure
+30: a[bc]d abc n - -: expected execution failure
+31: a[bc]d abd y & abd:  match
+32: a[b-d]e abd n - -: expected execution failure
+33: a[b-d]e ace y & ace:  match
+34: a[b-d] aac y & ac:  match
+35: a[-b] a- y & a-:  match
+36: a[b-] a- y & a-:  match
+37: [k] ab n - -: expected execution failure
+38: a[b-a] - c - -: expected compilation failure
+39: a[]b - c - -: expected compilation failure
+40: a[ - c - -: expected compilation failure
+41: a] a] y & a]:  match
+42: a[]]b a]b y & a]b:  match
+43: a[^bc]d aed y & aed:  match
+44: a[^bc]d abd n - -: expected execution failure
+45: a[^-b]c adc y & adc:  match
+46: a[^-b]c a-c n - -: expected execution failure
+47: a[^]b]c a]c n - -: expected execution failure
+48: a[^]b]c adc y & adc:  match
+49: ab|cd abc y & ab:  match
+50: ab|cd abcd y & ab:  match
+51: ()ef def y &-\1 ef-:  match
+52: ()* - c - -: expected compilation failure
+53: *a - c - -: expected compilation failure
+54: ^* - c - -: expected compilation failure
+55: $* - c - -: expected compilation failure
+56: (*)b - c - -: expected compilation failure
+57: $b b n - -: expected execution failure
+58: a\ - c - -: expected compilation failure
+59: a\(b a(b y &-\1 a(b-:  match
+60: a\(*b ab y & ab:  match
+61: a\(*b a((b y & a((b:  match
+62: a\\b a\b y & a\b:  match
+63: abc) - c - -: expected compilation failure
+64: (abc - c - -: expected compilation failure
+65: ((a)) abc y &-\1-\2 a-a-a:  match
+66: (a)b(c) abc y &-\1-\2 abc-a-c:  match
+67: a+b+c aabbabc y & abc:  match
+68: a** - c - -: expected compilation failure
+69: a*? - c - -: expected compilation failure
+70: (a*)* - c - -: expected compilation failure
+71: (a*)+ - c - -: expected compilation failure
+72: (a|)* - c - -: expected compilation failure
+73: (a*|b)* - c - -: expected compilation failure
+74: (a+|b)* ab y &-\1 ab-b:  match
+75: (a+|b)+ ab y &-\1 ab-b:  match
+76: (a+|b)? ab y &-\1 a-a:  match
+77: [^ab]* cde y & cde:  match
+78: (^)* - c - -: expected compilation failure
+79: (ab|)* - c - -: expected compilation failure
+80: )( - c - -: expected compilation failure
+81:  abc y & :  match
+82: abc  n - -: expected execution failure
+83: a*  y & :  match
+84: abcd abcd y &-\&-\\& abcd-&-\abcd:  match
+85: a(bc)d abcd y \1-\\1-\\\1 bc-\1-\bc:  match
+86: ([abc])*d abbbcd y &-\1 abbbcd-c:  match
+87: ([abc])*bcd abcd y &-\1 abcd-a:  match
+88: a|b|c|d|e e y & e:  match
+89: (a|b|c|d|e)f ef y &-\1 ef-e:  match
+90: ((a*|b))* - c - -: expected compilation failure
+91: abcd*efg abcdefg y & abcdefg:  match
+92: ab* xabyabbbz y & ab:  match
+93: ab* xayabbbz y & a:  match
+94: (ab|cd)e abcde y &-\1 cde-cd:  match
+95: [abhgefdc]ij hij y & hij:  match
+96: ^(ab|cd)e abcde n x\1y xy: expected execution failure
+97: (abc|)ef abcdef y &-\1 ef-:  match
+98: (a|b)c*d abcd y &-\1 bcd-b:  match
+99: (ab|ab*)bc abc y &-\1 abc-a:  match
+100: a([bc]*)c* abc y &-\1 abc-bc:  match
+101: a([bc]*)(c*d) abcd y &-\1-\2 abcd-bc-d:  match
+102: a([bc]+)(c*d) abcd y &-\1-\2 abcd-bc-d:  match
+103: a([bc]*)(c+d) abcd y &-\1-\2 abcd-b-cd:  match
+104: a[bcd]*dcdcde adcdcde y & adcdcde:  match
+105: a[bcd]+dcdcde adcdcde n - -: expected execution failure
+106: (ab|a)b*c abc y &-\1 abc-ab:  match
+107: ((a)(b)c)(d) abcd y \1-\2-\3-\4 abc-a-b-d:  match
+108: [ -~]* abc y & abc:  match
+109: [ -~ -~]* abc y & abc:  match
+110: [ -~ -~ -~]* abc y & abc:  match
+111: [ -~ -~ -~ -~]* abc y & abc:  match
+112: [ -~ -~ -~ -~ -~]* abc y & abc:  match
+113: [ -~ -~ -~ -~ -~ -~]* abc y & abc:  match
+114: [ -~ -~ -~ -~ -~ -~ -~]* abc y & abc:  match
+115: [a-zA-Z_][a-zA-Z0-9_]* alpha y & alpha:  match
+116: ^a(bc+|b[eh])g|.h$ abh y &-\1 bh-:  match
+117: (bc+d$|ef*g.|h?i(j|k)) effgz y &-\1-\2 effgz-effgz-:  match
+118: (bc+d$|ef*g.|h?i(j|k)) ij y &-\1-\2 ij-ij-j:  match
+119: (bc+d$|ef*g.|h?i(j|k)) effg n - -: expected execution failure
+120: (bc+d$|ef*g.|h?i(j|k)) bcdd n - -: expected execution failure
+121: (bc+d$|ef*g.|h?i(j|k)) reffgz y &-\1-\2 effgz-effgz-:  match
+122: ((((((((((a)))))))))) - c - -: expected compilation failure
+123: (((((((((a))))))))) a y & a:  match
+124: multiple words of text uh-uh n - -: expected execution failure
+125: multiple words multiple words, yeah y & multiple words:  match
+126: (.*)c(.*) abcde y &-\1-\2 abcde-ab-de:  match
+127: \((.*), (.*)\) (a, b) y (\2, \1) (b, a):  match

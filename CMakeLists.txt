@@ -10,6 +10,19 @@ cmake_minimum_required( VERSION 3.19...99.99) # for REAL_PATH
 
 project( mulle-core VERSION 0.9.0 LANGUAGES C)
 
+#
+# The vendored constituent tests in test/ are opt-in. mulle-core is normally
+# crafted as a dependency of other mulle-sde projects, so building (let alone
+# running) the ~1800 constituent test executables by default is unwanted.
+# `include(CTest)` would declare BUILD_TESTING with a default of ON, so declare
+# it here as OFF instead. The tests are registered near the end of this file.
+#
+# A plain cmake checkout opts in with -DBUILD_TESTING=ON and runs `ctest`.
+# `mulle-sde test` is unaffected: test/ is its own mulle-sde project and drives
+# the same sources through mulle-test, not through this build.
+#
+option( BUILD_TESTING "Build the vendored constituent test suite (ctest)" OFF)
+
 # Common compiler flags for all platforms and compilers
 set(COMMON_C_FLAGS "")
 
@@ -219,6 +232,19 @@ endif()
 
 
 include( FinalOutput OPTIONAL)
+
+
+# Vendored constituent tests, runnable with `ctest`. They compile against the
+# amalgamated `mulle-core` target, so they can only be added once it exists.
+#
+# Never register them as an add_subdirectory() subproject: the parent project's
+# ctest would then run our tests, and a parent that sets BUILD_TESTING=ON would
+# otherwise drag the whole suite into a consumer's build.
+if( BUILD_TESTING AND NOT IS_CMAKE_SUBPROJECT AND LINK_PHASE
+    AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/test/CMakeLists.txt")
+   enable_testing()
+   add_subdirectory( test)
+endif()
 
 
 ######

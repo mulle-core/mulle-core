@@ -1,0 +1,38 @@
+$2 = "------2------"
+(gdb) Continuing.
+[New Thread 241791]
+[New Thread 241790]
+[New Thread 241792]
+[New Thread 241793]
+[New Thread 241794]
+[New Thread 241795]
+[Switching to Thread 241791]
+
+Thread 2 hit Hardware watchpoint 3: -location (int64_t [32]) *&*fifo->storage
+
+Old value = {0 <repeats 32 times>}
+New value = {-1, 0 <repeats 31 times>}
+__mulle_atomic_pointer_cas (expect=0x0, value=0xffffffffffffffff, address=0x4aba4f0) at /home/nat/.mulle/var/mulle-multififo-06488c6aacbe/dependency/Debug/include/mulle-thread/mulle-atomic-c11.h:406
+406	   return( actual);
+(gdb) This command cannot be used at the top level.
+(gdb) This command cannot be used at the top level.
+(gdb) Continuing.
+
+Thread 2 hit Hardware watchpoint 2: -location (int64_t [2]) *&fifo
+
+Old value = {0, 0}
+New value = {0, 1}
+__mulle_atomic_pointer_cas (expect=0x0, value=0x1, address=0x1ffefff708) at /home/nat/.mulle/var/mulle-multififo-06488c6aacbe/dependency/Debug/include/mulle-thread/mulle-atomic-c11.h:406
+406	   return( actual);
+$3 = "------3------"
+(gdb) This command cannot be used at the top level.
+(gdb) 
+quit
+A debugging session is active.
+
+	Inferior 1 [Remote target] will be detached.
+
+Trotzdem beenden? (y or n) [answered Y; input not from terminal]
+Detaching from program: /home/src/srcO/mulle-concurrent/mulle-multififo/test/30-multithreaded/multi-producer-multi-consumer.exe, Remote target
+Ending remote debugging.
+[Inferior 1 (Remote target) detached]

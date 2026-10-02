@@ -1,0 +1,8 @@
+null==empty: 1
+data!=0: 1
+int==ptr: 1
+int==ll: 1
+float!=0: 1
+double!=0: 1
+32: 0xfc64daae
+64: 0x1d20234e9e711e26

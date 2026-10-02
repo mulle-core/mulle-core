@@ -1,0 +1,12 @@
+NULL <-insert- NULL : 0 {}
+NULL <-insert- 18-65 (48) : 0 {}
+18-65 (48) <-insert- NULL : 0 {}
+0-8 (9) <-insert- 2-4 (3) : 2 { 0-1 (2), 5-11 (7)}
+2-5 (4) <-insert- 0-1 (2) : 2 { NULL, 2-5 (4)}
+2-5 (4) <-insert- 6-7 (2) : 2 { 2-5 (4), NULL}
+2-5 (4) <-insert- 8-9 (2) : 0 {}
+2-5 (4) <-insert- 3-7 (5) : 2 { 2-2 (1), 8-10 (3)}
+2-5 (4) <-insert- 1-2 (2) : 2 { NULL, 3-6 (4)}
+INVALID <-insert- 18-65 (48) : 0 {}
+18-65 (48) <-insert- INVALID : 0 {}
+INVALID <-insert- INVALID : 0 {}

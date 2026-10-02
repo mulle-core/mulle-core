@@ -60,6 +60,13 @@
 //   | h        | live pointer     | live entry
 //   | any      | REDIRECT         | frozen by a migration
 //
+// "claimed, fill in flight" is transient during register/insert, and is also
+// the state left by a single-threaded _mulle_concurrent_hashmap_remove. In
+// either case lookup reports the key as absent and the hash owner may fill
+// the slot again. Only single-threaded code ever moves a value backwards, so
+// the concurrent value state machine stays monotonic (NO_POINTER -> live ->
+// REDIRECT), which is what bounds the per-slot work in a migration.
+//
 // 'hash' is kept in a mulle_atomic_pointer_t (holding an intptr_t), because
 // it is CASed and read concurrently.
 //
@@ -72,7 +79,7 @@ struct _mulle_concurrent_hashvaluepair
 
 struct _mulle_concurrent_hashmapstorage
 {
-   mulle_atomic_pointer_t   n_hashs;       // claimed slots (live)
+   mulle_atomic_pointer_t   n_hashs;       // claimed slots (live or emptied)
    uintptr_t                mask;          // easier to read from debugger if void * size
 
    struct _mulle_concurrent_hashvaluepair  entries[ 1];
@@ -110,6 +117,11 @@ struct mulle_concurrent_hashmap
 
 #pragma mark - various functions, no parameter checks
 
+//
+// The size is a hint: it is rounded up to the next power of two and clamped
+// to a minimum of 4. mulle_concurrent_hashmap_get_size reports the size that
+// was actually used.
+//
 MULLE__CONCURRENT_GLOBAL
 void  _mulle_concurrent_hashmap_init( struct mulle_concurrent_hashmap *map,
                                       unsigned int size,

@@ -1,0 +1,15 @@
+Testing mulle_dtostr_decompose
+============================
+
+0.0                  sign=0 special=3 sig=0 exp=0
+-0.0                 sign=1 special=3 sig=0 exp=0
+1.0                  sign=0 special=0 sig=10000000000000000 exp=-16
+-1.0                 sign=1 special=0 sig=10000000000000000 exp=-16
++inf                 sign=0 special=1 sig=0 exp=0
+-inf                 sign=1 special=1 sig=0 exp=0
+nan                  sign=0 special=2 sig=0 exp=0
+pi                   sign=0 special=0 sig=31415926535897930 exp=-16
+Planck               sign=0 special=0 sig=66260701500000000 exp=-50
+1.23e20              sign=0 special=0 sig=12345678900000000 exp=4
+
+Struct size: 16 bytes (should be 16)

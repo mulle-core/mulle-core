@@ -1,0 +1,10 @@
+PASS: "abc" (round trip preserved 3 chars)
+PASS: "ab\0" (rejected by is_char5string)
+PASS: "\0ab" (rejected by is_char5string)
+PASS: "a\0b" (rejected by is_char5string)
+PASS: "a\0\0" (rejected by is_char5string)
+PASS: "\0\0\0" (rejected by is_char5string)
+PASS: "abcdef" (round trip preserved 6 chars)
+PASS: empty (round trip preserved 0 chars)
+
+All tests passed!

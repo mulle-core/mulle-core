@@ -1,0 +1,16 @@
+mulle_utf8_strnstr( NULL, 0, NULL) = NULL
+mulle_utf8_strnstr( "", 0, NULL) = NULL
+mulle_utf8_strnstr( NULL, 0, "") = NULL
+mulle_utf8_strnstr( "", 0, "") = NULL
+mulle_utf8_strnstr( "", 1, "") = NULL
+mulle_utf8_strnstr( NULL, 2, "") = NULL
+mulle_utf8_strnstr( "abcd", -1, "a") = "a" (0)
+mulle_utf8_strnstr( "abcd", 4, "b") = "b" (1)
+mulle_utf8_strnstr( "abcd", 4, "c") = "c" (2)
+mulle_utf8_strnstr( "abcd", 4, "d") = "d" (3)
+mulle_utf8_strnstr( "abcd", 4, "ab") = "ab" (0)
+mulle_utf8_strnstr( "abcd", 4, "bc") = "bc" (1)
+mulle_utf8_strnstr( "abcd", 4, "cd") = "cd" (2)
+mulle_utf8_strnstr( "abcd", 4, "abc") = "abc" (0)
+mulle_utf8_strnstr( "abc", 3, "b") = "b" (1)
+mulle_utf8_strnstr( "abc", 3, "abc") = "abc" (0)

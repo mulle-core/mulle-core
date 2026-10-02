@@ -1,0 +1,9 @@
+mulle_char7_is_char7string( NULL) : OK
+mulle_char7_is_char7string32( NULL)=NO
+mulle_char7_is_char7string64( NULL)=NO
+mulle_char7_is_char7string( VfL Bochum 1848) : OK
+mulle_char7_is_char7string32( VfL Bochum 1848)=NO
+mulle_char7_is_char7string64( VfL Bochum 1848)=NO
+mulle_char7_is_char7string( VfL) : OK
+mulle_char7_is_char7string32( VfL)=YES
+mulle_char7_is_char7string64( VfL)=YES

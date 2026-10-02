@@ -1,0 +1,7 @@
+PASS: high surrogate at end of buffer (adjacent low surrogate)
+PASS: high surrogate at end of buffer
+PASS: lone low surrogate
+PASS: high surrogate not followed by low surrogate
+PASS: complete surrogate pair
+
+All tests passed!

@@ -165,6 +165,10 @@ struct mulle_concurrent_hashtable
 //
 
 //
+// The size is a hint: it is rounded up to the next power of two and clamped
+// to a minimum of 4, so any size is accepted. mulle_concurrent_hashtable_get_size
+// reports the size that was actually used.
+//
 // Default: top bit is FROZEN ("positive" mode).
 //
 MULLE_C_NONNULL_FIRST

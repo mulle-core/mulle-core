@@ -1,0 +1,5 @@
+timeval_add 3.000000
+timeval_sub 0.500000
+timeval_compare -1
+timeval_add_carry 3.000000
+

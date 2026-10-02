@@ -198,7 +198,7 @@ The high-level, value-based tree structure.
 **Purpose:** User-friendly tree interface that hides node management and provides automatic value lifecycle management via callbacks.
 
 **Key Fields:**
-- Inherits all fields from `mulle__rbtree` via `MULLE__RBTREE_BASE` macro
+- Embeds the internal `struct mulle__rbtree` as a real member `base` (`MULLE_RBTREE_BASE`) at offset 0, so `&tree` and `&tree.base` are the same object. There is no layout-compatible prefix and no cast (see `mulle-container`'s `mulle-array.h` for why that is a strict-aliasing violation)
 - `comparison`: Function pointer for value comparison
 - `dirty`: Optional callback for dirty node notifications
 - `callback`: Value callback structure for retain/release/copy operations
@@ -234,9 +234,11 @@ bucket with a large spare allowance, but it can still ask for a needlessly large
 bucket.
 
 The `node_extra`, `options` and `capacity` fields lead the structure
-(`MULLE__RBTREE_CONFIG_BASE`), so a `struct mulle_rbtree_config *` is also a
-valid `struct mulle__rbtree_config *` for the low-level initializer
-`_mulle__rbtree_init_with_config()`.
+(`MULLE__RBTREE_CONFIG_BASE`) and mirror the low-level
+`struct mulle__rbtree_config`. `_mulle_rbtree_init_with_config()` copies them
+into a local internal config before calling the low-level initializer, so the
+public struct is never handed to `_mulle__rbtree_init_with_config()` through a
+cast.
 
 **Core Operations:**
 - `mulle_rbtree_add()`: Add value to tree; returns 0 on success, errno on failure (NULL-safe)
@@ -434,7 +436,7 @@ mulle_rbtree_for( &tree, value)
 size_t len = tree._nodes._length;  // Private field!
 
 // GOOD: Use accessor functions
-size_t count = _mulle__rbtree_get_count( (struct mulle__rbtree *) &tree);
+size_t count = _mulle__rbtree_get_count( &tree.base);
 ```
 
 **5. Comparing Pointers Instead of Values:**

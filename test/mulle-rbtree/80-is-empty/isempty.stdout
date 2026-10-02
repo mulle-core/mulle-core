@@ -1,0 +1,7 @@
+=== Test: mulle_rbtree_is_empty ===
+empty after init: 1 (expect 1)
+empty after 3 adds: 0 (expect 0)
+empty after failed remove: 0 (expect 0)
+empty after removing all: 1 (expect 1)
+empty for NULL tree: 1 (expect 1)
+PASSED

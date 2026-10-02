@@ -1,0 +1,5 @@
+#! /bin/sh
+
+mulle-make --build-dir kitchen \
+&& ./kitchen/package.exe
+

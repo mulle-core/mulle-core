@@ -1,0 +1,15 @@
+Input: Hello, World!
+Output: Hello-World
+
+Input: 
+Output: 
+
+Input: 🙂 Emoji test 👍
+Output: Emoji-test
+
+Input: Test!#$%&*()_+-={}[]|;:'"<>,.?/
+Output: Test-hashdollar-lessgreater
+
+Input: Привет мир!
+Output: Privet-mir
+

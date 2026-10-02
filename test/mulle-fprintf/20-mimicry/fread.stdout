@@ -1,0 +1,10 @@
+Read from memory stream: Passed (result=13, errno=0)
+Read more than available: Passed (result=13, errno=0)
+Read-only empty file: Passed (result=0, errno=0)
+Multiple reads: Passed (result=2, errno=0)
+Multiple reads: Passed (result=2, errno=0)
+Multiple reads: Passed (result=2, errno=0)
+Multiple reads: Passed (result=2, errno=0)
+Multiple reads: Passed (result=2, errno=0)
+Read with size=2, nmemb=6: Passed (result=6, errno=0)
+Error in NULL pointers: fread: result=18446744073709551615, errno=0; mulle_buffer_fread: result=0, errno=0

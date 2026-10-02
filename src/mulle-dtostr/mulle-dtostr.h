@@ -9,6 +9,8 @@
 #ifndef MULLE_DTOSTR_H
 #define MULLE_DTOSTR_H
 
+#define MULLE__DTOSTR_VERSION   ((0UL << 20) | (2 << 8) | 1)
+
 #include "_mulle-dtostr.h"
 #include "_mulle-strtod.h"
 

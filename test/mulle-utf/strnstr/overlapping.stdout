@@ -1,0 +1,14 @@
+PASS: strnstr( "hello world", "world") -> found
+PASS: strnstr( "hello world", "hello") -> found
+PASS: strnstr( "hello world", "xyz") -> not found
+PASS: strnstr( "abc", "abc") -> found
+PASS: strnstr( "aab", "ab") -> found
+PASS: strnstr( "aaab", "aab") -> found
+PASS: strnstr( "mississippi", "issip") -> found
+PASS: strnstr( "mississippi", "ssi") -> found
+PASS: strnstr( "aaa", "aa") -> found
+PASS: strnstr( "abcabcd", "abcd") -> found
+PASS: strnstr( "VfL VfL Bochum", "VfL Bochum") -> found
+PASS: strnstr( "aéé", "éé") -> found
+
+All tests passed!

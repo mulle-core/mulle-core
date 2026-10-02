@@ -1,0 +1,31 @@
+----
+mulle_testallocator_initialize: init alloc_lock
+mulle_testallocator_initialize: mulle_atinit call for _mulle_testallocator_initialize (00006FFFFC4D2120)
+mulle_testallocator_initialize: finished
+_mulle_testallocator_initialize starts
+_mulle_testallocator_initialize inside once
+mulle_testallocator_reset_detect_leaks: removing mulle_testallocator_reset_detect_leaks 1
+_mulle_testallocator_initialize starts
+_mulle_testallocator_reset: removing allocations and frees
+_mulle_testallocator_reset: initializing allocations and frees
+_mulle_testallocator_reset: finished
+mulle_testallocator_reset_detect_leaks: removing mulle_testallocator_reset_detect_leaks 1
+_mulle_testallocator_initialize starts
+_mulle_testallocator_reset: removing allocations and frees
+_mulle_testallocator_reset: initializing allocations and frees
+_mulle_testallocator_reset: finished
+mulle_testallocator_reset_detect_leaks: removing mulle_testallocator_reset_detect_leaks 1
+_mulle_testallocator_initialize starts
+_mulle_testallocator_reset: removing allocations and frees
+_mulle_testallocator_reset: initializing allocations and frees
+_mulle_testallocator_reset: finished
+mulle_testallocator_reset_detect_leaks: removing mulle_testallocator_reset_detect_leaks 1
+_mulle_testallocator_initialize starts
+_mulle_testallocator_reset: removing allocations and frees
+_mulle_testallocator_reset: initializing allocations and frees
+_mulle_testallocator_reset: finished
+mulle_testallocator_reset_detect_leaks: removing mulle_testallocator_reset_detect_leaks 1
+_mulle_testallocator_initialize starts
+_mulle_testallocator_reset: removing allocations and frees
+_mulle_testallocator_reset: initializing allocations and frees
+_mulle_testallocator_reset: finished

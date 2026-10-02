@@ -1,0 +1,5 @@
+fread_FILE: 5 "Hello"
+fread_FILE_all: 24 "Hello, buffer file world"
+fread_FILE_null_fp: 0 errno=EINVAL
+fread_FILE_all_null_fp: 0 errno=EINVAL
+do_filepath: "Hello, buffer file world"

@@ -44,7 +44,7 @@
  *
  *  version:  major, minor, patch
  */
-#define MULLE__CONTAINER__DEBUG_VERSION  ((0UL << 20) | (1 << 8) | 4)
+#define MULLE__CONTAINER__DEBUG_VERSION  ((0UL << 20) | (1 << 8) | 5)
 
 
 static inline unsigned int   mulle_container_debug_get_version_major( void)

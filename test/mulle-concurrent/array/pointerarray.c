@@ -1,0 +1,268 @@
+//
+//  main.c
+//  mulle_concurrent_pointerlist
+//
+//  Created by Nat! on 06.03.16.
+//  Copyright © 2016 Mulle kybernetiK. All rights reserved.
+//
+//  Redistribution and use in source and binary forms, with or without
+//  modification, are permitted provided that the following conditions are met:
+//
+//  Redistributions of source code must retain the above copyright notice, this
+//  list of conditions and the following disclaimer.
+//
+//  Redistributions in binary form must reproduce the above copyright notice,
+//  this list of conditions and the following disclaimer in the documentation
+//  and/or other materials provided with the distribution.
+//
+//  Neither the name of Mulle kybernetiK nor the names of its contributors
+//  may be used to endorse or promote products derived from this software
+//  without specific prior written permission.
+//
+//  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+//  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+//  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+//  ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+//  LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+//  CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+//  SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+//  INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+//  CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+//  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+//  POSSIBILITY OF SUCH DAMAGE.
+//
+#include <mulle-concurrent/mulle-concurrent.h>
+#include <assert.h>
+#include <errno.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+
+#define FOREVER  0
+
+//
+// Under valgrind all threads are serialized (cooperative scheduling).
+// Use a smaller target so the test completes in reasonable time.
+// Detects valgrind via MULLE_TEST_VALGRIND env var, or automatically
+// on Linux by checking /proc/self/maps for valgrind preloads.
+//
+static int   is_slow_environment( void)
+{
+   if( getenv( "MULLE_TEST_VALGRIND"))
+      return( 1);
+#ifdef __linux__
+   {
+      FILE   *f;
+      char   line[ 256];
+
+      f = fopen( "/proc/self/maps", "r");
+      if( f)
+      {
+         while( fgets( line, sizeof( line), f))
+            if( strstr( line, "vgpreload"))
+            {
+               fclose( f);
+               return( 1);
+            }
+         fclose( f);
+      }
+   }
+#endif
+   return( 0);
+}
+
+
+static unsigned int   target_size( void)
+{
+   if( is_slow_environment())
+      return( 256);
+   return( 1024 * 1024);
+}
+
+
+static void  insert_something( struct mulle_concurrent_pointerarray *map)
+{
+   void   *value;
+
+   do
+      value = (void *) (intptr_t) (rand() << 1); // no uneven pointer values
+   while( ! value);
+
+   mulle_concurrent_pointerarray_add( map, value);
+}
+
+
+static void  lookup_something( struct mulle_concurrent_pointerarray *map)
+{
+   void           *value;
+   unsigned int   i;
+   unsigned int   n;
+
+   n = mulle_concurrent_pointerarray_get_count( map);
+   if( ! n)
+      return;
+
+   i     = rand() % n;
+   value = mulle_concurrent_pointerarray_get( map, i);
+   assert( value);
+   assert( ! ((uintptr_t) value & 0x1));
+}
+
+
+static void  enumerate_something( struct mulle_concurrent_pointerarray *map)
+{
+   struct mulle_concurrent_pointerarrayenumerator   rover;
+   void                                             *value;
+
+   rover = mulle_concurrent_pointerarray_enumerate( map);
+   while( value = mulle_concurrent_pointerarrayenumerator_next( &rover))
+   {
+   }
+   mulle_concurrent_pointerarrayenumerator_done( &rover);
+}
+
+
+//
+// run until the array reaches target_size()
+//
+static mulle_thread_rval_t   tester( void *arg)
+{
+   struct mulle_concurrent_pointerarray *map  = arg;
+   int   todo;
+
+   mulle_aba_register();
+
+   while( mulle_concurrent_pointerarray_get_size( map) < target_size())
+   {
+      todo = rand() % 1000;
+      if( todo == 1)   // 1 % chance of enumerate
+      {
+         enumerate_something( map);
+         continue;
+      }
+
+      if( todo < 200)    // 20 % chance of insert
+      {
+         insert_something( map);
+         continue;
+      }
+
+      lookup_something( map);
+
+      // Yield periodically so that under cooperative schedulers (valgrind)
+      // other threads get a chance to run.
+      if( (todo & 0x3F) == 0)
+         mulle_thread_yield();
+   }
+
+   mulle_aba_unregister();
+   mulle_thread_return();
+}
+
+
+
+static void  multi_threaded_test( unsigned int n_threads)
+{
+   struct mulle_concurrent_pointerarray   map;
+   mulle_thread_t                         threads[ 32];
+   unsigned int                           i;
+
+   assert( n_threads <= 32);
+
+   mulle_aba_init( &mulle_allocator_default);
+   mulle_allocator_set_aba( &mulle_allocator_default,
+                            mulle_aba_get_global(),
+                            _mulle_aba_free_owned_pointer);
+   mulle_aba_register();
+
+   mulle_concurrent_pointerarray_init( &map, 0, &mulle_allocator_default);
+
+   {
+      for( i = 0; i < n_threads; i++)
+      {
+         if( mulle_thread_create( tester, &map, &threads[ i]))
+         {
+            perror( "mulle_thread_create");
+            abort();
+         }
+      }
+
+      for( i = 0; i < n_threads; i++)
+         mulle_thread_join( threads[ i]);
+   }
+
+   mulle_concurrent_pointerarray_done( &map);
+
+   mulle_aba_unregister();
+   mulle_allocator_set_aba( &mulle_allocator_default, NULL, NULL);
+   mulle_aba_done();
+}
+
+
+static void  single_threaded_test( void)
+{
+   struct mulle_concurrent_pointerarray             map;
+   struct mulle_concurrent_pointerarrayenumerator   rover;
+   unsigned int                                     i;
+   void                                             *value;
+
+   mulle_aba_init( &mulle_allocator_default);
+   mulle_allocator_set_aba( &mulle_allocator_default,
+                            mulle_aba_get_global(),
+                            _mulle_aba_free_owned_pointer);
+   mulle_aba_register();
+
+   mulle_concurrent_pointerarray_init( &map, 0, &mulle_allocator_default);
+   {
+      for( i = 1; i <= 100; i++)
+      {
+         value = (void *) (uintptr_t) (i * 10);
+         _mulle_concurrent_pointerarray_add( &map, value);
+         assert( mulle_concurrent_pointerarray_get( &map, i - 1) == (void *) (intptr_t) (i * 10));
+      }
+
+      for( i = 1; i <= 100; i++)
+         assert( mulle_concurrent_pointerarray_get( &map, i - 1) == (void *) (intptr_t) (i * 10));
+
+      i = 1;
+      rover = mulle_concurrent_pointerarray_enumerate( &map);
+      while( value = mulle_concurrent_pointerarrayenumerator_next( &rover))
+      {
+         assert( value == (void *) (intptr_t) (i * 10));
+         ++i;
+         assert( i <= 101);
+      }
+      mulle_concurrent_pointerarrayenumerator_done( &rover);
+      assert( i == 101);
+   }
+   mulle_concurrent_pointerarray_done( &map);
+
+   mulle_aba_unregister();
+   mulle_allocator_set_aba( &mulle_allocator_default, NULL, NULL);
+   mulle_aba_done();
+}
+
+
+int   main(int argc, const char * argv[])
+{
+
+   do
+   {
+      single_threaded_test();
+
+      multi_threaded_test( 1);
+
+      multi_threaded_test( 2);
+
+      // Under valgrind, 32 threads is prohibitively slow (cooperative
+      // single-core scheduling). 2 threads already exercises concurrency.
+      if( ! is_slow_environment())
+      {
+         multi_threaded_test( 32);
+      }
+   }
+   while( FOREVER);
+
+   return( 0);
+}

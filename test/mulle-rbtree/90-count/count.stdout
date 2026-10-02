@@ -1,0 +1,5 @@
+=== Test: count is caller-owned, the walk is O(n) ===
+after 100 adds: walk 100, storage 100 (expect both 100)
+after removing 40: walk 60, storage 60 (expect both 60)
+after adding 10: walk 70, storage 70 (expect both 70)
+PASSED

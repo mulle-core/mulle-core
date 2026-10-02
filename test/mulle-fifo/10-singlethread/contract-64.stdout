@@ -1,0 +1,6 @@
+write NULL: -2 (count 0)
+full count: 64
+write full: -1 (count 64)
+read empty: 0 (count 0)
+interleave count: 0
+PASS

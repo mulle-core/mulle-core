@@ -1,0 +1,8 @@
+location_max+1==not_found : 1
+is_valid({nf,1})          : 0
+make(nf,0) allowed        : 1
+highest valid range       : is_valid=1
+  first==not_found        : 0
+  last==not_found         : 0
+empty range               : first==not_found=1 last==not_found=1
+end lands on sentinel     : is_valid=1 last==not_found=0

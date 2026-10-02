@@ -1,0 +1,10 @@
+Error in Write to memory stream: FILE * NULL; mulle_buffer: valid
+Write to full buffer (first write): Passed (result=65, errno=0)
+Write to full buffer (second write): Passed (result=-1, errno=0)
+Error in Write-only empty file: FILE * NULL; mulle_buffer: valid
+Error in Multiple writes: FILE * NULL; mulle_buffer: valid
+Error in Multiple writes: FILE * NULL; mulle_buffer: valid
+Error in Multiple writes: FILE * NULL; mulle_buffer: valid
+Error in Multiple writes: FILE * NULL; mulle_buffer: valid
+Error in Multiple writes: FILE * NULL; mulle_buffer: valid
+Error in NULL pointers: fputc: result=-2, errno=0; mulle_buffer_fputc: result=-1, errno=0

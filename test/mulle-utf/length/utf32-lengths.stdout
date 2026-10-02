@@ -1,0 +1,11 @@
+PASS: ascii "hi"
+PASS: U+00E9
+PASS: U+20AC
+PASS: U+FFFD
+PASS: U+FFFE
+PASS: U+FFFF
+PASS: U+10000
+PASS: U+1F600
+PASS: U+10FFFD
+
+All tests passed!

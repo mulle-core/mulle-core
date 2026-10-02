@@ -1,0 +1,50 @@
+#include <mulle-concurrent/mulle-concurrent.h>
+
+#include <assert.h>
+#include <stdlib.h>
+#include <errno.h>
+
+
+static void   test( void)
+{
+   intptr_t                                    hash;
+   struct mulle_concurrent_hashmap             map;
+   struct mulle_concurrent_hashmapenumerator   rover;
+   void                                        *value;
+
+   mulle_concurrent_hashmap_init( &map, 0, NULL);
+   {
+      mulle_concurrent_hashmap_insert( &map, 100000, (void *) 0x1848);
+      value =  mulle_concurrent_hashmap_lookup( &map, 100000);
+      printf( "0x%tx\n", (intptr_t) value);
+
+      value =  mulle_concurrent_hashmap_lookup( &map, 123456);
+      printf( "%s\n", value == (void *) 0x1848 ? "unexpected" : "expected");
+
+
+      rover = mulle_concurrent_hashmap_enumerate( &map);
+      while( mulle_concurrent_hashmapenumerator_next( &rover, &hash, &value) == 1)
+      {
+         printf( "%lu 0x%tx\n", (unsigned long) hash, (intptr_t) value);
+      }
+      mulle_concurrent_hashmapenumerator_done( &rover);
+   }
+   mulle_concurrent_hashmap_done( &map);
+}
+
+
+int   main( void)
+{
+
+   mulle_aba_init( NULL);
+   mulle_aba_register();
+
+   test();
+
+   mulle_aba_unregister();
+   mulle_aba_done();
+
+
+   return( 0);
+}
+

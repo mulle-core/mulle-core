@@ -49,7 +49,7 @@ the two "pointermultififo" headers. All signatures below are copied verbatim.
 ### 3.1. `mulle-multififo.h`
 
 Version accessors. The encoded version is
-`MULLE__MULTIFIFO_VERSION` `((1UL << 20) | (0 << 8) | 5)` (i.e. 1.0.5).
+`MULLE__MULTIFIFO_VERSION` `((1UL << 20) | (0 << 8) | 6)` (i.e. 1.0.6).
 
 ```c
 static inline unsigned int   mulle_multififo_get_version_major( void)

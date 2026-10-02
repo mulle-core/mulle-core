@@ -1,0 +1,14 @@
+32bit:  (0): 0x0
+64bit:  (0): 0x0
+32bit: A (1): 0x41
+64bit: A (1): 0x41
+32bit: AB (2): 0x2141
+64bit: AB (2): 0x2141
+32bit: ABC (3): 0x10e141
+64bit: ABC (3): 0x10e141
+32bit: ABCD (4): 0x890e141
+64bit: ABCD (4): 0x890e141
+64bit: ABCDE (5): 0x45890e141
+64bit: ABCDEF (6): 0x2345890e141
+64bit: ABCDEFG (7): 0x11e345890e141
+64bit: ABCDEFGH (8): 0x911e345890e141

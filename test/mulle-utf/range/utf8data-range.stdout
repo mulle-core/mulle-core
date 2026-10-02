@@ -1,0 +1,11 @@
+PASS: ASCII range(1,2) of "abcde"
+PASS: range(1,1) of "aéb" is the é
+PASS: range(0,2) of "aéb" is "aé"
+PASS: range(2,1) of "aéb" is "b"
+PASS: range(2,2) of "café" is "fé"
+PASS: range(1,1) of "日本語" is "本"
+PASS: range(0,3) of "日本語" is all 9 bytes
+PASS: range(1,1) of "a😀b" is the emoji
+PASS: range(2,1) of "a😀b" is "b"
+
+All tests passed!

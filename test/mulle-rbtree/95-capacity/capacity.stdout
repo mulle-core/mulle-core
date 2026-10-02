@@ -1,0 +1,5 @@
+=== Test: node pool bucket size through mulle_rbtree_config.capacity ===
+capacity    1: bucket    4, 100 inserts, 100 enumerated in order
+capacity    0: bucket   32, 100 inserts, 100 enumerated in order
+capacity  512: bucket  512, 100 inserts, 100 enumerated in order
+PASSED

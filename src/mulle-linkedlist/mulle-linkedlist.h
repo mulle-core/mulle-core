@@ -40,7 +40,7 @@
 #include <string.h>
 #include <assert.h>
 
-#define MULLE__LINKEDLIST_VERSION  ((0UL << 20) | (1 << 8) | 0)
+#define MULLE__LINKEDLIST_VERSION  ((0UL << 20) | (1 << 8) | 1)
 
 
 static inline unsigned int   mulle_linkedlist_get_version_major( void)

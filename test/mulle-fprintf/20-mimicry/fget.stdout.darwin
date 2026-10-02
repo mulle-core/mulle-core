@@ -1,0 +1,10 @@
+Error in Zero-length memory: FILE * NULL; mulle_buffer: valid
+Normal case: Passed (char=72, errno=0)
+Normal case: Passed (char=101, errno=0)
+Normal case: Passed (char=108, errno=0)
+Normal case: Passed (char=108, errno=0)
+Normal case: Passed (char=111, errno=0)
+Normal case: Passed (char=-1, errno=0)
+EOF case: Passed (char=-1, errno=0)
+Error in Read-only empty file: FILE * NULL; mulle_buffer: valid
+Error in NULL pointers: FILE *: char=-2, errno=0; mulle_buffer: char=-1, errno=0

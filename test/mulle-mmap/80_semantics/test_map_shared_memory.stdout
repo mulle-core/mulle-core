@@ -1,0 +1,26 @@
+=== mulle_mmap_map_shared_memory: the preferred address ===
+
+1. no preferred address
+  answer: an address of the system's choosing
+
+2. an aligned address that is free
+  answer: the requested address
+  the first view sees the write: yes
+
+3. that address, one byte off
+  answer: NULL
+
+4. a page aligned address inside a free slot
+  answer: the requested address
+
+5. an address that is already mapped
+  answer: NULL
+  the mapping that was there: intact
+
+6. a size larger than the region
+  answer: the requested address
+
+7. a size smaller than the region
+  answer: the requested address
+
+=== Test Complete ===

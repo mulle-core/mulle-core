@@ -1,0 +1,33 @@
+Round-trip test: mulle_dtostr -> strtod
+=====================================
+
+0.0                 : 0 ✓ (both zero, same sign)
+-0.0                : -0 ✓ (both zero, same sign)
+1.0                 : 1 ✓ (exact bit match)
+-1.0                : -1 ✓ (exact bit match)
+2.0                 : 2 ✓ (exact bit match)
+10.0                : 10 ✓ (exact bit match)
+12.2                : 12.2 ✓ (exact bit match)
+0.1                 : 0.1 ✓ (exact bit match)
+0.01                : 0.01 ✓ (exact bit match)
+8.199999999999998   : 8.199999999999998 ✓ (exact bit match)
+8.199999999999999   : 8.2 ✓ (exact bit match)
+8.2                 : 8.2 ✓ (exact bit match)
+8.200000000000001   : 8.200000000000001 ✓ (exact bit match)
+pi                  : 3.141592653589793 ✓ (exact bit match)
+e                   : 2.718281828459045 ✓ (exact bit match)
+Planck constant     : 6.62607015e-34 ✓ (exact bit match)
+1.23456789e20       : 1.23456789e+20 ✓ (exact bit match)
+9.87654321e-15      : 9.87654321e-15 ✓ (exact bit match)
+DBL_MAX             : 1.7976931348623157e+308 ✓ (exact bit match)
+DBL_MIN             : 2.2250738585072014e-308 ✓ (exact bit match)
+-DBL_MAX            : -1.7976931348623157e+308 ✓ (exact bit match)
++INFINITY           : inf ✓ (both inf, same sign)
+-INFINITY           : -inf ✓ (both inf, same sign)
+NAN                 : nan ✓ (both NaN)
+-NAN                : -nan ✓ (both NaN)
+8.589973428413488e+09: 8.589973428413488e+09 ✓ (exact bit match)
+1.2999999999999998  : 1.2999999999999998 ✓ (exact bit match)
+9007199254740994.0  : 9.007199254740994e+15 ✓ (exact bit match)
+
+All round-trip tests passed! ✓

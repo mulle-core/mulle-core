@@ -1,0 +1,48 @@
+ok   init: returns 0
+ok   init: is idempotent
+ok   find_free_port: got one
+ok   listen: returns a socket
+ok   listen: port 0 got a port
+ok   connect: to the listener
+ok   accept: returns the connection
+ok   write_all: a small request
+ok   read: the request arrives
+ok   write_all: the answer
+ok   read: the answer comes back
+ok   write_all: 4K of binary
+ok   read: all 4K came back, byte for byte
+ok   shutdown: returns 0
+ok   shutdown: the peer sees EOF
+ok   write after shutdown: fails
+ok   write after shutdown: EPIPE, not a signal
+     write after shutdown: error 32
+ok   close: the connection
+ok   close: the client
+ok   close: the listener
+ok   close: MULLE_SOCKET_INVALID is allowed
+ok   refused: a free port to aim at
+ok   refused: connect fails
+ok   refused: named as ECONNREFUSED
+     refused: error 111
+ok   refused: close is safe on failure
+ok   rebind: first listen
+ok   rebind: a client arrives
+ok   rebind: the same port comes back
+ok   timeout: a listener to talk to
+ok   timeout: a connection
+ok   read timeout: setting it returns 0
+ok   read timeout: the read gives up
+ok   read timeout: named ETIMEDOUT, as on every platform
+ok   read timeout: and it waited for it
+ok   write timeout: setting it returns 0
+ok   write timeout: a chunk to send
+ok   write timeout: the write gives up
+ok   write timeout: named ETIMEDOUT, as on every platform
+ok   write timeout: and it did not hang
+ok   accept timeout: a fresh listener
+ok   accept timeout: setting it returns 0
+ok   accept timeout: the accept gives up
+ok   accept timeout: named ETIMEDOUT
+ok   accept timeout: and it waited for it
+
+44 checks, 0 failed

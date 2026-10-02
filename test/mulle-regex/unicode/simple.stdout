@@ -1,0 +1,1 @@
+aabbccdd | (b+)(c+) -> {\1,\2 // \1 \2}: aa{bb,cc // bb cc}dd

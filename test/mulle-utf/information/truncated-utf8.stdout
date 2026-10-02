@@ -1,0 +1,31 @@
+PASS: 2-byte truncated (only start)
+PASS: 2-byte truncated at end of buffer
+PASS: Another 2-byte truncated at end of buffer
+PASS: 3-byte truncated (only start)
+PASS: 3-byte truncated (start + 1 continuation)
+PASS: 3-byte truncated at end (only start)
+PASS: 3-byte truncated at end (start + 1)
+PASS: 4-byte truncated (only start)
+PASS: 4-byte truncated (start + 1 continuation)
+PASS: 4-byte truncated (start + 2 continuations)
+PASS: 4-byte truncated at end (start + 2)
+PASS: 2-byte with ASCII as continuation
+PASS: 2-byte with start byte as continuation
+PASS: 2-byte with 0xFF as continuation
+PASS: 3-byte with ASCII as 1st continuation
+PASS: 3-byte with ASCII as 2nd continuation
+PASS: 3-byte with 0x00 as 1st continuation
+PASS: 3-byte with 0x7F as 2nd continuation
+PASS: 3-byte with start byte as 1st continuation
+PASS: 3-byte with both continuations invalid
+PASS: 4-byte with ASCII as 1st continuation
+PASS: 4-byte with ASCII as 2nd continuation
+PASS: 4-byte with ASCII as 3rd continuation
+PASS: 4-byte with start bytes as continuations
+PASS: 4-byte with all continuations invalid
+PASS: 4-byte with start byte as 1st continuation
+PASS: 2-byte invalid continuation in middle
+PASS: 3-byte invalid 1st continuation in middle
+PASS: 3-byte invalid 2nd continuation in middle
+
+All tests passed!

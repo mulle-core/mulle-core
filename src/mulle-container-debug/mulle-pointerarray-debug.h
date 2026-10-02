@@ -44,7 +44,7 @@ static inline void
                                                 mulle_container_item_printer_t *callback,
                                                 void *userinfo)
 {
-   mulle__pointerarray_describe_buffer_callback( (struct mulle__pointerarray *) array,
+   mulle__pointerarray_describe_buffer_callback( &array->base,
                                                  buffer,
                                                  callback,
                                                  userinfo);
@@ -56,7 +56,7 @@ static inline void
    mulle_pointerarray_describe_buffer( struct mulle_pointerarray *array, 
                                        struct mulle_buffer *buffer)
 {
-   mulle__pointerarray_describe_buffer( (struct mulle__pointerarray *) array,
+   mulle__pointerarray_describe_buffer( &array->base,
                                          buffer);
 }   
 
@@ -64,7 +64,7 @@ static inline void
 static inline  
 char   *mulle_pointerarray_describe( struct mulle_pointerarray *array)
 {
-   return( mulle__pointerarray_describe( (struct mulle__pointerarray *) array));
+   return( mulle__pointerarray_describe( &array->base));
 }   
 
 

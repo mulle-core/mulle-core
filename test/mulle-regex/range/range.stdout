@@ -1,0 +1,5 @@
+group[0] = 0,2 valid
+group[1] = 0,1 valid
+group[2] = invalid
+group[3] = 1,1 valid
+group[99] = invalid

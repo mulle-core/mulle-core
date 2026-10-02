@@ -48,3 +48,23 @@ The advantages of using **mulle-core** over the individual projects are:
 * compiles faster than two dozen individual projects
 * you only need to link against one library file
 * `#include` statements may remain unchanged or simplify to `#include <mulle-core/mulle-core.h>`
+
+## Tests
+
+The amalgamation vendors the behavioral tests of its constituents under
+`test/<constituent>/...` so a plain CMake checkout can exercise the combined
+library without `mulle-sde`. Each `*.c` file becomes one CTest test that links
+against the amalgamated `mulle-core` target:
+
+``` sh
+cmake -S . -B build -DBUILD_TESTING=ON
+cmake --build build
+ctest --test-dir build --output-on-failure
+```
+
+Testing is opt-in (`-DBUILD_TESTING=ON`): building the amalgamation as a
+mulle-sde dependency must not build or run the constituent tests. The vendored
+tests are snapshots: the canonical source is the owning constituent project, and
+the tree is refreshed with `test/amalgamate-tests.sh`. See
+[test/README.md](test/README.md) for the file conventions, skip markers and
+support files.

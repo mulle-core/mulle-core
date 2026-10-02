@@ -33,6 +33,7 @@
 //  POSSIBILITY OF SUCH DAMAGE.
 //
 #include "mulle-concurrent-hashtable.h"
+#include "mulle-concurrent-math.h"
 
 //
 // Define MULLE_CONCURRENT_HASHTABLE_RACE_YIELD to widen the two-word race
@@ -107,7 +108,7 @@ static inline uintptr_t
 
 #pragma mark - storage
 
-// n must be a power of 2
+// n is rounded up to a power of two (at least 4)
 MULLE_C_NONNULL_RETURN
 static struct _mulle_concurrent_hashtablestorage *
    _mulle_concurrent_hashtablestorage_alloc( size_t n,
@@ -115,15 +116,22 @@ static struct _mulle_concurrent_hashtablestorage *
 {
    struct _mulle_concurrent_hashtablestorage   *p;
 
+   if( n > ((size_t) -1 >> 1) + 1)
+      _mulle_allocator_abort( allocator, NULL, (size_t) -1);
+
+   n = _mulle_concurrent_pow2roundup( n);
    if( n < 4)
       n = 4;
-   assert( (~(n - 1) & n) == n);
+   assert( _mulle_concurrent_is_pow2( n));
 
    // calloc gives us hash == 0 and value == NULL, which is the virgin state.
    // the allocator either returns valid memory or aborts
    p = _mulle_allocator_calloc( allocator, 1,
-                                sizeof( struct _mulle_concurrent_hashtablepair) * (n - 1) +
-                                sizeof( struct _mulle_concurrent_hashtablestorage));
+                                mulle_allocator_size_add( allocator,
+                                   mulle_allocator_size_multiply( allocator,
+                                                                  n - 1,
+                                                                  sizeof( struct _mulle_concurrent_hashtablepair)),
+                                   sizeof( struct _mulle_concurrent_hashtablestorage)));
    p->mask = n - 1;
    return( p);
 }
@@ -142,13 +150,14 @@ static size_t
 
 
 static size_t
-   _mulle_concurrent_hashtablestorage_get_migration_size( struct _mulle_concurrent_hashtablestorage *p)
+   _mulle_concurrent_hashtablestorage_get_migration_size( struct _mulle_concurrent_hashtablestorage *p,
+                                                          struct mulle_allocator *allocator)
 {
    size_t   size;
 
    size = (size_t) p->mask + 1;
    if( size > (size_t) -1 / 2)
-      abort();
+      _mulle_allocator_abort( allocator, NULL, (size_t) -1);
    return( size * 2);
 }
 
@@ -665,8 +674,12 @@ static inline void
    _mulle_concurrent_hashtable_migrate_storage( struct mulle_concurrent_hashtable *map,
                                                struct _mulle_concurrent_hashtablestorage *p)
 {
+   struct mulle_allocator   *allocator;
+
+   allocator = _mulle_atomic_pointer_read( &map->allocator);
+
    _mulle_concurrent_hashtable_migrate_storage_with_size( map, p,
-      _mulle_concurrent_hashtablestorage_get_migration_size( p));
+      _mulle_concurrent_hashtablestorage_get_migration_size( p, allocator));
 }
 
 

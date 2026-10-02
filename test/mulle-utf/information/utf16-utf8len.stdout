@@ -1,0 +1,7 @@
+PASS: ascii "hi"
+PASS: latin1 U+00E9
+PASS: bmp U+20AC
+PASS: astral U+1F600
+PASS: "hi" plus U+1F600
+
+All tests passed!

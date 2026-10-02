@@ -140,8 +140,8 @@ done_parse:
    else
       mulle_buffer_init( buffer, length, NULL);
 
-   buffer->_type |= bits;
-   buffer->_type |= MULLE_BUFFER_IS_INFLEXIBLE;
+   buffer->base._type |= bits;
+   buffer->base._type |= MULLE_BUFFER_IS_INFLEXIBLE;
 
    //
    // fmemopen has retarded semantics IMO
@@ -152,18 +152,18 @@ done_parse:
    //
    if( append)
    {
-      while( buffer->_curr < buffer->_sentinel)
+      while( buffer->base._curr < buffer->base._sentinel)
       {
-         if( *buffer->_curr == '\0')
+         if( *buffer->base._curr == '\0')
             break;
-         ++buffer->_curr;
+         ++buffer->base._curr;
       }
    }
    else
       if( truncate && (bits != MULLE_BUFFER_IS_READONLY))
       {
          if( ! mulle_buffer_is_full( buffer))
-            *buffer->_curr = '\0';
+            *buffer->base._curr = '\0';
       }
 
    return( buffer);
@@ -206,7 +206,7 @@ size_t    mulle_buffer_fread( void *dst, size_t size, size_t nmemb, void *buffer
    bytes_available = mulle_buffer_remaining_length( buffer);
    bytes_to_copy   = (bytes_to_read > bytes_available) ? bytes_available : bytes_to_read;
 
-   _mulle__buffer_next_bytes( (struct mulle__buffer *) buffer,
+   _mulle__buffer_next_bytes( &((struct mulle_buffer *) buffer)->base,
                                dst,
                                bytes_to_copy);
 
@@ -230,7 +230,7 @@ long    mulle_buffer_ftell( void *buffer)
    if( ! buffer)
       return( 0);
 
-   return( _mulle__buffer_get_seek( (struct mulle__buffer *) buffer));
+   return( _mulle__buffer_get_seek( &((struct mulle_buffer *) buffer)->base));
 }
 
 
@@ -245,13 +245,13 @@ int    mulle_buffer_fseek( void *buffer, long seek, int mode)
    }
 
    // compatibility ...
-   if( mode == SEEK_END && (((struct mulle__buffer *) buffer)->_type & MULLE_BUFFER_IS_WRITEONLY))
+   if( mode == SEEK_END && (((struct mulle_buffer *) buffer)->base._type & MULLE_BUFFER_IS_WRITEONLY))
    {
       errno = ENOSPC;
       return( -1);
    }
 
-   rval = _mulle__buffer_set_seek( (struct mulle__buffer *) buffer, seek, mode);
+   rval = _mulle__buffer_set_seek( &((struct mulle_buffer *) buffer)->base, seek, mode);
    if( rval)
       errno = EINVAL;
    return( rval);
@@ -293,7 +293,7 @@ int   mulle_buffer_fputc( int c, void *buffer)
       return( EOF);
    }
 
-   _mulle__buffer_add_byte( (struct mulle__buffer *) buffer,
+   _mulle__buffer_add_byte( &((struct mulle_buffer *) buffer)->base,
                             (unsigned char) c,
                             ((struct mulle_buffer *) buffer)->_allocator);
 
@@ -348,11 +348,11 @@ int   mulle_buffer_fflush( void *buffer)
    // the buffer if there is space.  The caller should ensure that an extra
    // byte is available in the buffer (and that size counts that byte) to allow
    // for this.
-   if( ((struct mulle__buffer *) buffer)->_type & MULLE_BUFFER_IS_TEXT)
-      _mulle__buffer_zero_last_byte_no_truncate( (struct mulle__buffer *) buffer);
+   if( ((struct mulle_buffer *) buffer)->base._type & MULLE_BUFFER_IS_TEXT)
+      _mulle__buffer_zero_last_byte_no_truncate( &((struct mulle_buffer *) buffer)->base);
 
-   if( _mulle__buffer_is_flushable( (struct mulle__buffer *) buffer))
-      _mulle__buffer_flush( (struct mulle__buffer *) buffer);
+   if( _mulle__buffer_is_flushable( &((struct mulle_buffer *) buffer)->base))
+      _mulle__buffer_flush( &((struct mulle_buffer *) buffer)->base);
    return( 0);
 }
 
@@ -435,13 +435,13 @@ off_t   mulle_buffer_stdio_lseek( void *buffer, off_t offset, int mode)
       return( -1);
    }
 
-   rval = _mulle__buffer_set_seek( (struct mulle__buffer *) buffer, seek, mode);
+   rval = _mulle__buffer_set_seek( &((struct mulle_buffer *) buffer)->base, seek, mode);
    if( rval)
    {
       errno = EINVAL;
       return( -1);
    }
-   return( (off_t) mulle_buffer_ftell( (struct mulle__buffer *) buffer));
+   return( (off_t) mulle_buffer_ftell( &((struct mulle_buffer *) buffer)->base));
 }
 
 

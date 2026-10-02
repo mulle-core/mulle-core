@@ -1,0 +1,7 @@
+timespec_sub 0.500000000
+timespec_sub_neg -1.000000000
+timespec_compare -1
+timespec_compare2 1
+timespec_compare3 0
+timespec_add_carry 3.000000000
+

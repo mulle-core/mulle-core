@@ -1,0 +1,34 @@
+RFC 3986 pct-encoded = "%" HEXDIG HEXDIG
+the triplet check looks at the slice start only,
+the encoding check looks at every '%' in the slice
+
+a '%' at the slice start, followed by two hex digits:
+  triplet("%20") = 1  (expected 1)  PASS
+  triplet("%2F") = 1  (expected 1)  PASS
+  triplet("%2f") = 1  (expected 1)  PASS
+  triplet("%00") = 1  (expected 1)  PASS
+  triplet("%FF") = 1  (expected 1)  PASS
+
+not a well-formed triplet:
+  triplet("%2") = 0  (expected 0)  PASS
+  triplet("%zz") = 0  (expected 0)  PASS
+  triplet("%2G") = 0  (expected 0)  PASS
+  triplet("x20") = 0  (expected 0)  PASS
+  triplet("") = 0  (expected 0)  PASS
+  triplet("%") = 0  (expected 0)  PASS
+
+whole slice: every '%' must open a well-formed triplet:
+  encoding("a%20b") = 1  (expected 1)  PASS
+  encoding("%00") = 1  (expected 1)  PASS
+  encoding("%20%41") = 1  (expected 1)  PASS
+  encoding("") = 1  (expected 1)  PASS
+  encoding("abc") = 1  (expected 1)  PASS
+
+malformed percent-encoding:
+  encoding("a%b") = 0  (expected 0)  PASS
+  encoding("%2") = 0  (expected 0)  PASS
+  encoding("%zz") = 0  (expected 0)  PASS
+  encoding("a%2") = 0  (expected 0)  PASS
+  encoding("%%20") = 0  (expected 0)  PASS
+
+PASSED

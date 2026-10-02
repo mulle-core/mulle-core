@@ -1,0 +1,68 @@
+Testing mulle_rbtree_option_use_extra functionality
+==================================================
+
+Inserting nodes:
+  Inserting node with key 10, extra data: Node1_extra
+  Inserting node with key 20, extra data: Node2_extra
+Comparing: 20 vs 10 (using extra area)
+  Inserting node with key 30, extra data: Node3_extra
+Comparing: 30 vs 10 (using extra area)
+Comparing: 30 vs 20 (using extra area)
+  Inserting node with key 40, extra data: Node4_extra
+Comparing: 40 vs 20 (using extra area)
+Comparing: 40 vs 30 (using extra area)
+  Inserting node with key 50, extra data: Node5_extra
+Comparing: 50 vs 20 (using extra area)
+Comparing: 50 vs 30 (using extra area)
+Comparing: 50 vs 40 (using extra area)
+
+Tree count: 5
+
+Testing find operations:
+Comparing: 10 vs 20 (using extra area)
+Comparing: 10 vs 10 (using extra area)
+  Found node with key 10, extra data: Node1_extra
+Comparing: 20 vs 20 (using extra area)
+  Found node with key 20, extra data: Node2_extra
+Comparing: 30 vs 20 (using extra area)
+Comparing: 30 vs 40 (using extra area)
+Comparing: 30 vs 30 (using extra area)
+  Found node with key 30, extra data: Node3_extra
+Comparing: 40 vs 20 (using extra area)
+Comparing: 40 vs 40 (using extra area)
+  Found node with key 40, extra data: Node4_extra
+Comparing: 50 vs 20 (using extra area)
+Comparing: 50 vs 40 (using extra area)
+Comparing: 50 vs 50 (using extra area)
+  Found node with key 50, extra data: Node5_extra
+Comparing: 999 vs 20 (using extra area)
+Comparing: 999 vs 40 (using extra area)
+Comparing: 999 vs 50 (using extra area)
+  Correctly did not find non-existent node with key 999
+
+Enumerating tree in order:
+  Node 1: key=10, extra_data=Node1_extra
+  Node 2: key=20, extra_data=Node2_extra
+  Node 3: key=30, extra_data=Node3_extra
+  Node 4: key=40, extra_data=Node4_extra
+  Node 5: key=50, extra_data=Node5_extra
+
+Enumerating tree in reverse order:
+  Node 1: key=50, extra_data=Node5_extra
+  Node 2: key=40, extra_data=Node4_extra
+  Node 3: key=30, extra_data=Node3_extra
+  Node 4: key=20, extra_data=Node2_extra
+  Node 5: key=10, extra_data=Node1_extra
+
+Testing removal:
+Comparing: 30 vs 20 (using extra area)
+Comparing: 30 vs 40 (using extra area)
+Comparing: 30 vs 30 (using extra area)
+  Successfully removed node with key 30
+Comparing: 30 vs 20 (using extra area)
+Comparing: 30 vs 40 (using extra area)
+  Confirmed removal: node with key 30 not found
+
+Final tree count: 4
+
+Test completed successfully!

@@ -43,10 +43,11 @@
 
 static inline size_t   mulle_mmap_pagealign_offset( size_t offset)
 {
-    size_t page_size;
+    size_t granularity;
     
-    page_size = mulle_mmap_get_system_pagesize();
-    return( (offset / page_size) * page_size);
+    // an offset, so the allocation granularity -- not the page size
+    granularity = mulle_mmap_get_allocation_granularity();
+    return( (offset / granularity) * granularity);
 }
 
 static inline void   *_mulle_mmap_get_mapping_start( struct mulle_mmap *p)
@@ -185,23 +186,17 @@ void   *mulle_mmap_map_shared_memory( mulle_mmap_file_t handle,
                                       size_t size,
                                       void *preferred_addr)
 {
-   void   *p;
-
    if( handle == MULLE_MMAP_INVALID_HANDLE || size == 0)
       return( NULL);
 
-   // Try at preferred address first; fall back to OS-chosen address
-   if( preferred_addr)
-   {
-      p = MapViewOfFileEx( handle, FILE_MAP_ALL_ACCESS, 0, 0, size, preferred_addr);
-      if( p)
-      {
-         return( p);
-      }
-      /* MapViewOfFileEx at preferred address failed, fall back */
-   }
-
-   return( MapViewOfFile( handle, FILE_MAP_ALL_ACCESS, 0, 0, size));
+   //  MapViewOfFileEx takes the address and refuses it when it cannot be used
+   //  (misaligned, or already occupied), discarding nothing either way. It also
+   //  takes NULL to mean "you choose", so it covers both requests and there is
+   //  no second attempt: an address that was asked for and not granted is a
+   //  failure here, because the pointers in the region are only valid there.
+   //
+   return( MapViewOfFileEx( handle, FILE_MAP_ALL_ACCESS, 0, 0, size,
+                            preferred_addr));
 }
 
 
@@ -246,7 +241,34 @@ static inline DWORD   mulle_mmap_int64_low( int64_t n)
 }
 
 // Platform-specific functions with standard names
+//
+//  Windows has two units here and only one of them is a page:
+//
+//    dwPageSize                the unit of commit and protection, and what a
+//                              mapping *size* is rounded to -- 4096
+//    dwAllocationGranularity    the unit of reserved address space, and the
+//                              alignment MapViewOfFile wants for its file
+//                              offset and (the Ex form) its desired base
+//                              address -- 65536
+//
+//  A size request escalates to the page: CreateFileMapping( 4096) is mapped as
+//  a 4096 byte region and reports back as one. The granularity belongs to
+//  offsets, which is what mulle_mmap_pagealign_offset() is about, and to a
+//  caller that picks a mapping address by hand -- see
+//  mulle_mmap_map_shared_memory().
+//
+//  Answering both with the granularity, as this once did, made every region
+//  64 KiB whatever was asked for.
+//
 size_t   mulle_mmap_get_system_pagesize( void)
+{
+   SYSTEM_INFO SystemInfo;
+   GetSystemInfo(&SystemInfo);
+   return( SystemInfo.dwPageSize);
+}
+
+
+size_t   mulle_mmap_get_allocation_granularity( void)
 {
    SYSTEM_INFO SystemInfo;
    GetSystemInfo(&SystemInfo);

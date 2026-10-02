@@ -1,0 +1,33 @@
+=== Test: duplicates ===
+no-dup: count=1 (expect 1)
+dup: count=4 (expect 4)
+dup walk: alpha alpha alpha bravo
+dup after remove: count=3 (expect 3)
+PASSED
+
+=== Test: walk_dirty under deletes ===
+dirty calls after 50 inserts: 365
+dirty calls after 25 deletes: 119
+remaining count: 25 (expect 25)
+PASSED
+
+=== Test: marker ===
+marked nodes after inserts: 8 (of 10)
+marked nodes after removes: 4
+count after removes: 8 (expect 8)
+PASSED
+
+=== Test: extra + release callback ===
+found key=30 data=300
+release_count after remove: 1 (expect 1)
+remove missing: rval=2 (expect ENOENT=2)
+release_count after done: 5 (expect 5)
+PASSED
+
+=== Test: remove missing key (Bug 1 regression) ===
+count before: 3 (expect 3)
+remove(zulu): rval=2 (expect ENOENT=2)
+count after: 3 (expect 3)
+PASSED
+
+All edge-case tests passed.

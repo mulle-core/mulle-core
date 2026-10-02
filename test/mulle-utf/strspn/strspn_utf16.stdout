@@ -1,0 +1,17 @@
+mulle_utf16_strspn( NULL, NULL) = 0
+mulle_utf16_strspn( "", NULL) = 0
+mulle_utf16_strspn( NULL, "") = 0
+mulle_utf16_strspn( "", "") = 0
+mulle_utf16_strspn( "", "") = 0
+mulle_utf16_strspn( NULL, "") = 0
+mulle_utf16_strspn( "abcd", "a") = 1
+mulle_utf16_strspn( "abcd", "b") = 0
+mulle_utf16_strspn( "abcd", "b") = 0
+mulle_utf16_strspn( "abcd", "b") = 0
+mulle_utf16_strspn( "abcd", "xyz") = 0
+mulle_utf16_strspn( "abcd", "xcz") = 0
+mulle_utf16_strspn( "abcd", "ab") = 2
+mulle_utf16_strspn( "abcd", "bc") = 0
+mulle_utf16_strspn( "abcd", "abc") = 3
+mulle_utf16_strspn( "abc", "b") = 0
+mulle_utf16_strspn( "abc", "abc") = 3

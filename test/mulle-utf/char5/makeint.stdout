@@ -1,0 +1,20 @@
+32bit:  (0): 0x0
+64bit:  (0): 0x0
+32bit: a (1): 0xd
+64bit: a (1): 0xd
+32bit: ab (2): 0x1cd
+64bit: ab (2): 0x1cd
+32bit: abc (3): 0x3dcd
+64bit: abc (3): 0x3dcd
+32bit: abcd (4): 0x83dcd
+64bit: abcd (4): 0x83dcd
+32bit: abcde (5): 0x1183dcd
+64bit: abcde (5): 0x1183dcd
+32bit: abcdea (6): 0x1b183dcd
+64bit: abcdea (6): 0x1b183dcd
+64bit: abcdeab (7): 0x39b183dcd
+64bit: abcdeabc (8): 0x7b9b183dcd
+64bit: abcdeabcd (9): 0x107b9b183dcd
+64bit: abcdeabcde (10): 0x2307b9b183dcd
+64bit: abcdeabcdea (11): 0x36307b9b183dcd
+64bit: abcdeabcdeab (12): 0x736307b9b183dcd

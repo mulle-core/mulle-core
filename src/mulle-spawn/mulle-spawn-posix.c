@@ -91,6 +91,56 @@ static void   mulle_spawn_millisleep( void)
 }
 
 
+/*
+ * Appends as much of `s` as fits below `end`, without terminating it: what is
+ * being built is a line, and the newline is put on at the end. `strerror` can
+ * return something longer than the buffer, so every append is bounded and the
+ * message stays recognisable rather than overrunning.
+ */
+static char   *mulle_spawn_child_append( char *p, char *end, const char *s)
+{
+   while( *s && p < end)
+      *p++ = *s++;
+   return( p);
+}
+
+
+/*
+ * What a child says for itself when it cannot become the program it was asked
+ * to be. Written without stdio on purpose: after `fork` the stdio locks may be
+ * held by a thread that does not exist in this process, so `fprintf` can hang
+ * here instead of reaching the `_exit( 127)` behind it -- the same reason not
+ * to allocate. A local buffer and `write` have no lock to hang on.
+ *
+ * fd 2 and not the `stderr` stream, because fd 2 is what a child is handed:
+ * the stream can have been replaced, and `mulle_spawn_run` promises its caller
+ * that stderr is inherited unchanged. The parent learns the errno over its own
+ * pipe either way, so this line is for whoever reads the output.
+ */
+static void   mulle_spawn_child_explains( const char *what,
+                                          const char *subject,
+                                          int error)
+{
+   char        buffer[ 512];
+   char        *p;
+   char        *end;
+   ssize_t     written;
+
+   end = &buffer[ sizeof( buffer) - 1];
+
+   p = mulle_spawn_child_append( buffer, end, "mulle-spawn: ");
+   p = mulle_spawn_child_append( p, end, what);
+   p = mulle_spawn_child_append( p, end, " \"");
+   p = mulle_spawn_child_append( p, end, subject ? subject : "");
+   p = mulle_spawn_child_append( p, end, "\": ");
+   p = mulle_spawn_child_append( p, end, strerror( error));
+   *p++ = '\n';
+
+   written = write( 2, buffer, (size_t) (p - buffer));
+   (void) written;
+}
+
+
 int   mulle_spawn_run( char * const *argv,
                        mulle_relativetime_t timeout,
                        struct mulle_spawn_result *p)
@@ -202,8 +252,7 @@ int   mulle_spawn_run( char * const *argv,
       }
 
       /* and for anyone reading the output by hand, say it out loud */
-      fprintf( stderr, "mulle-spawn: cannot run \"%s\": %s\n",
-               argv[ 0], strerror( spawn_errno));
+      mulle_spawn_child_explains( "cannot run", argv[ 0], spawn_errno);
       _exit( 127);
    }
 
@@ -716,16 +765,16 @@ int   mulle_spawn_open_with_options( struct mulle_spawn_handle *h,
       if( options->directory && chdir( options->directory))
       {
          spawn_errno = errno;
-         fprintf( stderr, "mulle-spawn: cannot change to \"%s\": %s\n",
-                  options->directory, strerror( spawn_errno));
+         mulle_spawn_child_explains( "cannot change to",
+                                     options->directory,
+                                     spawn_errno);
          goto child_cannot_run;
       }
 
       execvp( argv[ 0], argv);
 
       spawn_errno = errno;
-      fprintf( stderr, "mulle-spawn: cannot run \"%s\": %s\n",
-               argv[ 0], strerror( spawn_errno));
+      mulle_spawn_child_explains( "cannot run", argv[ 0], spawn_errno);
 
 child_cannot_run:
       if( execfds[ 1] >= 0)

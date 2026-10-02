@@ -1,0 +1,40 @@
+off-space: NO MATCH
+off-tab-is-t: "atb"
+space: "  "
+space-in-range: " x"
+escaped-tab: U+0009
+escaped-tab-is-not-t: NO MATCH
+escaped-range: U+0009,U+000A,U+000B,U+000C,U+000D
+escaped-bracket: "]]"
+alpha: "abc"
+alpha-umlaut: U+00E4,U+4E00
+alpha-plane1: U+1D400
+alpha-emoji: NO MATCH
+space-emoji: NO MATCH
+space-nbsp: U+00A0
+digit: "12"
+digit-arabic: U+0660
+never-space: "ab"
+alpha-and-literal: "a_-b"
+two-named: "1!?"
+ident: "a1_b"
+ident-umlaut: U+00E4,U+4E00
+word-superscript: U+00B2
+ident-superscript: NO MATCH
+xdigit: "aF9"
+plain-range: "12"
+not-a: "b"
+not-a-none: NO MATCH
+not-a-plus: "bc"
+not-a-plus-none: NO MATCH
+not-a-plus-later: "bc"
+not-ab-plus: "cd"
+not-range-plus: "xyz"
+not-range-none: NO MATCH
+not-hash-plus: "abc"
+not-a-named-class: NO MATCH
+atom-escape-fails: COMPILE FAILED
+perl-escape-fails: COMPILE FAILED
+unknown-class-fails: COMPILE FAILED
+unterminated-class-fails: COMPILE FAILED
+trailing-escape-fails: COMPILE FAILED

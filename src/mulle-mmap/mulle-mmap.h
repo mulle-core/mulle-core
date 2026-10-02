@@ -32,7 +32,7 @@
 #include <string.h>
 
 
-#define MULLE__MMAP_VERSION  ((1UL << 20) | (1 << 8) | 0)
+#define MULLE__MMAP_VERSION  ((1UL << 20) | (2 << 8) | 0)
 
 
 static inline unsigned int   mulle_mmap_get_version_major( void)
@@ -225,8 +225,20 @@ static inline mulle_mmap_file_t
  */
 
 // System page size - platform specific implementation
+//
+// The page is what a size is rounded to and what memory is committed in. It is
+// the only unit POSIX has, and on Windows it is dwPageSize (4096).
 MULLE__MMAP_GLOBAL
 size_t   mulle_mmap_get_system_pagesize( void);
+
+// The alignment a mapping *offset* has to keep, which is not the same number as
+// the page size on Windows: there it is dwAllocationGranularity (65536), the
+// unit reserved address space is handed out in and the offset MapViewOfFile
+// takes. POSIX has one unit for both and answers its page size twice.
+//
+// A size request escalates to the page size, an offset aligns to this.
+MULLE__MMAP_GLOBAL
+size_t   mulle_mmap_get_allocation_granularity( void);
 
 // File operations - platform specific implementations  
 MULLE__MMAP_GLOBAL
@@ -335,10 +347,25 @@ int   mulle_mmap_free_shared_memory( struct mulle_mmap_shared_memory *mem);
  * this process's address space.
  *
  * handle          - the file mapping handle/fd from mulle_mmap_shared_memory
- * size            - size of the mapping
+ * size            - size of the mapping. Take the size the region was created
+ *                   with: a larger one cannot be granted, and the two platforms
+ *                   say so differently -- Windows refuses the mapping, POSIX
+ *                   accepts it and raises SIGBUS on the first touch past the
+ *                   end of the region -- so an oversized mapping is a mistake
+ *                   that fails immediately on one and later on the other. A
+ *                   smaller one is accepted on both and simply maps less.
  * preferred_addr  - desired virtual address (pass the parent's .address for
  *                   fixed-address mapping so dlmalloc internal pointers remain
  *                   valid). NULL lets the OS choose (unsafe for dlmalloc use).
+ *
+ *                   Otherwise it is that address or NULL. A request that cannot
+ *                   be honoured -- the address is already mapped in this
+ *                   process, or it is not aligned to
+ *                   mulle_mmap_get_allocation_granularity() -- fails instead of
+ *                   being satisfied at another address, because the pointers
+ *                   stored in the region are only valid where it was built.
+ *                   Whatever is mapped at the address is left alone, never
+ *                   replaced (so no MAP_FIXED, and no forcing).
  *
  * Returns the mapped address, or NULL on failure.
  */
@@ -656,6 +683,9 @@ static inline int   mulle_mmap_equal( struct mulle_mmap *p,
 
 MULLE__MMAP_GLOBAL
 size_t  mulle_mmap_get_system_pagesize( void);
+
+MULLE__MMAP_GLOBAL
+size_t  mulle_mmap_get_allocation_granularity( void);
 
 
 // Safe public wrapper functions with parameter checking

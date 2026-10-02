@@ -47,6 +47,8 @@ void   _mulle_rbtree_init_with_config( struct mulle_rbtree *a_tree,
                                        struct mulle_rbtree_config *config,
                                        struct mulle_allocator *allocator)
 {
+   struct mulle__rbtree_config   rbconfig;
+
    assert( a_tree);
 
    memset( a_tree, 0, sizeof( *a_tree));
@@ -54,8 +56,16 @@ void   _mulle_rbtree_init_with_config( struct mulle_rbtree *a_tree,
    assert( config->comparison);
 
    allocator = allocator ? allocator : &mulle_default_allocator;
-   _mulle__rbtree_init_with_config( (struct mulle__rbtree *) a_tree,
-                                    (const struct mulle__rbtree_config *) config,
+
+   // copy the public leading fields into a genuine internal config. The
+   // low-level initializer used to be handed the public struct through a
+   // cast, which is the same strict-aliasing violation the tree body had.
+   rbconfig.node_extra = config->node_extra;
+   rbconfig.options    = config->options;
+   rbconfig.capacity   = config->capacity;
+
+   _mulle__rbtree_init_with_config( &a_tree->base,
+                                    &rbconfig,
                                     allocator);
 
    a_tree->callback   = config->callback
@@ -88,7 +98,7 @@ void   _mulle_rbtree_done( struct mulle_rbtree *a_tree)
    struct mulle_rbnode      *node;
    struct mulle_rbnode      *root_node;
    struct mulle_rbnode      *nil_node;
-   struct mulle__rbtree     *rb__tree = (struct mulle__rbtree *) a_tree;
+   struct mulle__rbtree     *rb__tree = &a_tree->base;
 
    assert( a_tree);
    
@@ -118,7 +128,7 @@ int   _mulle_rbtree_add( struct mulle_rbtree *a_tree, void *value)
    struct mulle_rbnode      *node;
    struct mulle_allocator   *allocator;
    int                      rval;
-   struct mulle__rbtree     *rb__tree = (struct mulle__rbtree *) a_tree;
+   struct mulle__rbtree     *rb__tree = &a_tree->base;
 
    assert( a_tree);
 
@@ -141,7 +151,7 @@ int   _mulle_rbtree_add( struct mulle_rbtree *a_tree, void *value)
       _mulle__rbtree_free_node( rb__tree, node);
    }
 
-   if( a_tree->_options & mulle_rbtree_option_use_dirty)
+   if( a_tree->base._options & mulle_rbtree_option_use_dirty)
       _mulle_rbtree_walk_dirty( a_tree);
 
    return( rval);
@@ -153,7 +163,7 @@ void   _mulle_rbtree_remove_node( struct mulle_rbtree *a_tree,
 {
    struct mulle_allocator   *allocator;
    void                     *value;
-   struct mulle__rbtree     *rb__tree = (struct mulle__rbtree *) a_tree;
+   struct mulle__rbtree     *rb__tree = &a_tree->base;
 
    assert( a_tree);
    assert( node);
@@ -162,11 +172,11 @@ void   _mulle_rbtree_remove_node( struct mulle_rbtree *a_tree,
    value     = _mulle__rbtree_get_node_value( rb__tree, node);
    allocator = _mulle_rbtree_get_allocator( a_tree);
    (*a_tree->callback.release)( &a_tree->callback, value, allocator);
-   if( a_tree->_options & mulle_rbtree_option_use_dirty)
+   if( a_tree->base._options & mulle_rbtree_option_use_dirty)
       _mulle__rbtree_mark_node_as_dirty( rb__tree, node); // this will marker parents
    _mulle__rbtree_remove_node( rb__tree, node);
 
-   if( a_tree->_options & mulle_rbtree_option_use_dirty)
+   if( a_tree->base._options & mulle_rbtree_option_use_dirty)
       _mulle_rbtree_walk_dirty( a_tree);
 }
 
@@ -177,10 +187,10 @@ int   _mulle_rbtree_remove( struct mulle_rbtree *a_tree, void *a_key)
 
    assert( a_tree);
 
-   node = _mulle__rbtree_find_node( (struct mulle__rbtree *) a_tree,
+   node = _mulle__rbtree_find_node( &a_tree->base,
                                     a_key,
                                     a_tree->comparison);
-   if( _mulle__rbtree_is_nil_node( (struct mulle__rbtree *) a_tree, node))
+   if( _mulle__rbtree_is_nil_node( &a_tree->base, node))
       return( ENOENT);
 
    _mulle_rbtree_remove_node( a_tree, node);

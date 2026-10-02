@@ -1,0 +1,11 @@
+PASS: U+D800 is a surrogate
+PASS: U+DFFF is a surrogate
+PASS: U+E000 is not a surrogate
+PASS: U+E000 is not a low surrogate
+PASS: lone low surrogate is invalid UTF16
+PASS: mulle_utf16_information accepts U+E000
+PASS: mulle_utf16_validate accepts U+E000
+PASS: mulle_utf16_utf32length counts U+E000 as one character
+PASS: mulle_utf16_utf8length of "A<U+E000>B"
+
+All tests passed!

@@ -1,0 +1,7 @@
+{0,10} against 10           : is_valid=1 is_invalid_marker=0 fits=1
+{5,10} against 10           : is_valid=0 is_invalid_marker=1
+{20,1} against 10           : is_valid=0 is_invalid_marker=1
+{0,-1} against 10           : is_valid=1 is_invalid_marker=0 fits=1
+{5,-1} against 10           : is_valid=1 is_invalid_marker=0 fits=1
+{20,-1} against 10          : is_valid=0 is_invalid_marker=1
+{0,0} against 0             : is_valid=1 is_invalid_marker=0 fits=1

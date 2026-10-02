@@ -1,0 +1,1559 @@
+=== Original: 0x1
+digraph RBTree {
+  rankdir=LR;
+  node [shape=circle, fontcolor=white, fontsize=10];
+  "1" [label="A", style="filled,bold", fillcolor=black, fontcolor=white];
+  nil_2 [shape=point];
+  "1" -> nil_2 [label=" L"];
+  nil_3 [shape=point];
+  "1" -> nil_3 [label=" R"];
+}
+
+---Deleting "A"
+digraph RBTree {
+  rankdir=LR;
+  node [shape=circle, fontcolor=white, fontsize=10];
+}
+
+===
+
+=== Original: 0x9
+digraph RBTree {
+  rankdir=LR;
+  node [shape=circle, fontcolor=white, fontsize=10];
+  "1" [label="A", style="filled,bold", fillcolor=black, fontcolor=white];
+  "1" -> "2" [label=" L"];
+  "2" [label="B", style="filled,bold", fillcolor=red, fontcolor=white];
+  nil_4 [shape=point];
+  "2" -> nil_4 [label=" L"];
+  nil_5 [shape=point];
+  "2" -> nil_5 [label=" R"];
+  nil_3 [shape=point];
+  "1" -> nil_3 [label=" R"];
+}
+
+---Deleting "A"
+digraph RBTree {
+  rankdir=LR;
+  node [shape=circle, fontcolor=white, fontsize=10];
+  "1" [label="B", style="filled,bold", fillcolor=black, fontcolor=white];
+  nil_2 [shape=point];
+  "1" -> nil_2 [label=" L"];
+  nil_3 [shape=point];
+  "1" -> nil_3 [label=" R"];
+}
+
+===
+
+=== Original: 0x15
+digraph RBTree {
+  rankdir=LR;
+  node [shape=circle, fontcolor=white, fontsize=10];
+  "1" [label="A", style="filled,bold", fillcolor=black, fontcolor=white];
+  "1" -> "2" [label=" L"];
+  "2" [label="B", style="filled,bold", fillcolor=black, fontcolor=white];
+  nil_4 [shape=point];
+  "2" -> nil_4 [label=" L"];
+  nil_5 [shape=point];
+  "2" -> nil_5 [label=" R"];
+  "1" -> "3" [label=" R"];
+  "3" [label="C", style="filled,bold", fillcolor=black, fontcolor=white];
+  nil_6 [shape=point];
+  "3" -> nil_6 [label=" L"];
+  nil_7 [shape=point];
+  "3" -> nil_7 [label=" R"];
+}
+
+---Deleting "A"
+digraph RBTree {
+  rankdir=LR;
+  node [shape=circle, fontcolor=white, fontsize=10];
+  "1" [label="C", style="filled,bold", fillcolor=black, fontcolor=white];
+  "1" -> "2" [label=" L"];
+  "2" [label="B", style="filled,bold", fillcolor=red, fontcolor=white];
+  nil_4 [shape=point];
+  "2" -> nil_4 [label=" L"];
+  nil_5 [shape=point];
+  "2" -> nil_5 [label=" R"];
+  nil_3 [shape=point];
+  "1" -> nil_3 [label=" R"];
+}
+
+===
+
+=== Original: 0x21
+digraph RBTree {
+  rankdir=LR;
+  node [shape=circle, fontcolor=white, fontsize=10];
+  "1" [label="A", style="filled,bold", fillcolor=black, fontcolor=white];
+  nil_2 [shape=point];
+  "1" -> nil_2 [label=" L"];
+  "1" -> "3" [label=" R"];
+  "3" [label="C", style="filled,bold", fillcolor=red, fontcolor=white];
+  nil_6 [shape=point];
+  "3" -> nil_6 [label=" L"];
+  nil_7 [shape=point];
+  "3" -> nil_7 [label=" R"];
+}
+
+---Deleting "A"
+digraph RBTree {
+  rankdir=LR;
+  node [shape=circle, fontcolor=white, fontsize=10];
+  "1" [label="C", style="filled,bold", fillcolor=black, fontcolor=white];
+  nil_2 [shape=point];
+  "1" -> nil_2 [label=" L"];
+  nil_3 [shape=point];
+  "1" -> nil_3 [label=" R"];
+}
+
+===
+
+=== Original: 0x29
+digraph RBTree {
+  rankdir=LR;
+  node [shape=circle, fontcolor=white, fontsize=10];
+  "1" [label="A", style="filled,bold", fillcolor=black, fontcolor=white];
+  "1" -> "2" [label=" L"];
+  "2" [label="B", style="filled,bold", fillcolor=red, fontcolor=white];
+  nil_4 [shape=point];
+  "2" -> nil_4 [label=" L"];
+  nil_5 [shape=point];
+  "2" -> nil_5 [label=" R"];
+  "1" -> "3" [label=" R"];
+  "3" [label="C", style="filled,bold", fillcolor=red, fontcolor=white];
+  nil_6 [shape=point];
+  "3" -> nil_6 [label=" L"];
+  nil_7 [shape=point];
+  "3" -> nil_7 [label=" R"];
+}
+
+---Deleting "A"
+digraph RBTree {
+  rankdir=LR;
+  node [shape=circle, fontcolor=white, fontsize=10];
+  "1" [label="C", style="filled,bold", fillcolor=black, fontcolor=white];
+  "1" -> "2" [label=" L"];
+  "2" [label="B", style="filled,bold", fillcolor=red, fontcolor=white];
+  nil_4 [shape=point];
+  "2" -> nil_4 [label=" L"];
+  nil_5 [shape=point];
+  "2" -> nil_5 [label=" R"];
+  nil_3 [shape=point];
+  "1" -> nil_3 [label=" R"];
+}
+
+===
+
+=== Original: 0x95
+digraph RBTree {
+  rankdir=LR;
+  node [shape=circle, fontcolor=white, fontsize=10];
+  "1" [label="A", style="filled,bold", fillcolor=black, fontcolor=white];
+  "1" -> "2" [label=" L"];
+  "2" [label="B", style="filled,bold", fillcolor=black, fontcolor=white];
+  "2" -> "4" [label=" L"];
+  "4" [label="D", style="filled,bold", fillcolor=red, fontcolor=white];
+  nil_8 [shape=point];
+  "4" -> nil_8 [label=" L"];
+  nil_9 [shape=point];
+  "4" -> nil_9 [label=" R"];
+  nil_5 [shape=point];
+  "2" -> nil_5 [label=" R"];
+  "1" -> "3" [label=" R"];
+  "3" [label="C", style="filled,bold", fillcolor=black, fontcolor=white];
+  nil_6 [shape=point];
+  "3" -> nil_6 [label=" L"];
+  nil_7 [shape=point];
+  "3" -> nil_7 [label=" R"];
+}
+
+---Deleting "A"
+digraph RBTree {
+  rankdir=LR;
+  node [shape=circle, fontcolor=white, fontsize=10];
+  "1" [label="B", style="filled,bold", fillcolor=black, fontcolor=white];
+  "1" -> "2" [label=" L"];
+  "2" [label="D", style="filled,bold", fillcolor=black, fontcolor=white];
+  nil_4 [shape=point];
+  "2" -> nil_4 [label=" L"];
+  nil_5 [shape=point];
+  "2" -> nil_5 [label=" R"];
+  "1" -> "3" [label=" R"];
+  "3" [label="C", style="filled,bold", fillcolor=black, fontcolor=white];
+  nil_6 [shape=point];
+  "3" -> nil_6 [label=" L"];
+  nil_7 [shape=point];
+  "3" -> nil_7 [label=" R"];
+}
+
+===
+
+=== Original: 0x159
+digraph RBTree {
+  rankdir=LR;
+  node [shape=circle, fontcolor=white, fontsize=10];
+  "1" [label="A", style="filled,bold", fillcolor=black, fontcolor=white];
+  "1" -> "2" [label=" L"];
+  "2" [label="B", style="filled,bold", fillcolor=red, fontcolor=white];
+  "2" -> "4" [label=" L"];
+  "4" [label="D", style="filled,bold", fillcolor=black, fontcolor=white];
+  nil_8 [shape=point];
+  "4" -> nil_8 [label=" L"];
+  nil_9 [shape=point];
+  "4" -> nil_9 [label=" R"];
+  "2" -> "5" [label=" R"];
+  "5" [label="E", style="filled,bold", fillcolor=black, fontcolor=white];
+  nil_10 [shape=point];
+  "5" -> nil_10 [label=" L"];
+  nil_11 [shape=point];
+  "5" -> nil_11 [label=" R"];
+  "1" -> "3" [label=" R"];
+  "3" [label="C", style="filled,bold", fillcolor=black, fontcolor=white];
+  nil_6 [shape=point];
+  "3" -> nil_6 [label=" L"];
+  nil_7 [shape=point];
+  "3" -> nil_7 [label=" R"];
+}
+
+---Deleting "A"
+digraph RBTree {
+  rankdir=LR;
+  node [shape=circle, fontcolor=white, fontsize=10];
+  "1" [label="B", style="filled,bold", fillcolor=black, fontcolor=white];
+  "1" -> "2" [label=" L"];
+  "2" [label="D", style="filled,bold", fillcolor=black, fontcolor=white];
+  nil_4 [shape=point];
+  "2" -> nil_4 [label=" L"];
+  nil_5 [shape=point];
+  "2" -> nil_5 [label=" R"];
+  "1" -> "3" [label=" R"];
+  "3" [label="C", style="filled,bold", fillcolor=black, fontcolor=white];
+  "3" -> "6" [label=" L"];
+  "6" [label="E", style="filled,bold", fillcolor=red, fontcolor=white];
+  nil_12 [shape=point];
+  "6" -> nil_12 [label=" L"];
+  nil_13 [shape=point];
+  "6" -> nil_13 [label=" R"];
+  nil_7 [shape=point];
+  "3" -> nil_7 [label=" R"];
+}
+
+===
+
+=== Original: 0x215
+digraph RBTree {
+  rankdir=LR;
+  node [shape=circle, fontcolor=white, fontsize=10];
+  "1" [label="A", style="filled,bold", fillcolor=black, fontcolor=white];
+  "1" -> "2" [label=" L"];
+  "2" [label="B", style="filled,bold", fillcolor=black, fontcolor=white];
+  nil_4 [shape=point];
+  "2" -> nil_4 [label=" L"];
+  "2" -> "5" [label=" R"];
+  "5" [label="E", style="filled,bold", fillcolor=red, fontcolor=white];
+  nil_10 [shape=point];
+  "5" -> nil_10 [label=" L"];
+  nil_11 [shape=point];
+  "5" -> nil_11 [label=" R"];
+  "1" -> "3" [label=" R"];
+  "3" [label="C", style="filled,bold", fillcolor=black, fontcolor=white];
+  nil_6 [shape=point];
+  "3" -> nil_6 [label=" L"];
+  nil_7 [shape=point];
+  "3" -> nil_7 [label=" R"];
+}
+
+---Deleting "A"
+digraph RBTree {
+  rankdir=LR;
+  node [shape=circle, fontcolor=white, fontsize=10];
+  "1" [label="E", style="filled,bold", fillcolor=black, fontcolor=white];
+  "1" -> "2" [label=" L"];
+  "2" [label="B", style="filled,bold", fillcolor=black, fontcolor=white];
+  nil_4 [shape=point];
+  "2" -> nil_4 [label=" L"];
+  nil_5 [shape=point];
+  "2" -> nil_5 [label=" R"];
+  "1" -> "3" [label=" R"];
+  "3" [label="C", style="filled,bold", fillcolor=black, fontcolor=white];
+  nil_6 [shape=point];
+  "3" -> nil_6 [label=" L"];
+  nil_7 [shape=point];
+  "3" -> nil_7 [label=" R"];
+}
+
+===
+
+=== Original: 0x295
+digraph RBTree {
+  rankdir=LR;
+  node [shape=circle, fontcolor=white, fontsize=10];
+  "1" [label="A", style="filled,bold", fillcolor=black, fontcolor=white];
+  "1" -> "2" [label=" L"];
+  "2" [label="B", style="filled,bold", fillcolor=black, fontcolor=white];
+  "2" -> "4" [label=" L"];
+  "4" [label="D", style="filled,bold", fillcolor=red, fontcolor=white];
+  nil_8 [shape=point];
+  "4" -> nil_8 [label=" L"];
+  nil_9 [shape=point];
+  "4" -> nil_9 [label=" R"];
+  "2" -> "5" [label=" R"];
+  "5" [label="E", style="filled,bold", fillcolor=red, fontcolor=white];
+  nil_10 [shape=point];
+  "5" -> nil_10 [label=" L"];
+  nil_11 [shape=point];
+  "5" -> nil_11 [label=" R"];
+  "1" -> "3" [label=" R"];
+  "3" [label="C", style="filled,bold", fillcolor=black, fontcolor=white];
+  nil_6 [shape=point];
+  "3" -> nil_6 [label=" L"];
+  nil_7 [shape=point];
+  "3" -> nil_7 [label=" R"];
+}
+
+---Deleting "A"
+digraph RBTree {
+  rankdir=LR;
+  node [shape=circle, fontcolor=white, fontsize=10];
+  "1" [label="B", style="filled,bold", fillcolor=black, fontcolor=white];
+  "1" -> "2" [label=" L"];
+  "2" [label="D", style="filled,bold", fillcolor=black, fontcolor=white];
+  nil_4 [shape=point];
+  "2" -> nil_4 [label=" L"];
+  nil_5 [shape=point];
+  "2" -> nil_5 [label=" R"];
+  "1" -> "3" [label=" R"];
+  "3" [label="C", style="filled,bold", fillcolor=black, fontcolor=white];
+  "3" -> "6" [label=" L"];
+  "6" [label="E", style="filled,bold", fillcolor=red, fontcolor=white];
+  nil_12 [shape=point];
+  "6" -> nil_12 [label=" L"];
+  nil_13 [shape=point];
+  "6" -> nil_13 [label=" R"];
+  nil_7 [shape=point];
+  "3" -> nil_7 [label=" R"];
+}
+
+===
+
+=== Original: 0x815
+digraph RBTree {
+  rankdir=LR;
+  node [shape=circle, fontcolor=white, fontsize=10];
+  "1" [label="A", style="filled,bold", fillcolor=black, fontcolor=white];
+  "1" -> "2" [label=" L"];
+  "2" [label="B", style="filled,bold", fillcolor=black, fontcolor=white];
+  nil_4 [shape=point];
+  "2" -> nil_4 [label=" L"];
+  nil_5 [shape=point];
+  "2" -> nil_5 [label=" R"];
+  "1" -> "3" [label=" R"];
+  "3" [label="C", style="filled,bold", fillcolor=black, fontcolor=white];
+  "3" -> "6" [label=" L"];
+  "6" [label="F", style="filled,bold", fillcolor=red, fontcolor=white];
+  nil_12 [shape=point];
+  "6" -> nil_12 [label=" L"];
+  nil_13 [shape=point];
+  "6" -> nil_13 [label=" R"];
+  nil_7 [shape=point];
+  "3" -> nil_7 [label=" R"];
+}
+
+---Deleting "A"
+digraph RBTree {
+  rankdir=LR;
+  node [shape=circle, fontcolor=white, fontsize=10];
+  "1" [label="F", style="filled,bold", fillcolor=black, fontcolor=white];
+  "1" -> "2" [label=" L"];
+  "2" [label="B", style="filled,bold", fillcolor=black, fontcolor=white];
+  nil_4 [shape=point];
+  "2" -> nil_4 [label=" L"];
+  nil_5 [shape=point];
+  "2" -> nil_5 [label=" R"];
+  "1" -> "3" [label=" R"];
+  "3" [label="C", style="filled,bold", fillcolor=black, fontcolor=white];
+  nil_6 [shape=point];
+  "3" -> nil_6 [label=" L"];
+  nil_7 [shape=point];
+  "3" -> nil_7 [label=" R"];
+}
+
+===
+
+=== Original: 0x895
+digraph RBTree {
+  rankdir=LR;
+  node [shape=circle, fontcolor=white, fontsize=10];
+  "1" [label="A", style="filled,bold", fillcolor=black, fontcolor=white];
+  "1" -> "2" [label=" L"];
+  "2" [label="B", style="filled,bold", fillcolor=black, fontcolor=white];
+  "2" -> "4" [label=" L"];
+  "4" [label="D", style="filled,bold", fillcolor=red, fontcolor=white];
+  nil_8 [shape=point];
+  "4" -> nil_8 [label=" L"];
+  nil_9 [shape=point];
+  "4" -> nil_9 [label=" R"];
+  nil_5 [shape=point];
+  "2" -> nil_5 [label=" R"];
+  "1" -> "3" [label=" R"];
+  "3" [label="C", style="filled,bold", fillcolor=black, fontcolor=white];
+  "3" -> "6" [label=" L"];
+  "6" [label="F", style="filled,bold", fillcolor=red, fontcolor=white];
+  nil_12 [shape=point];
+  "6" -> nil_12 [label=" L"];
+  nil_13 [shape=point];
+  "6" -> nil_13 [label=" R"];
+  nil_7 [shape=point];
+  "3" -> nil_7 [label=" R"];
+}
+
+---Deleting "A"
+digraph RBTree {
+  rankdir=LR;
+  node [shape=circle, fontcolor=white, fontsize=10];
+  "1" [label="F", style="filled,bold", fillcolor=black, fontcolor=white];
+  "1" -> "2" [label=" L"];
+  "2" [label="B", style="filled,bold", fillcolor=black, fontcolor=white];
+  "2" -> "4" [label=" L"];
+  "4" [label="D", style="filled,bold", fillcolor=red, fontcolor=white];
+  nil_8 [shape=point];
+  "4" -> nil_8 [label=" L"];
+  nil_9 [shape=point];
+  "4" -> nil_9 [label=" R"];
+  nil_5 [shape=point];
+  "2" -> nil_5 [label=" R"];
+  "1" -> "3" [label=" R"];
+  "3" [label="C", style="filled,bold", fillcolor=black, fontcolor=white];
+  nil_6 [shape=point];
+  "3" -> nil_6 [label=" L"];
+  nil_7 [shape=point];
+  "3" -> nil_7 [label=" R"];
+}
+
+===
+
+=== Original: 0x959
+digraph RBTree {
+  rankdir=LR;
+  node [shape=circle, fontcolor=white, fontsize=10];
+  "1" [label="A", style="filled,bold", fillcolor=black, fontcolor=white];
+  "1" -> "2" [label=" L"];
+  "2" [label="B", style="filled,bold", fillcolor=red, fontcolor=white];
+  "2" -> "4" [label=" L"];
+  "4" [label="D", style="filled,bold", fillcolor=black, fontcolor=white];
+  nil_8 [shape=point];
+  "4" -> nil_8 [label=" L"];
+  nil_9 [shape=point];
+  "4" -> nil_9 [label=" R"];
+  "2" -> "5" [label=" R"];
+  "5" [label="E", style="filled,bold", fillcolor=black, fontcolor=white];
+  nil_10 [shape=point];
+  "5" -> nil_10 [label=" L"];
+  nil_11 [shape=point];
+  "5" -> nil_11 [label=" R"];
+  "1" -> "3" [label=" R"];
+  "3" [label="C", style="filled,bold", fillcolor=black, fontcolor=white];
+  "3" -> "6" [label=" L"];
+  "6" [label="F", style="filled,bold", fillcolor=red, fontcolor=white];
+  nil_12 [shape=point];
+  "6" -> nil_12 [label=" L"];
+  nil_13 [shape=point];
+  "6" -> nil_13 [label=" R"];
+  nil_7 [shape=point];
+  "3" -> nil_7 [label=" R"];
+}
+
+---Deleting "A"
+digraph RBTree {
+  rankdir=LR;
+  node [shape=circle, fontcolor=white, fontsize=10];
+  "1" [label="F", style="filled,bold", fillcolor=black, fontcolor=white];
+  "1" -> "2" [label=" L"];
+  "2" [label="B", style="filled,bold", fillcolor=red, fontcolor=white];
+  "2" -> "4" [label=" L"];
+  "4" [label="D", style="filled,bold", fillcolor=black, fontcolor=white];
+  nil_8 [shape=point];
+  "4" -> nil_8 [label=" L"];
+  nil_9 [shape=point];
+  "4" -> nil_9 [label=" R"];
+  "2" -> "5" [label=" R"];
+  "5" [label="E", style="filled,bold", fillcolor=black, fontcolor=white];
+  nil_10 [shape=point];
+  "5" -> nil_10 [label=" L"];
+  nil_11 [shape=point];
+  "5" -> nil_11 [label=" R"];
+  "1" -> "3" [label=" R"];
+  "3" [label="C", style="filled,bold", fillcolor=black, fontcolor=white];
+  nil_6 [shape=point];
+  "3" -> nil_6 [label=" L"];
+  nil_7 [shape=point];
+  "3" -> nil_7 [label=" R"];
+}
+
+===
+
+=== Original: 0xa15
+digraph RBTree {
+  rankdir=LR;
+  node [shape=circle, fontcolor=white, fontsize=10];
+  "1" [label="A", style="filled,bold", fillcolor=black, fontcolor=white];
+  "1" -> "2" [label=" L"];
+  "2" [label="B", style="filled,bold", fillcolor=black, fontcolor=white];
+  nil_4 [shape=point];
+  "2" -> nil_4 [label=" L"];
+  "2" -> "5" [label=" R"];
+  "5" [label="E", style="filled,bold", fillcolor=red, fontcolor=white];
+  nil_10 [shape=point];
+  "5" -> nil_10 [label=" L"];
+  nil_11 [shape=point];
+  "5" -> nil_11 [label=" R"];
+  "1" -> "3" [label=" R"];
+  "3" [label="C", style="filled,bold", fillcolor=black, fontcolor=white];
+  "3" -> "6" [label=" L"];
+  "6" [label="F", style="filled,bold", fillcolor=red, fontcolor=white];
+  nil_12 [shape=point];
+  "6" -> nil_12 [label=" L"];
+  nil_13 [shape=point];
+  "6" -> nil_13 [label=" R"];
+  nil_7 [shape=point];
+  "3" -> nil_7 [label=" R"];
+}
+
+---Deleting "A"
+digraph RBTree {
+  rankdir=LR;
+  node [shape=circle, fontcolor=white, fontsize=10];
+  "1" [label="F", style="filled,bold", fillcolor=black, fontcolor=white];
+  "1" -> "2" [label=" L"];
+  "2" [label="B", style="filled,bold", fillcolor=black, fontcolor=white];
+  nil_4 [shape=point];
+  "2" -> nil_4 [label=" L"];
+  "2" -> "5" [label=" R"];
+  "5" [label="E", style="filled,bold", fillcolor=red, fontcolor=white];
+  nil_10 [shape=point];
+  "5" -> nil_10 [label=" L"];
+  nil_11 [shape=point];
+  "5" -> nil_11 [label=" R"];
+  "1" -> "3" [label=" R"];
+  "3" [label="C", style="filled,bold", fillcolor=black, fontcolor=white];
+  nil_6 [shape=point];
+  "3" -> nil_6 [label=" L"];
+  nil_7 [shape=point];
+  "3" -> nil_7 [label=" R"];
+}
+
+===
+
+=== Original: 0xa95
+digraph RBTree {
+  rankdir=LR;
+  node [shape=circle, fontcolor=white, fontsize=10];
+  "1" [label="A", style="filled,bold", fillcolor=black, fontcolor=white];
+  "1" -> "2" [label=" L"];
+  "2" [label="B", style="filled,bold", fillcolor=black, fontcolor=white];
+  "2" -> "4" [label=" L"];
+  "4" [label="D", style="filled,bold", fillcolor=red, fontcolor=white];
+  nil_8 [shape=point];
+  "4" -> nil_8 [label=" L"];
+  nil_9 [shape=point];
+  "4" -> nil_9 [label=" R"];
+  "2" -> "5" [label=" R"];
+  "5" [label="E", style="filled,bold", fillcolor=red, fontcolor=white];
+  nil_10 [shape=point];
+  "5" -> nil_10 [label=" L"];
+  nil_11 [shape=point];
+  "5" -> nil_11 [label=" R"];
+  "1" -> "3" [label=" R"];
+  "3" [label="C", style="filled,bold", fillcolor=black, fontcolor=white];
+  "3" -> "6" [label=" L"];
+  "6" [label="F", style="filled,bold", fillcolor=red, fontcolor=white];
+  nil_12 [shape=point];
+  "6" -> nil_12 [label=" L"];
+  nil_13 [shape=point];
+  "6" -> nil_13 [label=" R"];
+  nil_7 [shape=point];
+  "3" -> nil_7 [label=" R"];
+}
+
+---Deleting "A"
+digraph RBTree {
+  rankdir=LR;
+  node [shape=circle, fontcolor=white, fontsize=10];
+  "1" [label="F", style="filled,bold", fillcolor=black, fontcolor=white];
+  "1" -> "2" [label=" L"];
+  "2" [label="B", style="filled,bold", fillcolor=black, fontcolor=white];
+  "2" -> "4" [label=" L"];
+  "4" [label="D", style="filled,bold", fillcolor=red, fontcolor=white];
+  nil_8 [shape=point];
+  "4" -> nil_8 [label=" L"];
+  nil_9 [shape=point];
+  "4" -> nil_9 [label=" R"];
+  "2" -> "5" [label=" R"];
+  "5" [label="E", style="filled,bold", fillcolor=red, fontcolor=white];
+  nil_10 [shape=point];
+  "5" -> nil_10 [label=" L"];
+  nil_11 [shape=point];
+  "5" -> nil_11 [label=" R"];
+  "1" -> "3" [label=" R"];
+  "3" [label="C", style="filled,bold", fillcolor=black, fontcolor=white];
+  nil_6 [shape=point];
+  "3" -> nil_6 [label=" L"];
+  nil_7 [shape=point];
+  "3" -> nil_7 [label=" R"];
+}
+
+===
+
+=== Original: 0x1425
+digraph RBTree {
+  rankdir=LR;
+  node [shape=circle, fontcolor=white, fontsize=10];
+  "1" [label="A", style="filled,bold", fillcolor=black, fontcolor=white];
+  "1" -> "2" [label=" L"];
+  "2" [label="B", style="filled,bold", fillcolor=black, fontcolor=white];
+  nil_4 [shape=point];
+  "2" -> nil_4 [label=" L"];
+  nil_5 [shape=point];
+  "2" -> nil_5 [label=" R"];
+  "1" -> "3" [label=" R"];
+  "3" [label="C", style="filled,bold", fillcolor=red, fontcolor=white];
+  "3" -> "6" [label=" L"];
+  "6" [label="F", style="filled,bold", fillcolor=black, fontcolor=white];
+  nil_12 [shape=point];
+  "6" -> nil_12 [label=" L"];
+  nil_13 [shape=point];
+  "6" -> nil_13 [label=" R"];
+  "3" -> "7" [label=" R"];
+  "7" [label="G", style="filled,bold", fillcolor=black, fontcolor=white];
+  nil_14 [shape=point];
+  "7" -> nil_14 [label=" L"];
+  nil_15 [shape=point];
+  "7" -> nil_15 [label=" R"];
+}
+
+---Deleting "A"
+digraph RBTree {
+  rankdir=LR;
+  node [shape=circle, fontcolor=white, fontsize=10];
+  "1" [label="F", style="filled,bold", fillcolor=black, fontcolor=white];
+  "1" -> "2" [label=" L"];
+  "2" [label="B", style="filled,bold", fillcolor=black, fontcolor=white];
+  nil_4 [shape=point];
+  "2" -> nil_4 [label=" L"];
+  nil_5 [shape=point];
+  "2" -> nil_5 [label=" R"];
+  "1" -> "3" [label=" R"];
+  "3" [label="C", style="filled,bold", fillcolor=black, fontcolor=white];
+  nil_6 [shape=point];
+  "3" -> nil_6 [label=" L"];
+  "3" -> "7" [label=" R"];
+  "7" [label="G", style="filled,bold", fillcolor=red, fontcolor=white];
+  nil_14 [shape=point];
+  "7" -> nil_14 [label=" L"];
+  nil_15 [shape=point];
+  "7" -> nil_15 [label=" R"];
+}
+
+===
+
+=== Original: 0x14a5
+digraph RBTree {
+  rankdir=LR;
+  node [shape=circle, fontcolor=white, fontsize=10];
+  "1" [label="A", style="filled,bold", fillcolor=black, fontcolor=white];
+  "1" -> "2" [label=" L"];
+  "2" [label="B", style="filled,bold", fillcolor=black, fontcolor=white];
+  "2" -> "4" [label=" L"];
+  "4" [label="D", style="filled,bold", fillcolor=red, fontcolor=white];
+  nil_8 [shape=point];
+  "4" -> nil_8 [label=" L"];
+  nil_9 [shape=point];
+  "4" -> nil_9 [label=" R"];
+  nil_5 [shape=point];
+  "2" -> nil_5 [label=" R"];
+  "1" -> "3" [label=" R"];
+  "3" [label="C", style="filled,bold", fillcolor=red, fontcolor=white];
+  "3" -> "6" [label=" L"];
+  "6" [label="F", style="filled,bold", fillcolor=black, fontcolor=white];
+  nil_12 [shape=point];
+  "6" -> nil_12 [label=" L"];
+  nil_13 [shape=point];
+  "6" -> nil_13 [label=" R"];
+  "3" -> "7" [label=" R"];
+  "7" [label="G", style="filled,bold", fillcolor=black, fontcolor=white];
+  nil_14 [shape=point];
+  "7" -> nil_14 [label=" L"];
+  nil_15 [shape=point];
+  "7" -> nil_15 [label=" R"];
+}
+
+---Deleting "A"
+digraph RBTree {
+  rankdir=LR;
+  node [shape=circle, fontcolor=white, fontsize=10];
+  "1" [label="F", style="filled,bold", fillcolor=black, fontcolor=white];
+  "1" -> "2" [label=" L"];
+  "2" [label="B", style="filled,bold", fillcolor=black, fontcolor=white];
+  "2" -> "4" [label=" L"];
+  "4" [label="D", style="filled,bold", fillcolor=red, fontcolor=white];
+  nil_8 [shape=point];
+  "4" -> nil_8 [label=" L"];
+  nil_9 [shape=point];
+  "4" -> nil_9 [label=" R"];
+  nil_5 [shape=point];
+  "2" -> nil_5 [label=" R"];
+  "1" -> "3" [label=" R"];
+  "3" [label="C", style="filled,bold", fillcolor=black, fontcolor=white];
+  nil_6 [shape=point];
+  "3" -> nil_6 [label=" L"];
+  "3" -> "7" [label=" R"];
+  "7" [label="G", style="filled,bold", fillcolor=red, fontcolor=white];
+  nil_14 [shape=point];
+  "7" -> nil_14 [label=" L"];
+  nil_15 [shape=point];
+  "7" -> nil_15 [label=" R"];
+}
+
+===
+
+=== Original: 0x1555
+digraph RBTree {
+  rankdir=LR;
+  node [shape=circle, fontcolor=white, fontsize=10];
+  "1" [label="A", style="filled,bold", fillcolor=black, fontcolor=white];
+  "1" -> "2" [label=" L"];
+  "2" [label="B", style="filled,bold", fillcolor=black, fontcolor=white];
+  "2" -> "4" [label=" L"];
+  "4" [label="D", style="filled,bold", fillcolor=black, fontcolor=white];
+  nil_8 [shape=point];
+  "4" -> nil_8 [label=" L"];
+  nil_9 [shape=point];
+  "4" -> nil_9 [label=" R"];
+  "2" -> "5" [label=" R"];
+  "5" [label="E", style="filled,bold", fillcolor=black, fontcolor=white];
+  nil_10 [shape=point];
+  "5" -> nil_10 [label=" L"];
+  nil_11 [shape=point];
+  "5" -> nil_11 [label=" R"];
+  "1" -> "3" [label=" R"];
+  "3" [label="C", style="filled,bold", fillcolor=black, fontcolor=white];
+  "3" -> "6" [label=" L"];
+  "6" [label="F", style="filled,bold", fillcolor=black, fontcolor=white];
+  nil_12 [shape=point];
+  "6" -> nil_12 [label=" L"];
+  nil_13 [shape=point];
+  "6" -> nil_13 [label=" R"];
+  "3" -> "7" [label=" R"];
+  "7" [label="G", style="filled,bold", fillcolor=black, fontcolor=white];
+  nil_14 [shape=point];
+  "7" -> nil_14 [label=" L"];
+  nil_15 [shape=point];
+  "7" -> nil_15 [label=" R"];
+}
+
+---Deleting "A"
+digraph RBTree {
+  rankdir=LR;
+  node [shape=circle, fontcolor=white, fontsize=10];
+  "1" [label="F", style="filled,bold", fillcolor=black, fontcolor=white];
+  "1" -> "2" [label=" L"];
+  "2" [label="B", style="filled,bold", fillcolor=red, fontcolor=white];
+  "2" -> "4" [label=" L"];
+  "4" [label="D", style="filled,bold", fillcolor=black, fontcolor=white];
+  nil_8 [shape=point];
+  "4" -> nil_8 [label=" L"];
+  nil_9 [shape=point];
+  "4" -> nil_9 [label=" R"];
+  "2" -> "5" [label=" R"];
+  "5" [label="E", style="filled,bold", fillcolor=black, fontcolor=white];
+  nil_10 [shape=point];
+  "5" -> nil_10 [label=" L"];
+  nil_11 [shape=point];
+  "5" -> nil_11 [label=" R"];
+  "1" -> "3" [label=" R"];
+  "3" [label="C", style="filled,bold", fillcolor=black, fontcolor=white];
+  nil_6 [shape=point];
+  "3" -> nil_6 [label=" L"];
+  "3" -> "7" [label=" R"];
+  "7" [label="G", style="filled,bold", fillcolor=red, fontcolor=white];
+  nil_14 [shape=point];
+  "7" -> nil_14 [label=" L"];
+  nil_15 [shape=point];
+  "7" -> nil_15 [label=" R"];
+}
+
+===
+
+=== Original: 0x1569
+digraph RBTree {
+  rankdir=LR;
+  node [shape=circle, fontcolor=white, fontsize=10];
+  "1" [label="A", style="filled,bold", fillcolor=black, fontcolor=white];
+  "1" -> "2" [label=" L"];
+  "2" [label="B", style="filled,bold", fillcolor=red, fontcolor=white];
+  "2" -> "4" [label=" L"];
+  "4" [label="D", style="filled,bold", fillcolor=black, fontcolor=white];
+  nil_8 [shape=point];
+  "4" -> nil_8 [label=" L"];
+  nil_9 [shape=point];
+  "4" -> nil_9 [label=" R"];
+  "2" -> "5" [label=" R"];
+  "5" [label="E", style="filled,bold", fillcolor=black, fontcolor=white];
+  nil_10 [shape=point];
+  "5" -> nil_10 [label=" L"];
+  nil_11 [shape=point];
+  "5" -> nil_11 [label=" R"];
+  "1" -> "3" [label=" R"];
+  "3" [label="C", style="filled,bold", fillcolor=red, fontcolor=white];
+  "3" -> "6" [label=" L"];
+  "6" [label="F", style="filled,bold", fillcolor=black, fontcolor=white];
+  nil_12 [shape=point];
+  "6" -> nil_12 [label=" L"];
+  nil_13 [shape=point];
+  "6" -> nil_13 [label=" R"];
+  "3" -> "7" [label=" R"];
+  "7" [label="G", style="filled,bold", fillcolor=black, fontcolor=white];
+  nil_14 [shape=point];
+  "7" -> nil_14 [label=" L"];
+  nil_15 [shape=point];
+  "7" -> nil_15 [label=" R"];
+}
+
+---Deleting "A"
+digraph RBTree {
+  rankdir=LR;
+  node [shape=circle, fontcolor=white, fontsize=10];
+  "1" [label="F", style="filled,bold", fillcolor=black, fontcolor=white];
+  "1" -> "2" [label=" L"];
+  "2" [label="B", style="filled,bold", fillcolor=red, fontcolor=white];
+  "2" -> "4" [label=" L"];
+  "4" [label="D", style="filled,bold", fillcolor=black, fontcolor=white];
+  nil_8 [shape=point];
+  "4" -> nil_8 [label=" L"];
+  nil_9 [shape=point];
+  "4" -> nil_9 [label=" R"];
+  "2" -> "5" [label=" R"];
+  "5" [label="E", style="filled,bold", fillcolor=black, fontcolor=white];
+  nil_10 [shape=point];
+  "5" -> nil_10 [label=" L"];
+  nil_11 [shape=point];
+  "5" -> nil_11 [label=" R"];
+  "1" -> "3" [label=" R"];
+  "3" [label="C", style="filled,bold", fillcolor=black, fontcolor=white];
+  nil_6 [shape=point];
+  "3" -> nil_6 [label=" L"];
+  "3" -> "7" [label=" R"];
+  "7" [label="G", style="filled,bold", fillcolor=red, fontcolor=white];
+  nil_14 [shape=point];
+  "7" -> nil_14 [label=" L"];
+  nil_15 [shape=point];
+  "7" -> nil_15 [label=" R"];
+}
+
+===
+
+=== Original: 0x1625
+digraph RBTree {
+  rankdir=LR;
+  node [shape=circle, fontcolor=white, fontsize=10];
+  "1" [label="A", style="filled,bold", fillcolor=black, fontcolor=white];
+  "1" -> "2" [label=" L"];
+  "2" [label="B", style="filled,bold", fillcolor=black, fontcolor=white];
+  nil_4 [shape=point];
+  "2" -> nil_4 [label=" L"];
+  "2" -> "5" [label=" R"];
+  "5" [label="E", style="filled,bold", fillcolor=red, fontcolor=white];
+  nil_10 [shape=point];
+  "5" -> nil_10 [label=" L"];
+  nil_11 [shape=point];
+  "5" -> nil_11 [label=" R"];
+  "1" -> "3" [label=" R"];
+  "3" [label="C", style="filled,bold", fillcolor=red, fontcolor=white];
+  "3" -> "6" [label=" L"];
+  "6" [label="F", style="filled,bold", fillcolor=black, fontcolor=white];
+  nil_12 [shape=point];
+  "6" -> nil_12 [label=" L"];
+  nil_13 [shape=point];
+  "6" -> nil_13 [label=" R"];
+  "3" -> "7" [label=" R"];
+  "7" [label="G", style="filled,bold", fillcolor=black, fontcolor=white];
+  nil_14 [shape=point];
+  "7" -> nil_14 [label=" L"];
+  nil_15 [shape=point];
+  "7" -> nil_15 [label=" R"];
+}
+
+---Deleting "A"
+digraph RBTree {
+  rankdir=LR;
+  node [shape=circle, fontcolor=white, fontsize=10];
+  "1" [label="F", style="filled,bold", fillcolor=black, fontcolor=white];
+  "1" -> "2" [label=" L"];
+  "2" [label="B", style="filled,bold", fillcolor=black, fontcolor=white];
+  nil_4 [shape=point];
+  "2" -> nil_4 [label=" L"];
+  "2" -> "5" [label=" R"];
+  "5" [label="E", style="filled,bold", fillcolor=red, fontcolor=white];
+  nil_10 [shape=point];
+  "5" -> nil_10 [label=" L"];
+  nil_11 [shape=point];
+  "5" -> nil_11 [label=" R"];
+  "1" -> "3" [label=" R"];
+  "3" [label="C", style="filled,bold", fillcolor=black, fontcolor=white];
+  nil_6 [shape=point];
+  "3" -> nil_6 [label=" L"];
+  "3" -> "7" [label=" R"];
+  "7" [label="G", style="filled,bold", fillcolor=red, fontcolor=white];
+  nil_14 [shape=point];
+  "7" -> nil_14 [label=" L"];
+  nil_15 [shape=point];
+  "7" -> nil_15 [label=" R"];
+}
+
+===
+
+=== Original: 0x16a5
+digraph RBTree {
+  rankdir=LR;
+  node [shape=circle, fontcolor=white, fontsize=10];
+  "1" [label="A", style="filled,bold", fillcolor=black, fontcolor=white];
+  "1" -> "2" [label=" L"];
+  "2" [label="B", style="filled,bold", fillcolor=black, fontcolor=white];
+  "2" -> "4" [label=" L"];
+  "4" [label="D", style="filled,bold", fillcolor=red, fontcolor=white];
+  nil_8 [shape=point];
+  "4" -> nil_8 [label=" L"];
+  nil_9 [shape=point];
+  "4" -> nil_9 [label=" R"];
+  "2" -> "5" [label=" R"];
+  "5" [label="E", style="filled,bold", fillcolor=red, fontcolor=white];
+  nil_10 [shape=point];
+  "5" -> nil_10 [label=" L"];
+  nil_11 [shape=point];
+  "5" -> nil_11 [label=" R"];
+  "1" -> "3" [label=" R"];
+  "3" [label="C", style="filled,bold", fillcolor=red, fontcolor=white];
+  "3" -> "6" [label=" L"];
+  "6" [label="F", style="filled,bold", fillcolor=black, fontcolor=white];
+  nil_12 [shape=point];
+  "6" -> nil_12 [label=" L"];
+  nil_13 [shape=point];
+  "6" -> nil_13 [label=" R"];
+  "3" -> "7" [label=" R"];
+  "7" [label="G", style="filled,bold", fillcolor=black, fontcolor=white];
+  nil_14 [shape=point];
+  "7" -> nil_14 [label=" L"];
+  nil_15 [shape=point];
+  "7" -> nil_15 [label=" R"];
+}
+
+---Deleting "A"
+digraph RBTree {
+  rankdir=LR;
+  node [shape=circle, fontcolor=white, fontsize=10];
+  "1" [label="F", style="filled,bold", fillcolor=black, fontcolor=white];
+  "1" -> "2" [label=" L"];
+  "2" [label="B", style="filled,bold", fillcolor=black, fontcolor=white];
+  "2" -> "4" [label=" L"];
+  "4" [label="D", style="filled,bold", fillcolor=red, fontcolor=white];
+  nil_8 [shape=point];
+  "4" -> nil_8 [label=" L"];
+  nil_9 [shape=point];
+  "4" -> nil_9 [label=" R"];
+  "2" -> "5" [label=" R"];
+  "5" [label="E", style="filled,bold", fillcolor=red, fontcolor=white];
+  nil_10 [shape=point];
+  "5" -> nil_10 [label=" L"];
+  nil_11 [shape=point];
+  "5" -> nil_11 [label=" R"];
+  "1" -> "3" [label=" R"];
+  "3" [label="C", style="filled,bold", fillcolor=black, fontcolor=white];
+  nil_6 [shape=point];
+  "3" -> nil_6 [label=" L"];
+  "3" -> "7" [label=" R"];
+  "7" [label="G", style="filled,bold", fillcolor=red, fontcolor=white];
+  nil_14 [shape=point];
+  "7" -> nil_14 [label=" L"];
+  nil_15 [shape=point];
+  "7" -> nil_15 [label=" R"];
+}
+
+===
+
+=== Original: 0x2015
+digraph RBTree {
+  rankdir=LR;
+  node [shape=circle, fontcolor=white, fontsize=10];
+  "1" [label="A", style="filled,bold", fillcolor=black, fontcolor=white];
+  "1" -> "2" [label=" L"];
+  "2" [label="B", style="filled,bold", fillcolor=black, fontcolor=white];
+  nil_4 [shape=point];
+  "2" -> nil_4 [label=" L"];
+  nil_5 [shape=point];
+  "2" -> nil_5 [label=" R"];
+  "1" -> "3" [label=" R"];
+  "3" [label="C", style="filled,bold", fillcolor=black, fontcolor=white];
+  nil_6 [shape=point];
+  "3" -> nil_6 [label=" L"];
+  "3" -> "7" [label=" R"];
+  "7" [label="G", style="filled,bold", fillcolor=red, fontcolor=white];
+  nil_14 [shape=point];
+  "7" -> nil_14 [label=" L"];
+  nil_15 [shape=point];
+  "7" -> nil_15 [label=" R"];
+}
+
+---Deleting "A"
+digraph RBTree {
+  rankdir=LR;
+  node [shape=circle, fontcolor=white, fontsize=10];
+  "1" [label="C", style="filled,bold", fillcolor=black, fontcolor=white];
+  "1" -> "2" [label=" L"];
+  "2" [label="B", style="filled,bold", fillcolor=black, fontcolor=white];
+  nil_4 [shape=point];
+  "2" -> nil_4 [label=" L"];
+  nil_5 [shape=point];
+  "2" -> nil_5 [label=" R"];
+  "1" -> "3" [label=" R"];
+  "3" [label="G", style="filled,bold", fillcolor=black, fontcolor=white];
+  nil_6 [shape=point];
+  "3" -> nil_6 [label=" L"];
+  nil_7 [shape=point];
+  "3" -> nil_7 [label=" R"];
+}
+
+===
+
+=== Original: 0x2095
+digraph RBTree {
+  rankdir=LR;
+  node [shape=circle, fontcolor=white, fontsize=10];
+  "1" [label="A", style="filled,bold", fillcolor=black, fontcolor=white];
+  "1" -> "2" [label=" L"];
+  "2" [label="B", style="filled,bold", fillcolor=black, fontcolor=white];
+  "2" -> "4" [label=" L"];
+  "4" [label="D", style="filled,bold", fillcolor=red, fontcolor=white];
+  nil_8 [shape=point];
+  "4" -> nil_8 [label=" L"];
+  nil_9 [shape=point];
+  "4" -> nil_9 [label=" R"];
+  nil_5 [shape=point];
+  "2" -> nil_5 [label=" R"];
+  "1" -> "3" [label=" R"];
+  "3" [label="C", style="filled,bold", fillcolor=black, fontcolor=white];
+  nil_6 [shape=point];
+  "3" -> nil_6 [label=" L"];
+  "3" -> "7" [label=" R"];
+  "7" [label="G", style="filled,bold", fillcolor=red, fontcolor=white];
+  nil_14 [shape=point];
+  "7" -> nil_14 [label=" L"];
+  nil_15 [shape=point];
+  "7" -> nil_15 [label=" R"];
+}
+
+---Deleting "A"
+digraph RBTree {
+  rankdir=LR;
+  node [shape=circle, fontcolor=white, fontsize=10];
+  "1" [label="C", style="filled,bold", fillcolor=black, fontcolor=white];
+  "1" -> "2" [label=" L"];
+  "2" [label="B", style="filled,bold", fillcolor=black, fontcolor=white];
+  "2" -> "4" [label=" L"];
+  "4" [label="D", style="filled,bold", fillcolor=red, fontcolor=white];
+  nil_8 [shape=point];
+  "4" -> nil_8 [label=" L"];
+  nil_9 [shape=point];
+  "4" -> nil_9 [label=" R"];
+  nil_5 [shape=point];
+  "2" -> nil_5 [label=" R"];
+  "1" -> "3" [label=" R"];
+  "3" [label="G", style="filled,bold", fillcolor=black, fontcolor=white];
+  nil_6 [shape=point];
+  "3" -> nil_6 [label=" L"];
+  nil_7 [shape=point];
+  "3" -> nil_7 [label=" R"];
+}
+
+===
+
+=== Original: 0x2159
+digraph RBTree {
+  rankdir=LR;
+  node [shape=circle, fontcolor=white, fontsize=10];
+  "1" [label="A", style="filled,bold", fillcolor=black, fontcolor=white];
+  "1" -> "2" [label=" L"];
+  "2" [label="B", style="filled,bold", fillcolor=red, fontcolor=white];
+  "2" -> "4" [label=" L"];
+  "4" [label="D", style="filled,bold", fillcolor=black, fontcolor=white];
+  nil_8 [shape=point];
+  "4" -> nil_8 [label=" L"];
+  nil_9 [shape=point];
+  "4" -> nil_9 [label=" R"];
+  "2" -> "5" [label=" R"];
+  "5" [label="E", style="filled,bold", fillcolor=black, fontcolor=white];
+  nil_10 [shape=point];
+  "5" -> nil_10 [label=" L"];
+  nil_11 [shape=point];
+  "5" -> nil_11 [label=" R"];
+  "1" -> "3" [label=" R"];
+  "3" [label="C", style="filled,bold", fillcolor=black, fontcolor=white];
+  nil_6 [shape=point];
+  "3" -> nil_6 [label=" L"];
+  "3" -> "7" [label=" R"];
+  "7" [label="G", style="filled,bold", fillcolor=red, fontcolor=white];
+  nil_14 [shape=point];
+  "7" -> nil_14 [label=" L"];
+  nil_15 [shape=point];
+  "7" -> nil_15 [label=" R"];
+}
+
+---Deleting "A"
+digraph RBTree {
+  rankdir=LR;
+  node [shape=circle, fontcolor=white, fontsize=10];
+  "1" [label="C", style="filled,bold", fillcolor=black, fontcolor=white];
+  "1" -> "2" [label=" L"];
+  "2" [label="B", style="filled,bold", fillcolor=red, fontcolor=white];
+  "2" -> "4" [label=" L"];
+  "4" [label="D", style="filled,bold", fillcolor=black, fontcolor=white];
+  nil_8 [shape=point];
+  "4" -> nil_8 [label=" L"];
+  nil_9 [shape=point];
+  "4" -> nil_9 [label=" R"];
+  "2" -> "5" [label=" R"];
+  "5" [label="E", style="filled,bold", fillcolor=black, fontcolor=white];
+  nil_10 [shape=point];
+  "5" -> nil_10 [label=" L"];
+  nil_11 [shape=point];
+  "5" -> nil_11 [label=" R"];
+  "1" -> "3" [label=" R"];
+  "3" [label="G", style="filled,bold", fillcolor=black, fontcolor=white];
+  nil_6 [shape=point];
+  "3" -> nil_6 [label=" L"];
+  nil_7 [shape=point];
+  "3" -> nil_7 [label=" R"];
+}
+
+===
+
+=== Original: 0x2215
+digraph RBTree {
+  rankdir=LR;
+  node [shape=circle, fontcolor=white, fontsize=10];
+  "1" [label="A", style="filled,bold", fillcolor=black, fontcolor=white];
+  "1" -> "2" [label=" L"];
+  "2" [label="B", style="filled,bold", fillcolor=black, fontcolor=white];
+  nil_4 [shape=point];
+  "2" -> nil_4 [label=" L"];
+  "2" -> "5" [label=" R"];
+  "5" [label="E", style="filled,bold", fillcolor=red, fontcolor=white];
+  nil_10 [shape=point];
+  "5" -> nil_10 [label=" L"];
+  nil_11 [shape=point];
+  "5" -> nil_11 [label=" R"];
+  "1" -> "3" [label=" R"];
+  "3" [label="C", style="filled,bold", fillcolor=black, fontcolor=white];
+  nil_6 [shape=point];
+  "3" -> nil_6 [label=" L"];
+  "3" -> "7" [label=" R"];
+  "7" [label="G", style="filled,bold", fillcolor=red, fontcolor=white];
+  nil_14 [shape=point];
+  "7" -> nil_14 [label=" L"];
+  nil_15 [shape=point];
+  "7" -> nil_15 [label=" R"];
+}
+
+---Deleting "A"
+digraph RBTree {
+  rankdir=LR;
+  node [shape=circle, fontcolor=white, fontsize=10];
+  "1" [label="C", style="filled,bold", fillcolor=black, fontcolor=white];
+  "1" -> "2" [label=" L"];
+  "2" [label="B", style="filled,bold", fillcolor=black, fontcolor=white];
+  nil_4 [shape=point];
+  "2" -> nil_4 [label=" L"];
+  "2" -> "5" [label=" R"];
+  "5" [label="E", style="filled,bold", fillcolor=red, fontcolor=white];
+  nil_10 [shape=point];
+  "5" -> nil_10 [label=" L"];
+  nil_11 [shape=point];
+  "5" -> nil_11 [label=" R"];
+  "1" -> "3" [label=" R"];
+  "3" [label="G", style="filled,bold", fillcolor=black, fontcolor=white];
+  nil_6 [shape=point];
+  "3" -> nil_6 [label=" L"];
+  nil_7 [shape=point];
+  "3" -> nil_7 [label=" R"];
+}
+
+===
+
+=== Original: 0x2295
+digraph RBTree {
+  rankdir=LR;
+  node [shape=circle, fontcolor=white, fontsize=10];
+  "1" [label="A", style="filled,bold", fillcolor=black, fontcolor=white];
+  "1" -> "2" [label=" L"];
+  "2" [label="B", style="filled,bold", fillcolor=black, fontcolor=white];
+  "2" -> "4" [label=" L"];
+  "4" [label="D", style="filled,bold", fillcolor=red, fontcolor=white];
+  nil_8 [shape=point];
+  "4" -> nil_8 [label=" L"];
+  nil_9 [shape=point];
+  "4" -> nil_9 [label=" R"];
+  "2" -> "5" [label=" R"];
+  "5" [label="E", style="filled,bold", fillcolor=red, fontcolor=white];
+  nil_10 [shape=point];
+  "5" -> nil_10 [label=" L"];
+  nil_11 [shape=point];
+  "5" -> nil_11 [label=" R"];
+  "1" -> "3" [label=" R"];
+  "3" [label="C", style="filled,bold", fillcolor=black, fontcolor=white];
+  nil_6 [shape=point];
+  "3" -> nil_6 [label=" L"];
+  "3" -> "7" [label=" R"];
+  "7" [label="G", style="filled,bold", fillcolor=red, fontcolor=white];
+  nil_14 [shape=point];
+  "7" -> nil_14 [label=" L"];
+  nil_15 [shape=point];
+  "7" -> nil_15 [label=" R"];
+}
+
+---Deleting "A"
+digraph RBTree {
+  rankdir=LR;
+  node [shape=circle, fontcolor=white, fontsize=10];
+  "1" [label="C", style="filled,bold", fillcolor=black, fontcolor=white];
+  "1" -> "2" [label=" L"];
+  "2" [label="B", style="filled,bold", fillcolor=black, fontcolor=white];
+  "2" -> "4" [label=" L"];
+  "4" [label="D", style="filled,bold", fillcolor=red, fontcolor=white];
+  nil_8 [shape=point];
+  "4" -> nil_8 [label=" L"];
+  nil_9 [shape=point];
+  "4" -> nil_9 [label=" R"];
+  "2" -> "5" [label=" R"];
+  "5" [label="E", style="filled,bold", fillcolor=red, fontcolor=white];
+  nil_10 [shape=point];
+  "5" -> nil_10 [label=" L"];
+  nil_11 [shape=point];
+  "5" -> nil_11 [label=" R"];
+  "1" -> "3" [label=" R"];
+  "3" [label="G", style="filled,bold", fillcolor=black, fontcolor=white];
+  nil_6 [shape=point];
+  "3" -> nil_6 [label=" L"];
+  nil_7 [shape=point];
+  "3" -> nil_7 [label=" R"];
+}
+
+===
+
+=== Original: 0x2815
+digraph RBTree {
+  rankdir=LR;
+  node [shape=circle, fontcolor=white, fontsize=10];
+  "1" [label="A", style="filled,bold", fillcolor=black, fontcolor=white];
+  "1" -> "2" [label=" L"];
+  "2" [label="B", style="filled,bold", fillcolor=black, fontcolor=white];
+  nil_4 [shape=point];
+  "2" -> nil_4 [label=" L"];
+  nil_5 [shape=point];
+  "2" -> nil_5 [label=" R"];
+  "1" -> "3" [label=" R"];
+  "3" [label="C", style="filled,bold", fillcolor=black, fontcolor=white];
+  "3" -> "6" [label=" L"];
+  "6" [label="F", style="filled,bold", fillcolor=red, fontcolor=white];
+  nil_12 [shape=point];
+  "6" -> nil_12 [label=" L"];
+  nil_13 [shape=point];
+  "6" -> nil_13 [label=" R"];
+  "3" -> "7" [label=" R"];
+  "7" [label="G", style="filled,bold", fillcolor=red, fontcolor=white];
+  nil_14 [shape=point];
+  "7" -> nil_14 [label=" L"];
+  nil_15 [shape=point];
+  "7" -> nil_15 [label=" R"];
+}
+
+---Deleting "A"
+digraph RBTree {
+  rankdir=LR;
+  node [shape=circle, fontcolor=white, fontsize=10];
+  "1" [label="F", style="filled,bold", fillcolor=black, fontcolor=white];
+  "1" -> "2" [label=" L"];
+  "2" [label="B", style="filled,bold", fillcolor=black, fontcolor=white];
+  nil_4 [shape=point];
+  "2" -> nil_4 [label=" L"];
+  nil_5 [shape=point];
+  "2" -> nil_5 [label=" R"];
+  "1" -> "3" [label=" R"];
+  "3" [label="C", style="filled,bold", fillcolor=black, fontcolor=white];
+  nil_6 [shape=point];
+  "3" -> nil_6 [label=" L"];
+  "3" -> "7" [label=" R"];
+  "7" [label="G", style="filled,bold", fillcolor=red, fontcolor=white];
+  nil_14 [shape=point];
+  "7" -> nil_14 [label=" L"];
+  nil_15 [shape=point];
+  "7" -> nil_15 [label=" R"];
+}
+
+===
+
+=== Original: 0x2895
+digraph RBTree {
+  rankdir=LR;
+  node [shape=circle, fontcolor=white, fontsize=10];
+  "1" [label="A", style="filled,bold", fillcolor=black, fontcolor=white];
+  "1" -> "2" [label=" L"];
+  "2" [label="B", style="filled,bold", fillcolor=black, fontcolor=white];
+  "2" -> "4" [label=" L"];
+  "4" [label="D", style="filled,bold", fillcolor=red, fontcolor=white];
+  nil_8 [shape=point];
+  "4" -> nil_8 [label=" L"];
+  nil_9 [shape=point];
+  "4" -> nil_9 [label=" R"];
+  nil_5 [shape=point];
+  "2" -> nil_5 [label=" R"];
+  "1" -> "3" [label=" R"];
+  "3" [label="C", style="filled,bold", fillcolor=black, fontcolor=white];
+  "3" -> "6" [label=" L"];
+  "6" [label="F", style="filled,bold", fillcolor=red, fontcolor=white];
+  nil_12 [shape=point];
+  "6" -> nil_12 [label=" L"];
+  nil_13 [shape=point];
+  "6" -> nil_13 [label=" R"];
+  "3" -> "7" [label=" R"];
+  "7" [label="G", style="filled,bold", fillcolor=red, fontcolor=white];
+  nil_14 [shape=point];
+  "7" -> nil_14 [label=" L"];
+  nil_15 [shape=point];
+  "7" -> nil_15 [label=" R"];
+}
+
+---Deleting "A"
+digraph RBTree {
+  rankdir=LR;
+  node [shape=circle, fontcolor=white, fontsize=10];
+  "1" [label="F", style="filled,bold", fillcolor=black, fontcolor=white];
+  "1" -> "2" [label=" L"];
+  "2" [label="B", style="filled,bold", fillcolor=black, fontcolor=white];
+  "2" -> "4" [label=" L"];
+  "4" [label="D", style="filled,bold", fillcolor=red, fontcolor=white];
+  nil_8 [shape=point];
+  "4" -> nil_8 [label=" L"];
+  nil_9 [shape=point];
+  "4" -> nil_9 [label=" R"];
+  nil_5 [shape=point];
+  "2" -> nil_5 [label=" R"];
+  "1" -> "3" [label=" R"];
+  "3" [label="C", style="filled,bold", fillcolor=black, fontcolor=white];
+  nil_6 [shape=point];
+  "3" -> nil_6 [label=" L"];
+  "3" -> "7" [label=" R"];
+  "7" [label="G", style="filled,bold", fillcolor=red, fontcolor=white];
+  nil_14 [shape=point];
+  "7" -> nil_14 [label=" L"];
+  nil_15 [shape=point];
+  "7" -> nil_15 [label=" R"];
+}
+
+===
+
+=== Original: 0x2959
+digraph RBTree {
+  rankdir=LR;
+  node [shape=circle, fontcolor=white, fontsize=10];
+  "1" [label="A", style="filled,bold", fillcolor=black, fontcolor=white];
+  "1" -> "2" [label=" L"];
+  "2" [label="B", style="filled,bold", fillcolor=red, fontcolor=white];
+  "2" -> "4" [label=" L"];
+  "4" [label="D", style="filled,bold", fillcolor=black, fontcolor=white];
+  nil_8 [shape=point];
+  "4" -> nil_8 [label=" L"];
+  nil_9 [shape=point];
+  "4" -> nil_9 [label=" R"];
+  "2" -> "5" [label=" R"];
+  "5" [label="E", style="filled,bold", fillcolor=black, fontcolor=white];
+  nil_10 [shape=point];
+  "5" -> nil_10 [label=" L"];
+  nil_11 [shape=point];
+  "5" -> nil_11 [label=" R"];
+  "1" -> "3" [label=" R"];
+  "3" [label="C", style="filled,bold", fillcolor=black, fontcolor=white];
+  "3" -> "6" [label=" L"];
+  "6" [label="F", style="filled,bold", fillcolor=red, fontcolor=white];
+  nil_12 [shape=point];
+  "6" -> nil_12 [label=" L"];
+  nil_13 [shape=point];
+  "6" -> nil_13 [label=" R"];
+  "3" -> "7" [label=" R"];
+  "7" [label="G", style="filled,bold", fillcolor=red, fontcolor=white];
+  nil_14 [shape=point];
+  "7" -> nil_14 [label=" L"];
+  nil_15 [shape=point];
+  "7" -> nil_15 [label=" R"];
+}
+
+---Deleting "A"
+digraph RBTree {
+  rankdir=LR;
+  node [shape=circle, fontcolor=white, fontsize=10];
+  "1" [label="F", style="filled,bold", fillcolor=black, fontcolor=white];
+  "1" -> "2" [label=" L"];
+  "2" [label="B", style="filled,bold", fillcolor=red, fontcolor=white];
+  "2" -> "4" [label=" L"];
+  "4" [label="D", style="filled,bold", fillcolor=black, fontcolor=white];
+  nil_8 [shape=point];
+  "4" -> nil_8 [label=" L"];
+  nil_9 [shape=point];
+  "4" -> nil_9 [label=" R"];
+  "2" -> "5" [label=" R"];
+  "5" [label="E", style="filled,bold", fillcolor=black, fontcolor=white];
+  nil_10 [shape=point];
+  "5" -> nil_10 [label=" L"];
+  nil_11 [shape=point];
+  "5" -> nil_11 [label=" R"];
+  "1" -> "3" [label=" R"];
+  "3" [label="C", style="filled,bold", fillcolor=black, fontcolor=white];
+  nil_6 [shape=point];
+  "3" -> nil_6 [label=" L"];
+  "3" -> "7" [label=" R"];
+  "7" [label="G", style="filled,bold", fillcolor=red, fontcolor=white];
+  nil_14 [shape=point];
+  "7" -> nil_14 [label=" L"];
+  nil_15 [shape=point];
+  "7" -> nil_15 [label=" R"];
+}
+
+===
+
+=== Original: 0x2a15
+digraph RBTree {
+  rankdir=LR;
+  node [shape=circle, fontcolor=white, fontsize=10];
+  "1" [label="A", style="filled,bold", fillcolor=black, fontcolor=white];
+  "1" -> "2" [label=" L"];
+  "2" [label="B", style="filled,bold", fillcolor=black, fontcolor=white];
+  nil_4 [shape=point];
+  "2" -> nil_4 [label=" L"];
+  "2" -> "5" [label=" R"];
+  "5" [label="E", style="filled,bold", fillcolor=red, fontcolor=white];
+  nil_10 [shape=point];
+  "5" -> nil_10 [label=" L"];
+  nil_11 [shape=point];
+  "5" -> nil_11 [label=" R"];
+  "1" -> "3" [label=" R"];
+  "3" [label="C", style="filled,bold", fillcolor=black, fontcolor=white];
+  "3" -> "6" [label=" L"];
+  "6" [label="F", style="filled,bold", fillcolor=red, fontcolor=white];
+  nil_12 [shape=point];
+  "6" -> nil_12 [label=" L"];
+  nil_13 [shape=point];
+  "6" -> nil_13 [label=" R"];
+  "3" -> "7" [label=" R"];
+  "7" [label="G", style="filled,bold", fillcolor=red, fontcolor=white];
+  nil_14 [shape=point];
+  "7" -> nil_14 [label=" L"];
+  nil_15 [shape=point];
+  "7" -> nil_15 [label=" R"];
+}
+
+---Deleting "A"
+digraph RBTree {
+  rankdir=LR;
+  node [shape=circle, fontcolor=white, fontsize=10];
+  "1" [label="F", style="filled,bold", fillcolor=black, fontcolor=white];
+  "1" -> "2" [label=" L"];
+  "2" [label="B", style="filled,bold", fillcolor=black, fontcolor=white];
+  nil_4 [shape=point];
+  "2" -> nil_4 [label=" L"];
+  "2" -> "5" [label=" R"];
+  "5" [label="E", style="filled,bold", fillcolor=red, fontcolor=white];
+  nil_10 [shape=point];
+  "5" -> nil_10 [label=" L"];
+  nil_11 [shape=point];
+  "5" -> nil_11 [label=" R"];
+  "1" -> "3" [label=" R"];
+  "3" [label="C", style="filled,bold", fillcolor=black, fontcolor=white];
+  nil_6 [shape=point];
+  "3" -> nil_6 [label=" L"];
+  "3" -> "7" [label=" R"];
+  "7" [label="G", style="filled,bold", fillcolor=red, fontcolor=white];
+  nil_14 [shape=point];
+  "7" -> nil_14 [label=" L"];
+  nil_15 [shape=point];
+  "7" -> nil_15 [label=" R"];
+}
+
+===
+
+=== Original: 0x2a95
+digraph RBTree {
+  rankdir=LR;
+  node [shape=circle, fontcolor=white, fontsize=10];
+  "1" [label="A", style="filled,bold", fillcolor=black, fontcolor=white];
+  "1" -> "2" [label=" L"];
+  "2" [label="B", style="filled,bold", fillcolor=black, fontcolor=white];
+  "2" -> "4" [label=" L"];
+  "4" [label="D", style="filled,bold", fillcolor=red, fontcolor=white];
+  nil_8 [shape=point];
+  "4" -> nil_8 [label=" L"];
+  nil_9 [shape=point];
+  "4" -> nil_9 [label=" R"];
+  "2" -> "5" [label=" R"];
+  "5" [label="E", style="filled,bold", fillcolor=red, fontcolor=white];
+  nil_10 [shape=point];
+  "5" -> nil_10 [label=" L"];
+  nil_11 [shape=point];
+  "5" -> nil_11 [label=" R"];
+  "1" -> "3" [label=" R"];
+  "3" [label="C", style="filled,bold", fillcolor=black, fontcolor=white];
+  "3" -> "6" [label=" L"];
+  "6" [label="F", style="filled,bold", fillcolor=red, fontcolor=white];
+  nil_12 [shape=point];
+  "6" -> nil_12 [label=" L"];
+  nil_13 [shape=point];
+  "6" -> nil_13 [label=" R"];
+  "3" -> "7" [label=" R"];
+  "7" [label="G", style="filled,bold", fillcolor=red, fontcolor=white];
+  nil_14 [shape=point];
+  "7" -> nil_14 [label=" L"];
+  nil_15 [shape=point];
+  "7" -> nil_15 [label=" R"];
+}
+
+---Deleting "A"
+digraph RBTree {
+  rankdir=LR;
+  node [shape=circle, fontcolor=white, fontsize=10];
+  "1" [label="F", style="filled,bold", fillcolor=black, fontcolor=white];
+  "1" -> "2" [label=" L"];
+  "2" [label="B", style="filled,bold", fillcolor=black, fontcolor=white];
+  "2" -> "4" [label=" L"];
+  "4" [label="D", style="filled,bold", fillcolor=red, fontcolor=white];
+  nil_8 [shape=point];
+  "4" -> nil_8 [label=" L"];
+  nil_9 [shape=point];
+  "4" -> nil_9 [label=" R"];
+  "2" -> "5" [label=" R"];
+  "5" [label="E", style="filled,bold", fillcolor=red, fontcolor=white];
+  nil_10 [shape=point];
+  "5" -> nil_10 [label=" L"];
+  nil_11 [shape=point];
+  "5" -> nil_11 [label=" R"];
+  "1" -> "3" [label=" R"];
+  "3" [label="C", style="filled,bold", fillcolor=black, fontcolor=white];
+  nil_6 [shape=point];
+  "3" -> nil_6 [label=" L"];
+  "3" -> "7" [label=" R"];
+  "7" [label="G", style="filled,bold", fillcolor=red, fontcolor=white];
+  nil_14 [shape=point];
+  "7" -> nil_14 [label=" L"];
+  nil_15 [shape=point];
+  "7" -> nil_15 [label=" R"];
+}
+
+===
+

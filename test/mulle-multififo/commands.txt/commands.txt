@@ -1,0 +1,16 @@
+target remote | vgdb
+b main
+c
+n
+n
+p fifo
+watch -l (int64_t [2]) *&fifo
+watch -l (int64_t [32]) *&*fifo->storage
+set logging enabled on
+print "------2------"
+commands 2
+print "------3------"
+commands 3
+print "------c------"
+c
+monitor v.kill

@@ -1,0 +1,18 @@
+fnv1a_32("")       : 0x811c9dc5
+fnv1a_32("a")      : 0xe40c292c
+fnv1a_32("foobar") : 0xbf9cf968
+fnv1a_64("")       : 0xcbf29ce484222325
+fnv1a_64("a")      : 0xaf63dc4c8601ec8c
+fnv1a_64("foobar") : 0x85944171f73967e8
+xxh32("")          : 0x02cc5d05
+xxh32("a")         : 0x550d7456
+xxh32("foobar")    : 0xeda34aaf
+xxh64("")          : 0xef46db3751d8e999
+xxh64("a")         : 0xd24ec4f1a98c6e5b
+xxh64("foobar")    : 0xa2aa05ed9085aaf9
+chained==oneshot   : 1
+add/final==oneshot : 1
+hash(NULL)==hash("") : 1
+int==ll(1848)      : 1
+int==ll(0)         : 1
+int==ll(UINT32_MAX): 1

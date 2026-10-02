@@ -1,0 +1,12 @@
+mulle_dtostr -> mulle_strtod bit exactness
+==========================================
+
+zero and subnormals           140002 tested       0 failed
+binade boundaries              14322 tested       0 failed
+powers of ten                   1266 tested       0 failed
+integers and fractions          6000 tested       0 failed
+random bit patterns           399824 tested       0 failed
+
+TOTAL                         561414 tested       0 failed
+
+every printed double parsed back to the same bits

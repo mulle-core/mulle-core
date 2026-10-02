@@ -1,0 +1,134 @@
+ok   self path: found
+ok   self path: names this program
+ok   echo: run returns 0
+ok   echo: exited
+ok   echo: exit code 0
+ok   echo: captured stdout
+     echo: status=2 exit=0 signal=0 length=6 output=<hello
+>
+ok   timeout: run returns 0
+ok   timeout: terminated
+ok   timeout: the deadline is enforced
+ok   timeout: output survives the kill
+     timeout: status=4 exit=0 signal=0 length=4 output=<out
+>
+ok   cannot run: run returns -1
+ok   cannot run: status failed
+     cannot run: status=1 exit=0 signal=0 length=0 output=<>
+ok   exit 3: run returns 0
+ok   exit 3: exited
+ok   exit 3: exit code 3
+ok   exit 3: no output
+     exit 3: status=2 exit=3 signal=0 length=0 output=<>
+ok   signal: run returns 0
+ok   signal: signalled
+ok   signal: SIGSEGV recorded
+     signal: status=3 exit=0 signal=11 length=0 output=<>
+ok   re-exec: run returns 0
+ok   re-exec: exited
+ok   re-exec: the child's report came back
+     re-exec: status=2 exit=0 signal=0 length=16 output=<child says smoke>
+ok   handle: open returns 0
+ok   handle: both ends came back
+ok   handle: stderr was left inherited
+ok   handle: it has a pid
+ok   handle: write reaches it
+ok   handle: and the answer comes back
+     handle: the child said <got ping
+>
+ok   handle: wait sees it stop
+ok   handle: close returns 0
+ok   handle: close resets it
+ok   banner: open returns 0
+ok   banner: stdout was discarded
+ok   banner: stderr came back
+ok   banner: it announced itself
+     banner: <listening on 127.0.0.1:6379
+>
+ok   banner: it is still running
+ok   banner: terminate asks it to stop
+ok   banner: and it goes
+ok   banner: stopped by SIGTERM
+     banner: status=3 signal=15
+ok   banner: close returns 0
+ok   close: open returns 0
+ok   close: it said its piece
+ok   close: and it is still there
+ok   close: close returns 0
+ok   close: and calls it terminated
+ok   handle: a program that cannot run is not opened
+ok   handle: and leaves nothing open
+ok   environment: inherited, open returns 0
+ok   environment: inherited
+     environment: inherited: MULLE_SPAWN_MARKER=inherited
+     environment: inherited: MULLE_SPAWN_TEST=<unset>
+ok   environment: replaced, open returns 0
+ok   environment: replaced
+     environment: replaced: MULLE_SPAWN_MARKER=<unset>
+     environment: replaced: MULLE_SPAWN_TEST=replaced
+ok   environment: emptied, open returns 0
+ok   environment: emptied
+     environment: emptied: MULLE_SPAWN_MARKER=<unset>
+     environment: emptied: MULLE_SPAWN_TEST=<unset>
+ok   directory: open returns 0
+ok   directory: it ran there
+     directory: cwd=spawn-cwd
+ok   directory: one that is absent is refused
+ok   directory: and errno says ENOENT
+ok   descriptor: wrote the line it will read
+ok   descriptor: open returns 0
+ok   descriptor: the child got it as its stdin
+     descriptor: got hello
+ok   descriptor: close left it open
+ok   descriptor: open with it returns 0
+ok   descriptor: the handle made nothing of its own
+ok   descriptor: it stopped by itself
+ok   descriptor: close returns 0
+ok   descriptor: close left that one open too
+ok   descriptor: it wrote where it was told
+     descriptor: through-a-pipe
+ok   descriptor: one that is not open is refused
+ok   descriptor: and errno says EBADF
+ok   descriptor: and leaves nothing open
+ok   detach: open returns 0
+ok   detach: it is a real process
+ok   detach: returns 0
+ok   detach: the handle is emptied
+ok   detach: the descriptor went with it
+ok   detach: there is nothing left to wait for
+ok   detach: the child is still running
+ok   detach: a handle that was never opened detaches
+ok   detach: and NULL is refused
+ok   suspend: open returns 0
+ok   suspend: the child is ticking
+ok   suspend: returns 0
+ok   suspend: and it is still a running child
+ok   resume: returns 0
+ok   resume: and it is ticking again
+ok   resume: terminate returns 0
+ok   resume: it stops on that
+ok   resume: as the signal it was sent
+ok   resume: close returns 0
+ok   interrupt: open returns 0
+ok   interrupt: the child is ticking
+ok   interrupt: returns 0
+ok   interrupt: it stopped
+ok   interrupt: of the signal it was sent
+ok   interrupt: close returns 0
+ok   stop: open returns 0
+ok   stop: the child is ticking
+ok   stop: suspend returns 0
+ok   stop: and the kernel says it is stopped
+ok   stop: and it has gone quiet
+ok   stop: it did not exit either
+ok   stop: resume returns 0
+ok   stop: and it is ticking again
+ok   stop: terminate returns 0
+ok   stop: it stops on that
+ok   stop: as the signal it was
+ok   stop: close returns 0
+ok   suspend: a handle that is not open is refused
+ok   resume: and so is a resume
+ok   interrupt: and so is an interrupt
+
+all mulle-spawn tests passed (0 failures)

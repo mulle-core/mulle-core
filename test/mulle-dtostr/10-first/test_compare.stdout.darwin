@@ -1,0 +1,24 @@
+Comparison: mulle_dtostr vs system printf
+===========================================
+
++INFINITY            mulle: inf                  system: inf
+-INFINITY            mulle: -inf                 system: -inf
+NAN                  mulle: nan                  system: nan
+-NAN                 mulle: -nan                 system: nan
++0.0                 mulle: 0                    system: 0
+-0.0                 mulle: -0                   system: -0
+1.0                  mulle: 1                    system: 1
+-1.0                 mulle: -1                   system: -1
+2.0                  mulle: 2                    system: 2
+10.0                 mulle: 10                   system: 10
+0.1                  mulle: 0.1                  system: 0.10000000000000001
+0.5                  mulle: 0.5                  system: 0.5
+pi                   mulle: 3.141592653589793    system: 3.1415926535897931
+e                    mulle: 2.718281828459045    system: 2.7182818284590451
+Planck constant      mulle: 6.62607015e-34       system: 6.6260701499999998e-34
+1.23456789e20        mulle: 1.23456789e+20       system: 1.23456789e+20
+9.87654321e-15       mulle: 9.87654321e-15       system: 9.8765432100000004e-15
+1e308 (near max)     mulle: 1e+308               system: 1e+308
+1e-308 (near min)    mulle: 1e-308               system: 9.9999999999999991e-309
+0.9999999999999999   mulle: 0.9999999999999999   system: 0.99999999999999989
+1.0000000000000002   mulle: 1.0000000000000002   system: 1.0000000000000002

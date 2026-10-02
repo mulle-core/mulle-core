@@ -1,0 +1,54 @@
+---------------- w ----------------
+off 0
+res1 -1: EINVAL
+off 0
+res1 88: Success
+off 1
+res1 -1: ENOSPC
+off 1
+s: "X"
+---------------- a ----------------
+off 11
+res1 0: Success
+off 9
+res1 88: Success
+off 10
+res1 -1: ENOSPC
+off 10
+s: "VfL BochuX"
+---------------- r ----------------
+off 0
+res1 -1: EINVAL
+off 0
+res1 -1: EBADF
+off 0
+res1 0: Success
+off 11
+s: "VfL Bochum 1848"
+---------------- w+ ----------------
+off 0
+res1 -1: EINVAL
+off 0
+res1 88: Success
+off 1
+res1 0: Success
+off 11
+s: "XfL Bochum 1848"
+---------------- a+ ----------------
+off 11
+res1 0: Success
+off 9
+res1 88: Success
+off 10
+res1 0: Success
+off 11
+s: "VfL BochuX 1848"
+---------------- r+ ----------------
+off 0
+res1 -1: EINVAL
+off 0
+res1 88: Success
+off 1
+res1 0: Success
+off 11
+s: "XfL Bochum 1848"

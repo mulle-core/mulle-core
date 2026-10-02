@@ -1,0 +1,54 @@
+---------------- r ----------------
+off 0
+res1 -1: EINVAL
+off 0
+res1 88: Success
+off 1
+res1 0: Success
+off 11
+s: "X"
+---------------- w ----------------
+off 0
+res1 -1: EINVAL
+off 0
+res1 88: Success
+off 1
+res1 0: Success
+off 1
+s: "X"
+---------------- a ----------------
+off 11
+res1 0: Success
+off 9
+res1 -1: Success
+off 12
+res1 -1: Success
+off 12
+s: "VfL Bochum 1848"
+---------------- r+ ----------------
+off 0
+res1 -1: EINVAL
+off 0
+res1 88: Success
+off 1
+res1 0: Success
+off 11
+s: "X"
+---------------- w+ ----------------
+off 0
+res1 -1: EINVAL
+off 0
+res1 88: Success
+off 1
+res1 0: Success
+off 1
+s: "X"
+---------------- a+ ----------------
+off 11
+res1 0: Success
+off 9
+res1 -1: Success
+off 12
+res1 -1: Success
+off 12
+s: "VfL Bochum 1848"

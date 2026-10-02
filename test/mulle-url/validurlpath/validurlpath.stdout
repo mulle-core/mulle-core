@@ -1,0 +1,28 @@
+RFC 3986 pchar in the path class
+pchar = unreserved / pct-encoded / sub-delims / ":" / "@"
+
+sub-delims, ';' is one of them:
+  is_validurlpath(';') = 1  (expected 1)  PASS
+  is_validurlpath('!') = 1  (expected 1)  PASS
+  is_validurlpath('$') = 1  (expected 1)  PASS
+  is_validurlpath('&') = 1  (expected 1)  PASS
+  is_validurlpath(''') = 1  (expected 1)  PASS
+  is_validurlpath('(') = 1  (expected 1)  PASS
+  is_validurlpath(')') = 1  (expected 1)  PASS
+  is_validurlpath('*') = 1  (expected 1)  PASS
+  is_validurlpath('+') = 1  (expected 1)  PASS
+  is_validurlpath(',') = 1  (expected 1)  PASS
+  is_validurlpath('=') = 1  (expected 1)  PASS
+
+remaining pchar:
+  is_validurlpath(':') = 1  (expected 1)  PASS
+  is_validurlpath('@') = 1  (expected 1)  PASS
+  is_validurlpath('/') = 1  (expected 1)  PASS
+
+delimiters that must stay out:
+  is_validurlpath('?') = 0  (expected 0)  PASS
+  is_validurlpath('#') = 0  (expected 0)  PASS
+  is_validurlpath('[') = 0  (expected 0)  PASS
+  is_validurlpath(']') = 0  (expected 0)  PASS
+
+PASSED

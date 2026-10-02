@@ -384,6 +384,39 @@ static void   mulle_spawn_command_done( struct mulle_spawn_command *p)
 
 
 /*
+ * Whether `argv[ 0]` names a place or a program to be looked for.
+ *
+ * This is the difference between the two halves of the contract in the
+ * header: an absolute path is used as it is, and a bare name is resolved the
+ * way the C library would resolve it. Windows has one API for both and the
+ * caller picks between them by passing `lpApplicationName` or not:
+ *
+ *   `lpApplicationName` given -- the name is completed with the current drive
+ *   and directory, and nothing else. `PATH` is not consulted.
+ *   `lpApplicationName` NULL -- the first token of the command line is the
+ *   program, and it is looked for along the same road a shell would take,
+ *   `PATH` included.
+ *
+ * So a bare name has to go the second way, or `execvp` semantics stop being
+ * true on this platform alone. "c:name" counts as a place already: it is a
+ * drive relative path, not something to search for.
+ */
+static int   mulle_spawn_is_bare_name( const wchar_t *s)
+{
+   if( ! s || ! *s)
+      return( 0);
+
+   if( wcschr( s, L'\\') || wcschr( s, L'/'))
+      return( 0);
+
+   if( s[ 1] == L':')
+      return( 0);
+
+   return( 1);
+}
+
+
+/*
  * The environment block CreateProcessW wants: the `NAME=VALUE` strings as
  * UTF-16, each with its own terminator, and one more to end the block. It is
  * the one thing in here that is not a string.
@@ -508,7 +541,10 @@ int   mulle_spawn_run( char * const *argv,
    si.hStdOutput = hWrite;
    si.hStdError  = hErr;
 
-   if( ! CreateProcessW( command.application, command.commandline,
+   if( ! CreateProcessW( mulle_spawn_is_bare_name( command.application)
+                            ? NULL
+                            : command.application,
+                         command.commandline,
                          NULL, NULL, TRUE,
                          CREATE_NO_WINDOW, NULL, NULL, &si, &pi))
       goto fail;
@@ -981,12 +1017,24 @@ int   mulle_spawn_open_with_options( struct mulle_spawn_handle *h,
     * CREATE_NO_WINDOW, because a child of this library is not something to put
     * a window on the screen -- and, when the caller asked for it, a process
     * group of its own, which is the only way `interrupt` can be aimed.
+    *
+    * CREATE_UNICODE_ENVIRONMENT, because the block that was just built is
+    * UTF-16 and CreateProcessW reads it as ANSI without the flag. The two are
+    * not optional together: an environment that is handed over without it is
+    * decoded into garbage rather than refused, so the child comes up with the
+    * parent's variables gone and its own missing -- which reads exactly like
+    * "this platform does not support a replaced environment".
     */
    creation_flags = CREATE_NO_WINDOW;
    if( options->new_process_group)
       creation_flags |= CREATE_NEW_PROCESS_GROUP;
+   if( environment)
+      creation_flags |= CREATE_UNICODE_ENVIRONMENT;
 
-   if( ! CreateProcessW( command.application, command.commandline,
+   if( ! CreateProcessW( mulle_spawn_is_bare_name( command.application)
+                            ? NULL
+                            : command.application,
+                         command.commandline,
                          NULL, NULL, TRUE,
                          creation_flags, (LPVOID) environment, directory,
                          &si, &pi))

@@ -209,20 +209,32 @@ void   *mulle_mmap_map_shared_memory( mulle_mmap_file_t handle,
                                       void *preferred_addr)
 {
    int    fd;
-   int    flags;
    void   *p;
 
    if( handle == MULLE_MMAP_INVALID_HANDLE || size == 0)
       return( NULL);
 
-   fd    = (int)(intptr_t) handle;
-   flags = MAP_SHARED;
-   if( preferred_addr)
-      flags |= MAP_FIXED;
+   fd = (int)(intptr_t) handle;
 
-   p = mmap( preferred_addr, size, PROT_READ | PROT_WRITE, flags, fd, 0);
+   //  No MAP_FIXED: it would force the address by discarding whatever occupies
+   //  it, so a shared memory mapping could destroy part of the process asking
+   //  for it. An address without MAP_FIXED is a hint instead, which the kernel
+   //  honours when it can be had -- and that is what makes the check below
+   //  possible at all.
+   //
+   p = mmap( preferred_addr, size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
    if( p == MAP_FAILED)
       return( NULL);
+
+   //  An address that was asked for and not granted is a failure, not a
+   //  mapping somewhere else: the region was built at that address, so the
+   //  pointers stored in it are only valid there. Give the mapping back.
+   //
+   if( preferred_addr && p != preferred_addr)
+   {
+      munmap( p, size);
+      return( NULL);
+   }
    return( p);
 }
 
@@ -256,6 +268,22 @@ int   _mulle_mmap_free_pages( void *p, size_t size)
 size_t   mulle_mmap_get_system_pagesize( void)
 {
    return( sysconf(_SC_PAGE_SIZE));
+}
+
+
+//
+//  POSIX has no second unit: an mmap offset has to be a multiple of the page,
+//  so the granularity an offset is aligned to is the page size. Windows is the
+//  platform where the two differ (dwPageSize against
+//  dwAllocationGranularity).
+//
+//  It is a function of its own rather than an alias so that a caller which
+//  means "the alignment for an offset" says that, and gets 4 KiB on one platform
+//  and 64 KiB on the other without having to know which it is on.
+//
+size_t   mulle_mmap_get_allocation_granularity( void)
+{
+   return( mulle_mmap_get_system_pagesize());
 }
 
 

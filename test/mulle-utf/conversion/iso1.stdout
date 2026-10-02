@@ -1,0 +1,10 @@
+PASS: ascii
+PASS: U+00E9
+PASS: U+00FF
+PASS: U+0080
+PASS: mixed
+PASS: U+20AC with unknown=-1 fails
+PASS: U+20AC with unknown=0 skips
+PASS: U+20AC with unknown='?'
+
+All tests passed!

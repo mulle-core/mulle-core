@@ -1,0 +1,14 @@
+PASS: utf8 plain ascii (both say valid)
+PASS: utf8 embedded NUL (both say valid)
+PASS: utf8 truncated sequence (both say invalid)
+PASS: utf16 plain ascii (both say valid)
+PASS: utf16 embedded NUL (both say valid)
+PASS: utf32 plain ascii (both say valid)
+PASS: utf32 embedded NUL (both say valid)
+PASS: utf32 U+FFFE (both say invalid)
+PASS: utf32 U+1FFFE (both say invalid)
+PASS: utf32 U+10FFFE (both say invalid)
+PASS: utf32 U+FDD0 (both say invalid)
+PASS: utf32 lone surrogate U+D800 (both say invalid)
+
+All tests passed!

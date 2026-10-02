@@ -1,0 +1,17 @@
+NULL in NULL -> NULL
+"" in NULL -> NULL
+NULL in "" -> NULL
+"a" in "a" -> "a"
+"b" in "a" -> NULL
+"a" in "b" -> NULL
+"b" in "b" -> "b"
+"a" in "aa" -> "aa"
+"b" in "aa" -> NULL
+"aa" in "a" -> NULL
+"aa" in "b" -> NULL
+"a" in "abc" -> "abc"
+"b" in "abc" -> "bc"
+"c" in "abc" -> "c"
+"ab" in "abc" -> "abc"
+"bc" in "abc" -> "bc"
+"ac" in "abc" -> NULL

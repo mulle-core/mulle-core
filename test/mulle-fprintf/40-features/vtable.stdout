@@ -1,0 +1,4 @@
+buffer_vtable_ftell: 12
+buffer_vtable_read: 12 ""Hello "X"!""
+file_vtable_ftell: 8
+file_vtable_read: "via-file"

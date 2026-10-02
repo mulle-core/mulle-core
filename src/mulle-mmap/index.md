@@ -32,6 +32,10 @@ This section is organized by the primary public header: mulle-mmap.h
   - mulle_mmap_free_shared_memory(struct *mem) -> int (0 on success)
 - Core ops:
   - mulle_mmap_map_shared_memory(handle, size, preferred_addr) -> void* (map an existing handle)
+  - preferred_addr is a desired virtual address (the parent's .address for fixed-address mapping, so dlmalloc's internal pointers stay valid); NULL lets the OS choose (unsafe for dlmalloc use).
+  - A non-NULL address is that address or NULL: a request that cannot be honoured (the address is already mapped here, or it is not aligned to mulle_mmap_get_allocation_granularity() -- Windows: 65536; POSIX: the page size) fails rather than being satisfied at another address, because the pointers stored in the region are only valid where it was built. Whatever is mapped at the address is left alone, never replaced (MAP_FIXED is deliberately not used).
+  - So NULL is what a missed address looks like, and a caller that reads a valid pointer back knows it got the region it asked for. mulle-mmapallocator's attach relies on that and additionally validates seg.base against a stale region.
+  - size must be the size the region was created with; mapping past the object fails on Windows and faults on first touch on POSIX. handle is neither owned nor closed by this function.
 - Notes: On Windows, keep the returned handle open if you intend children to inherit it.
 
 #### struct mulle_mmap

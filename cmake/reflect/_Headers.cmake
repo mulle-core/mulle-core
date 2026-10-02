@@ -261,6 +261,7 @@ src/mulle-concurrent/mulle-concurrent.h
 src/mulle-concurrent/mulle-concurrent-hashmap.h
 src/mulle-concurrent/mulle-concurrent-hashtable.h
 src/mulle-concurrent/_mulle-concurrent-include.h
+src/mulle-concurrent/mulle-concurrent-math.h
 src/mulle-concurrent/mulle-concurrent-pointerarray.h
 src/mulle-concurrent/mulle-concurrent-pointerset.h
 src/mulle-concurrent/_mulle-concurrent-provide.h

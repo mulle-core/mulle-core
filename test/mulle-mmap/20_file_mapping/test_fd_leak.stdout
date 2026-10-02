@@ -1,0 +1,15 @@
+=== Descriptor Leak Regression Tests ===
+
+Test 1: failed directory mapping does not leak descriptors
+  mapping attempts  : 64
+  failed mappings   : 64
+  descriptors leaked: 0
+  PASS
+
+Test 2: file_open/query_size/file_close round trip does not leak descriptors
+  empty.txt size    : 0
+  small.txt size    : 84
+  descriptors leaked: 0
+  PASS
+
+=== All Descriptor Leak Tests Completed ===

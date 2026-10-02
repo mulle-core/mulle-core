@@ -1,0 +1,10 @@
+Write to memory stream: Passed (result=65, errno=0)
+Write to full buffer (first write): Passed (result=65, errno=0)
+Write to full buffer (second write): Passed (result=65, errno=0)
+Write-only empty file: Passed (result=65, errno=0)
+Multiple writes: Passed (result=48, errno=0)
+Multiple writes: Passed (result=49, errno=0)
+Multiple writes: Passed (result=50, errno=0)
+Multiple writes: Passed (result=51, errno=0)
+Multiple writes: Passed (result=52, errno=0)
+Error in NULL pointers: fputc: result=-2, errno=0; mulle_buffer_fputc: result=-1, errno=0

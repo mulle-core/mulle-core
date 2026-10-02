@@ -1,0 +1,81 @@
+NULL x NULL : intersects=0 intersection=0
+NULL x 0-4 (5) : intersects=0 intersection=0
+NULL x 0-9 (10) : intersects=0 intersection=0
+NULL x NULL : intersects=0 intersection=0
+NULL x 5-9 (5) : intersects=0 intersection=0
+NULL x 5-14 (10) : intersects=0 intersection=0
+NULL x NULL : intersects=0 intersection=0
+NULL x 10-14 (5) : intersects=0 intersection=0
+NULL x 10-19 (10) : intersects=0 intersection=0
+0-4 (5) x NULL : intersects=0 intersection=0
+0-4 (5) x 0-4 (5) : intersects=1 intersection=1
+0-4 (5) x 0-9 (10) : intersects=1 intersection=1
+0-4 (5) x NULL : intersects=0 intersection=0
+0-4 (5) x 5-9 (5) : intersects=0 intersection=0
+0-4 (5) x 5-14 (10) : intersects=0 intersection=0
+0-4 (5) x NULL : intersects=0 intersection=0
+0-4 (5) x 10-14 (5) : intersects=0 intersection=0
+0-4 (5) x 10-19 (10) : intersects=0 intersection=0
+0-9 (10) x NULL : intersects=0 intersection=0
+0-9 (10) x 0-4 (5) : intersects=1 intersection=1
+0-9 (10) x 0-9 (10) : intersects=1 intersection=1
+0-9 (10) x NULL : intersects=0 intersection=0
+0-9 (10) x 5-9 (5) : intersects=1 intersection=1
+0-9 (10) x 5-14 (10) : intersects=1 intersection=1
+0-9 (10) x NULL : intersects=0 intersection=0
+0-9 (10) x 10-14 (5) : intersects=0 intersection=0
+0-9 (10) x 10-19 (10) : intersects=0 intersection=0
+NULL x NULL : intersects=0 intersection=0
+NULL x 0-4 (5) : intersects=0 intersection=0
+NULL x 0-9 (10) : intersects=0 intersection=0
+NULL x NULL : intersects=0 intersection=0
+NULL x 5-9 (5) : intersects=0 intersection=0
+NULL x 5-14 (10) : intersects=0 intersection=0
+NULL x NULL : intersects=0 intersection=0
+NULL x 10-14 (5) : intersects=0 intersection=0
+NULL x 10-19 (10) : intersects=0 intersection=0
+5-9 (5) x NULL : intersects=0 intersection=0
+5-9 (5) x 0-4 (5) : intersects=0 intersection=0
+5-9 (5) x 0-9 (10) : intersects=1 intersection=1
+5-9 (5) x NULL : intersects=0 intersection=0
+5-9 (5) x 5-9 (5) : intersects=1 intersection=1
+5-9 (5) x 5-14 (10) : intersects=1 intersection=1
+5-9 (5) x NULL : intersects=0 intersection=0
+5-9 (5) x 10-14 (5) : intersects=0 intersection=0
+5-9 (5) x 10-19 (10) : intersects=0 intersection=0
+5-14 (10) x NULL : intersects=0 intersection=0
+5-14 (10) x 0-4 (5) : intersects=0 intersection=0
+5-14 (10) x 0-9 (10) : intersects=1 intersection=1
+5-14 (10) x NULL : intersects=0 intersection=0
+5-14 (10) x 5-9 (5) : intersects=1 intersection=1
+5-14 (10) x 5-14 (10) : intersects=1 intersection=1
+5-14 (10) x NULL : intersects=0 intersection=0
+5-14 (10) x 10-14 (5) : intersects=1 intersection=1
+5-14 (10) x 10-19 (10) : intersects=1 intersection=1
+NULL x NULL : intersects=0 intersection=0
+NULL x 0-4 (5) : intersects=0 intersection=0
+NULL x 0-9 (10) : intersects=0 intersection=0
+NULL x NULL : intersects=0 intersection=0
+NULL x 5-9 (5) : intersects=0 intersection=0
+NULL x 5-14 (10) : intersects=0 intersection=0
+NULL x NULL : intersects=0 intersection=0
+NULL x 10-14 (5) : intersects=0 intersection=0
+NULL x 10-19 (10) : intersects=0 intersection=0
+10-14 (5) x NULL : intersects=0 intersection=0
+10-14 (5) x 0-4 (5) : intersects=0 intersection=0
+10-14 (5) x 0-9 (10) : intersects=0 intersection=0
+10-14 (5) x NULL : intersects=0 intersection=0
+10-14 (5) x 5-9 (5) : intersects=0 intersection=0
+10-14 (5) x 5-14 (10) : intersects=1 intersection=1
+10-14 (5) x NULL : intersects=0 intersection=0
+10-14 (5) x 10-14 (5) : intersects=1 intersection=1
+10-14 (5) x 10-19 (10) : intersects=1 intersection=1
+10-19 (10) x NULL : intersects=0 intersection=0
+10-19 (10) x 0-4 (5) : intersects=0 intersection=0
+10-19 (10) x 0-9 (10) : intersects=0 intersection=0
+10-19 (10) x NULL : intersects=0 intersection=0
+10-19 (10) x 5-9 (5) : intersects=0 intersection=0
+10-19 (10) x 5-14 (10) : intersects=1 intersection=1
+10-19 (10) x NULL : intersects=0 intersection=0
+10-19 (10) x 10-14 (5) : intersects=1 intersection=1
+10-19 (10) x 10-19 (10) : intersects=1 intersection=1

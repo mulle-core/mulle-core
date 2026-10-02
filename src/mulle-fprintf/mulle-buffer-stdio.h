@@ -345,7 +345,7 @@ static inline size_t   _mulle_flushablebuffer_fwrite( void *buf,
                                                                                                      \
        MULLE_C_CONFINED_LOOP                                                                           \
        for( struct mulle_buffer                                                                        \
-             *name = (struct mulle_buffer *) &name ## __storage,                                       \
+             *name = &name ## __storage.base,                                       \
              *name ## __j = 0;    /* break protection */                                               \
              name ## __j < (struct mulle_buffer *) 1;                                                  \
              name ## __j++)

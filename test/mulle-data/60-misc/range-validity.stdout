@@ -1,0 +1,8 @@
+zero           : is_valid=1
+make(0,0)      : is_valid=1
+make(1,10)     : is_valid=1
+make_invalid   : is_valid=0 not_found=1
+make_all       : is_valid=0 location_is_0=1 length_is_minus_1=1
+make(max,1)    : is_valid=1
+make(max,2)    : is_valid=0
+locations(10,4): location=4 length=7
