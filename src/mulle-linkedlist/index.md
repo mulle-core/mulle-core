@@ -53,7 +53,7 @@ All signatures are copied verbatim from the public headers
 ### 3.1. `mulle-linkedlist.h` — version, single-threaded list, entry helpers
 
 #### Version
-- `MULLE__LINKEDLIST_VERSION` is `((0UL << 20) | (1 << 8) | 0)` = 0.1.0.
+- `MULLE__LINKEDLIST_VERSION` is `((0UL << 20) | (1 << 8) | 1)` = 0.1.1.
 - `static inline unsigned int   mulle_linkedlist_get_version_major( void)`
 - `static inline unsigned int   mulle_linkedlist_get_version_minor( void)`
 - `static inline unsigned int   mulle_linkedlist_get_version_patch( void)`
@@ -146,8 +146,8 @@ Included automatically by `mulle-linkedlist.h` unless
   `add`/`remove_all`/`remove_one`. `init`/`done`/`walk` and the single-threaded
   list require exclusive access / external locking.
 - **Version constraints (enforced by `_mulle-linkedlist-versioncheck.h`):**
-  `mulle-thread >= 4.10.0` (for the `_relaxed` atomic API), `mulle-c11 >= 4.9.0`,
-  `mulle-allocator >= 8.1.0`.
+  `mulle-thread >= 4.11.0` (for the `_relaxed` atomic API), `mulle-c11 >= 4.9.1`,
+  `mulle-allocator >= 9.0.0`.
 
 ## 5. AI Usage Recommendations & Patterns
 
@@ -292,11 +292,11 @@ int   main( void)
 Direct `mulle-sde` dependencies (per `.mulle/etc/sourcetree/config` and
 `clib.json`):
 
-- `mulle-c11` — cross-platform C compiler glue; minimum 4.9.0.
+- `mulle-c11` — cross-platform C compiler glue; minimum 4.9.1.
 - `mulle-allocator` — allocation scheme used for the free-on-walk convenience
-  pattern; minimum 8.1.0.
+  pattern; minimum 9.0.0.
 - `mulle-thread` — provides `mulle_atomic_pointer_t` and the atomics/CAS API;
-  minimum 4.10.0.
+  minimum 4.11.0.
 
 `mulle-linkedlist` is itself a component consumed by `mulle-core` (and used by
 `mulle-aba` and the `mulle-objc-runtime`).

@@ -170,11 +170,11 @@ if( NOT __ADD_SUBDIRECTORY_SUPPORT__CMAKE__)
    # Hand the include directory to the consumer, or don't. With the option off
    # the consumer names the roots it wants itself - the staged headers above are
    # there to be named.
-   #
-   if( MULLE_TRANSITIVE_SOURCE_INCLUDE AND _MULLE_INTERFACE_INCLUDE)
-      target_include_directories( "${LIBRARY_NAME}" INTERFACE
-         ${_MULLE_INTERFACE_INCLUDE})
-   endif()
+   # MEMO: not doing this anymore to no ill effect so far
+   # if( MULLE_TRANSITIVE_SOURCE_INCLUDE AND _MULLE_INTERFACE_INCLUDE)
+   #    target_include_directories( "${LIBRARY_NAME}" INTERFACE
+   #       ${_MULLE_INTERFACE_INCLUDE})
+   # endif()
 
    #
    # We deliberately do NOT export one INTERFACE include directory per

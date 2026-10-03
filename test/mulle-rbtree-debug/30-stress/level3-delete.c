@@ -180,8 +180,6 @@ int main(void)
             max = _mulle__rbtree_get_count( &proto);
             if( max)
             {
-               printf("=== Original: 0x%llx\n", (unsigned long long) mask);
-               print_tree_state( &proto);
                //for( i = 1; i <= max; i++)
                i = 1;
                {
@@ -195,21 +193,20 @@ int main(void)
                      node = find_node_by_index( &test, i);
                      name = (char *) _mulle_rbnode_get_payload( node);
 
-                     printf( "---Deleting \"%s\"\n", name);
-
                      _mulle__rbtree_remove_node( &test, node);
-
-                     print_tree_state( &test);
 
                      err = mulle__rbtree_validate( &test);
                      if( err)
                      {
+                        printf( "=== Original: 0x%llx\n", (unsigned long long) mask);
+                        print_tree_state( &proto);
+                        printf( "---Deleting \"%s\"\n", name);
+                        print_tree_state( &test);
                         printf( "***INVALID***: %s\n", err);
                         return( 1);
                      }
                      _mulle__rbtree_done(&test);
                   }
-                 printf( "===\n\n");
                }
             }
          }

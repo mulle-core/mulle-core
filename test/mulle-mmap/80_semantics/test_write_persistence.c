@@ -15,12 +15,34 @@
 #endif
 
 
+#define MAX_TEST_FILES  4
+
+static char   *test_files[ MAX_TEST_FILES];
+static size_t  test_files_count;
+
+
+static void remove_test_files( void)
+{
+   while( test_files_count)
+      unlink( test_files[ --test_files_count]);
+}
+
+
+static void register_test_file( char *filename)
+{
+   if( test_files_count < MAX_TEST_FILES)
+      test_files[ test_files_count++] = filename;
+}
+
+
 static void create_test_file_with_mmap( char *filename, size_t size)
 {
    struct mulle_mmap   info;
    mulle_mmap_file_t   fd;
    char                *mapped_data;
    int                 rval;
+   
+   register_test_file( filename);
    
    printf( "Creating test file with mmap: %s (%zu bytes)\n", filename, size);
    
@@ -374,6 +396,8 @@ static void test_write_with_explicit_sync( void)
 
 int main( void)
 {
+   atexit( remove_test_files);
+   
    printf( "=== Write Memory Mapping Persistence Tests ===\n\n");
    printf( "These tests verify fundamental mmap() write behavior:\n");
    printf( "1. Write mappings remain functional after closing file descriptor\n");

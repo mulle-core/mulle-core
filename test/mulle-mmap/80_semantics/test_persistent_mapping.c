@@ -15,9 +15,31 @@
 #endif
 
 
+#define MAX_TEST_FILES  4
+
+static char   *test_files[ MAX_TEST_FILES];
+static size_t  test_files_count;
+
+
+static void remove_test_files( void)
+{
+   while( test_files_count)
+      unlink( test_files[ --test_files_count]);
+}
+
+
+static void register_test_file( char *filename)
+{
+   if( test_files_count < MAX_TEST_FILES)
+      test_files[ test_files_count++] = filename;
+}
+
+
 static void create_test_file( char *filename, char *content, size_t content_size)
 {
    FILE   *fp;
+   
+   register_test_file( filename);
    
    printf( "Creating test file: %s (%zu bytes)\n", filename, content_size);
    
@@ -326,6 +348,8 @@ static void test_mapping_with_file_removal( void)
 
 int main( void)
 {
+   atexit( remove_test_files);
+   
    printf( "=== Memory Mapping Persistence Tests ===\n\n");
    printf( "These tests verify fundamental mmap() behavior:\n");
    printf( "1. Mapped memory remains accessible after closing file descriptor\n");

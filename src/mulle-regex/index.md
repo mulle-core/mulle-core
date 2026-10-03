@@ -4,8 +4,8 @@
 
 - A compact Unicode-aware regular-expression library (Henry Spencer's regexp reimplementation adapted for Unicode).
 - Solves: pattern matching and substitution on UTF-32 strings (mulle_utf32_t) for C programs.
-- Key features: egrep-style patterns, compile/execute API, substitution helpers, convenience one-shot functions.
-- Relationship: component of mulle-core; usually consumed through the umbrella `#include <mulle-core/mulle-core.h>`. Standalone use is possible via `clib install --out src mulle-c/mulle-regex` (then add `-isystem src` and compile the downloaded sources). Direct dependency: mulle-utf for Unicode types and helpers.
+- Key features: egrep-style patterns, compile/execute API, substitution helpers, convenience one-shot functions, optional extended character classes via `MULLE_UTF32REGEX_EXTENDED`.
+- Relationship: component of mulle-core; usually consumed through the umbrella `#include <mulle-core/mulle-core.h>`. Standalone use is possible via `clib install --out src mulle-c/mulle-regex` (then add `-isystem src` and compile the downloaded sources). Direct dependencies: mulle-utf for Unicode types and helpers, mulle-unicode for named character classes.
 
 ## 2. Key Concepts & Design Philosophy
 
@@ -20,10 +20,20 @@
 #### struct mulle_utf32regex
 - Purpose: Opaque compiled regular-expression object for matching UTF-32 input.
 - Lifecycle Functions:
+  - `struct mulle_utf32regex   *mulle_utf32regex_compile_options( const mulle_utf32_t *pattern, unsigned int options);`
+     - Compile a pattern with options; returns malloced struct or NULL on failure (malformed regular expression).
   - `struct mulle_utf32regex   *mulle_utf32regex_compile( const mulle_utf32_t *pattern);`
      - Compile a pattern; returns malloced struct or NULL on failure (malformed regular expression).
+     - Same as `mulle_utf32regex_compile_options( pattern, 0)`.
   - `static inline void   mulle_utf32regex_free( struct mulle_utf32regex *regex);`
      - Free a compiled regex (inline wrapper around mulle_free).
+
+- Compile Options:
+  - `#define MULLE_UTF32REGEX_EXTENDED   0x0001`
+     - Enables character class extensions. Without it a backslash is an ordinary character (e.g. `[ \t\n\r]` is the set `{ ' ', '\\', 't', 'n', 'r' }`).
+     - With it a class may use the escapes `\t \n \r \f \v \a \e` and `\] \\ \- \^`, and may name a class: `[[:alpha:]] [[:space:]] [[:digit:]] [[:alnum:]] [[:word:]] [[:ident:]] [[:identstart:]] [[:identcont:]] [[:punct:]] [[:cntrl:]] [[:upper:]] [[:lower:]] [[:xdigit:]] [[:blank:]]` (resolved by mulle-unicode as a predicate).
+     - A backslash before an alphanumeric character that is not one of the escapes above is a compile error (`\d`, `\s`, `\w`, `\q`); use the spelled out class (e.g. `[[:digit:]]`).
+     - These are escape sequences inside a class, not new atoms; `\w \s \d`, `\b`, `{n,m}`, lookaround and backreferences are deliberately absent.
 
 - Core Operations:
   - `int   mulle_utf32regex_execute( struct mulle_utf32regex *regex, const mulle_utf32_t *src);`
@@ -48,6 +58,7 @@
 - Match inspection:
   - `struct mulle_range   mulle_utf32regex_range_for_index( struct mulle_utf32regex *regex, unsigned int i);`
      - Returns struct mulle_range for the whole match (index 0) or capture groups (1-9 for \1..\9).
+     - A group that did not participate in the match (and an out-of-range index) yields an invalid range: location is `mulle_not_found_e` (INTPTR_MAX) and length is 0 (as produced by `mulle_range_make_invalid()`). Compare against that or check `mulle_range_is_valid()`, not LONG_MAX/NSNotFound directly.
      - struct mulle_range exposes .location and .length (from mulle-utf).
 
 ### 3.2. src/mulle-regex.h and src/generic/include.h
@@ -183,15 +194,18 @@ example_one_shot()
 ## 7. Dependencies
 
 - mulle-utf         (provides mulle_utf32_t, struct mulle_range, and string/range helpers)
+- mulle-unicode     (resolves named character classes such as `[[:alpha:]]` when MULLE_UTF32REGEX_EXTENDED is used)
 - mulle-core        (this project is a component of mulle-core; typically used via the `<mulle-core/mulle-core.h>` umbrella — not a build dependency of this library itself)
 
 ## 8. Shortcut
 
 - Existing TOC last committed in `5beac54` (2026-08-04). Changes to consider since then:
+  - new `mulle_utf32regex_compile_options( pattern, options)` and `MULLE_UTF32REGEX_EXTENDED` (0x0001) for character class extensions (see Section 3.1).
+  - `mulle_utf32regex_range_for_index` now documents invalid ranges for non-participating groups.
+  - added mulle-unicode dependency to resolve named character classes.
   - `789a04c` const-qualify input-only pointer parameters — all public API input strings are now `const` (see Section 3.1).
   - `f5f33ab` README rewrite — documents consuming via `<mulle-core/mulle-core.h>` umbrella or via `clib install`.
-  - `476d8e4` build system and dependency configuration updates; version bumped to 0.1.2.
-  - No new public headers or public symbols were added since the previous TOC commit.
+  - `476d8e4` build system and dependency configuration updates; version bumped to 0.2.0.
 
 ---
 Notes for AI assistants:

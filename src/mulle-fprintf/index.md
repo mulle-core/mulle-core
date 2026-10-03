@@ -62,7 +62,7 @@ Thin, uniformly-named wrappers around libc stdio so call sites stay consistent:
 
 #### Version functions
 
-- `#define MULLE__FPRINTF_VERSION ((0UL << 20) | (4 << 8) | 0)` — version 0.4.0.
+- `#define MULLE__FPRINTF_VERSION ((0UL << 20) | (4 << 8) | 1)` — version 0.4.1.
 - `uint32_t mulle_fprintf_get_version( void);` Returns the packed version number.
 - `static inline unsigned int mulle_fprintf_get_version_major( void);` Extracts major version.
 - `static inline unsigned int mulle_fprintf_get_version_minor( void);` Extracts minor version.
