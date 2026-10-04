@@ -1,3 +1,35 @@
+## 0.10.0
+
+feature: update amalgamated snapshots to 0.10.0 with new APIs
+
+* add process spawning with ``mulle_spawn_options`` / ``mulle_spawn_open_with_options`,` plus ``mulle_spawn_interrupt/suspend/resume/detach`` and ``MULLE_SPAWN_DESCRIPTOR``
+* add ASCII-only unicode predicates `(`mulle_unicode_is_asciidigit/asciiletter/asciispace/asciiidentifierstart/...`)` for deliberately ASCII lexers
+* add container mutation pointers `(`*_get_mutation_pointer`)` for `NSFastEnumeration`-style change detection, plus ``mulle_pointerarray_remove_last``
+* add C11 ``mulle_c_clz*`` / ``mulle_c_log2_floor`` helpers and ``MULLE_UTF32REGEX_EXTENDED`` character-class escapes and named classes
+* concurrent hashtable now rejects out-of-range hashes; new ``mulle_concurrent_hashtable_hash_is_valid`` distinguishes rejection from absence
+* add ``mulle_mmap_get_allocation_granularity`` and the ``mulle_allocator_fail_t`` noreturn typedef
+* fix ``mulle_utf32_strcspn()`` for single-character search sets
+
+
+
+
+* amalgamate tests into mulle-core so ppl can run ctest standalone
+
+
+  absolute /opt/fil/bin/filcc path, drop job-level continue-on-error
+  VM (vmactions/freebsd-vm); runs once per workflow run
+
+
+
+
+
+
+
+
+
+* reorganize mulle-core for improved direct header inclusion with -isystem mulle-core/src
+
+
 ## 0.9.0
 
 

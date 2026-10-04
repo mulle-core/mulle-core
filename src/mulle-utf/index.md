@@ -3,12 +3,13 @@
 
 ## 1. Introduction & Purpose
 
-- mulle-utf is a small C (C99) Unicode analysis and conversion library (current version 6.0.0, `MULLE__UTF_VERSION`). It provides validation, classification, conversion, and primitive string utilities for UTF-8, UTF-16 and UTF-32 as well as the compact encodings char5/char7. It is the backbone of **NSString**.
+- mulle-utf is a small C (C99) Unicode analysis and conversion library (current version 6.0.1, `MULLE__UTF_VERSION`). It provides validation, classification, conversion, and primitive string utilities for UTF-8, UTF-16 and UTF-32 as well as the compact encodings char5/char7. It is the backbone of **NSString**.
 - Solves: detect/validate encodings, compute exact lengths, convert between UTF encodings, iterate code points, perform length-aware `<string.h>`-like operations on UTF-8/16/32 buffers, and compactly pack small ASCII tokens into machine words for use as keys/hashes.
 - Key features: validation helpers, length calculators, low-level fast converters (preallocated `dst`), streaming bufferconverters (`mulle_utf_add_bytes_function_t` callback), allocator-based convenience `_string` routines, rover iterator abstraction, char5/char7 packing with FNV-1A hashing, legacy 8-bit (iso1/macroman/nextstep) converters.
 - Relationship: a component of the `mulle-core` family; depends on `mulle-allocator` (allocation) and `mulle-data` (`struct mulle_data`/`struct mulle_range` interop). Tests also use `mulle-allocator`'s `struct mulle_allocator`.
 
-### Changes since the previous index.md (v5.2.1 -> v6.0.0)
+### Changes since the previous index.md (v5.2.1 -> v6.0.1)
+- **6.0.1:** `mulle_utf32_strcspn()` now handles a single-character search set correctly (it previously returned the `strspn` result in that case). Minimum dependency versions bumped: `mulle-allocator` 9.0.0 and `mulle-data` 0.6.1.
 - **Breaking:** `mulle_utf16_length()` was removed.
 - All input-only pointers are now `const`-qualified (e.g. `mulle_utf8_utf16length( const char *src, size_t len)`). Call sites are unaffected.
 - UTF-16 edge-case fixes: `mulle_utf16_validate()` no longer reads past the end when the buffer ends in a high surrogate; `mulle_utf16_information()` `utf8len` and `mulle_utf16_convert_to_utf8_string()` no longer overcount astral characters by one byte.
@@ -694,5 +695,5 @@ int   main( void)
 
 Direct `mulle-sde` library dependencies (from `.mulle/etc/sourcetree/config`):
 
-- `mulle-allocator`  (minimum version 8.1.0, checked via `_mulle-utf-versioncheck.h`) — allocator API used by the convenience/`_string`/`utf8data` helpers.
-- `mulle-data`       (minimum version 0.6.0) — `struct mulle_data` / `struct mulle_range` interop (`mulle_data_as_utf8data`, `mulle_utf8data_range_of_utf32_range`, `mulle_utf8data_characters_in_range`).
+- `mulle-allocator`  (minimum version 9.0.0, checked via `_mulle-utf-versioncheck.h`) — allocator API used by the convenience/`_string`/`utf8data` helpers.
+- `mulle-data`       (minimum version 0.6.1) — `struct mulle_data` / `struct mulle_range` interop (`mulle_data_as_utf8data`, `mulle_utf8data_range_of_utf32_range`, `mulle_utf8data_characters_in_range`).

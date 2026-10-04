@@ -23,7 +23,7 @@
 
 ## 3. Core API & Data Structures
 
-All public headers live in `src/` and are aggregated by the umbrella header `src/mulle-time.h`, which includes (on non-Windows) timespec, timeval, absolutetime, calendartime, and relativetime. Version: `MULLE__TIME_VERSION ((1UL << 20) | (3 << 8) | 2)`.
+All public headers live in `src/` and are aggregated by the umbrella header `src/mulle-time.h`, which includes (on non-Windows) timespec, timeval, absolutetime, calendartime, and relativetime. Version: `MULLE__TIME_VERSION ((1UL << 20) | (3 << 8) | 3)`.
 
 ### 3.1. `src/mulle-timetype.h`
 

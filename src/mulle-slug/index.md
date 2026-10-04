@@ -75,7 +75,7 @@ dependency-owned types `struct mulle_utf8data` (mulle-utf),
 #### Version information
 
 ```c
-#define MULLE__SLUG_VERSION  ((0UL << 20) | (2 << 8) | 0)
+#define MULLE__SLUG_VERSION  ((0UL << 20) | (2 << 8) | 1)
 
 MULLE__SLUG_GLOBAL
 uint32_t   mulle_slug_get_version( void);
@@ -85,7 +85,7 @@ static inline uint32_t   mulle_slug_get_version_minor( void)
 static inline uint32_t   mulle_slug_get_version_patch( void)
 ```
 
-- **Purpose:** Runtime version access; the current version is 0.2.0.
+- **Purpose:** Runtime version access; the current version is 0.2.1.
 - `mulle_slug_get_version()` returns the packed `MULLE__SLUG_VERSION`.
 - The `_major`/`_minor`/`_patch` variants decode individual components and
   are declared `static inline` in the header (no `MULLE__SLUG_GLOBAL`

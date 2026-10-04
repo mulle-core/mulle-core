@@ -213,7 +213,7 @@ can be passed to any code following the `mulle_allocator` protocol.
 
 - **Purpose:** Variable-size bump allocator; allocations are made from a sequence of fixed-size pages.
 - **Key Fields:**
-  - `MULLE_ALLOCATOR_BASE;` - Embedded `mulle_allocator` vtable (`calloc`, `realloc`, `free`, `fail`, `abafree`, `aba`) — makes the struct castable to `struct mulle_allocator *`.
+  - `MULLE_ALLOCATOR_BASE;` - Embedded `mulle_allocator` vtable (`calloc`, `reallocarray`, `free`, `fail`, `abafree`, `aba`) — makes the struct castable to `struct mulle_allocator *`.
   - `_pages`: `mulle__pointerarray` holding the allocated page pointers.
   - `_current`: Bump cursor into the current page.
   - `_sentinel`: End of the current page.
@@ -303,10 +303,19 @@ can be passed to any code following the `mulle_allocator` protocol.
 #### `mulle_allocator` vtable semantics
 
 - `calloc` - bump allocate + zero.
-- `realloc` - if `block` is NULL, this is malloc (bump allocate). If `block` is the last allocation, extend in place if possible. Otherwise allocate new + memcpy (old space is abandoned).
+- `reallocarray` - if `block` is NULL, this is malloc (bump allocate). If `block` is the last allocation, extend in place if possible. Otherwise allocate new + memcpy (old space is abandoned). A zero `n`/`size` or an overflowing product is a programmer error and is routed through `fail`.
 - `free` - no-op, except when the block is the last allocation (space reclaimed by rewinding the cursor). Memory is otherwise reclaimed only on `done`/`reset`.
 
-Allocations through the vtable store a size header at `((size_t *) user)[-1]` and are aligned to `MULLE_ARENA_DEFAULT_ALIGNMENT` (= `alignof(max_align_t)`). Oversized allocations (larger than `page_size`) get their own dedicated page.
+Allocations through the vtable store a size header at `((size_t *) user)[-1]` and are aligned to `MULLE_ARENA_DEFAULT_ALIGNMENT` (= `alignof( union mulle_arena_max_align)`, the `max_align_t` equivalent). Oversized allocations (larger than `page_size`) get their own dedicated page.
+
+#### `union mulle_arena_max_align`
+
+- **Purpose:** Alignment helper type used to derive `MULLE_ARENA_DEFAULT_ALIGNMENT`. A union of the widest fundamental types, so `alignof( union mulle_arena_max_align)` yields the same alignment as `max_align_t` on every ABI (avoids MSVC, which does not declare `max_align_t` in C mode).
+- **Fields:**
+  - `long long _ll;`
+  - `long double _ld;`
+  - `void *_p;`
+  - `void (*_fp)( void);`
 
 ## 4. Performance Characteristics
 

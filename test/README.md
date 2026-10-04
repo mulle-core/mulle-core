@@ -21,8 +21,9 @@ constituent project; fix a test there and re-vendor it here.
 ## Re-vendoring
 
 `test/amalgamate-tests.sh` copies the test trees of all amalgamated
-constituents and rewrites `test/VENDORED` with the revisions it took. The
-constituent repositories live in several roots of the mulle-core meta-repo:
+constituents. Provenance is tracked by the meta-repo commit and tags, not by a
+`VENDORED` manifest. The constituent repositories live in several roots of the
+mulle-core meta-repo:
 
 ```sh
 test/amalgamate-tests.sh

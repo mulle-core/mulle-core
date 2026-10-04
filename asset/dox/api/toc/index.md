@@ -6,8 +6,8 @@
 - mulle-core is an **amalgamated** library that bundles many small C libraries (allocator, buffer, container, rbtree, regex, slug, unicode, url, utf, time, thread, concurrent primitives, printf family, mmap, etc.) into a single library and a single envelope header `<mulle-core/mulle-core.h>`.
 - It solves the problem of repeatedly pulling, building, and linking two dozen small libraries: one include, one link target (`-lmulle-core`), faster builds.
 - It is *not* a second implementation: each constituent (e.g. `mulle-c/mulle-allocator`, `mulle-concurrent/mulle-concurrent`) is the canonical source; this repository gathers versioned constituent snapshots. Fixes are made upstream and brought in by the next amalgamation.
-- Current envelope version: `MULLE__CORE_VERSION` is `0.9.0` (`((0UL << 20) | (9 << 8) | 0)`).
-- Notable recent additions (since the previous TOC commit): a resizable **wait-free hashtable** (`mulle_concurrent_hashtable`), a bump **arena allocator** (`mulle_arena`, subclasses `struct mulle_allocator`), UTF-8-preserving **slugify** variants with custom delimiters, **flexible/inflexible** buffer constructors and `mulle_buffer_do_*` builder macros, **`reallocarray`** allocator variants, C11 **rotate** helpers, and an expanded thread portability layer (once-init, recursive mutex, extra atomics).
+- Current envelope version: `MULLE__CORE_VERSION` is `0.10.0` (`((0UL << 20) | (10 << 8) | 0)`).
+- Notable recent additions (since the previous TOC commit): a resizable **wait-free hashtable** (`mulle_concurrent_hashtable`), a bump **arena allocator** (`mulle_arena`, subclasses `struct mulle_allocator`), UTF-8-preserving **slugify** variants with custom delimiters, **flexible/inflexible** buffer constructors and `mulle_buffer_do_*` builder macros, **`reallocarray`** allocator variants, C11 **rotate** helpers, and an expanded thread portability layer (once-init, recursive mutex, extra atomics). The latest migration additionally brings **process spawning** (`mulle_spawn_options`/`mulle_spawn_open_with_options`), **ASCII-only unicode predicates**, **container mutation pointers**, C11 **clz/log2** helpers, **regex character-class extensions** (`MULLE_UTF32REGEX_EXTENDED`) and `mulle_mmap_get_allocation_granularity`.
 
 ## 2. Key Concepts & Design Philosophy
 
@@ -26,7 +26,7 @@ This section summarizes each constituent. Signatures are copied verbatim from th
 - Purpose: single public include; defines the version and includes all constituent public headers.
 - Version macros/functions:
   ```c
-  #define MULLE__CORE_VERSION  ((0UL << 20) | (9 << 8) | 0)
+  #define MULLE__CORE_VERSION  ((0UL << 20) | (10 << 8) | 0)
 
   static inline unsigned int   mulle_core_get_version_major( void)
   static inline unsigned int   mulle_core_get_version_minor( void)
@@ -37,8 +37,8 @@ This section summarizes each constituent. Signatures are copied verbatim from th
 
 ### 3.2. `mulle-c11` — cross-platform C compiler glue
 
-- Version `MULLE__C11_VERSION ((4UL << 20) | (9 << 8) | 0)`.
-- Provides portability macros only (no runtime code): `MULLE_C_GLOBAL`, `MULLE_C_EXTERN_GLOBAL`, `MULLE_C_NONNULL_FIRST`, `MULLE_C_NO_RETURN`, `MULLE_C_DEPRECATED`, `MULLE_C_UNUSED`, `MULLE_C_LIKELY`/`MULLE_C_UNLIKELY`, `MULLE_C_CONSTRUCTOR`/`MULLE_C_DESTRUCTOR`, `alignas`/`alignof`, plus `mulle_c_popcount*`. Optional headers (`MULLE_C11_INCLUDE_ALL`): `mulle-c11-align.h`, `mulle-c11-eval.h`, `mulle-c11-swap.h`.
+- Version `MULLE__C11_VERSION ((4UL << 20) | (9 << 8) | 1)`.
+- Provides portability macros only (no runtime code): `MULLE_C_GLOBAL`, `MULLE_C_EXTERN_GLOBAL`, `MULLE_C_NONNULL_FIRST`, `MULLE_C_NO_RETURN`, `MULLE_C_DEPRECATED`, `MULLE_C_UNUSED`, `MULLE_C_UNUSED_FUNCTION`, `MULLE_C_LIKELY`/`MULLE_C_UNLIKELY`, `MULLE_C_CONSTRUCTOR`/`MULLE_C_DESTRUCTOR`, `alignas`/`alignof`, plus `mulle_c_popcount*`. Optional headers (`MULLE_C11_INCLUDE_ALL`): `mulle-c11-align.h`, `mulle-c11-eval.h`, `mulle-c11-swap.h`.
 - **NEW** `mulle-c11-rotate.h` (added in the latest migration), all `static inline`:
   ```c
   static inline uint32_t   mulle_rotate_right_uint32( uint32_t value, unsigned shift)
@@ -47,6 +47,14 @@ This section summarizes each constituent. Signatures are copied verbatim from th
   static inline uint64_t   mulle_rotate_left_uint64( uint64_t value, unsigned shift)
   ```
   Shift is masked to the width; shift `0`/`width` is identity (no UB). Compiles to single `ror`/`rol`.
+- **NEW** count-leading-zeros / log2 helpers (`mulle-c11-builtin.h`), all `static inline`, with portable fallbacks when the compiler builtin is absent (define `MULLE_C11_NO_BUILTINS` to force the fallbacks):
+  ```c
+  static inline int   mulle_c_clz( unsigned int bits)
+  static inline int   mulle_c_clzl( unsigned long bits)
+  static inline int   mulle_c_clzll( unsigned long long bits)
+  static inline unsigned int   mulle_c_log2_floor( unsigned long long bits)
+  ```
+  The `clz` helpers are undefined for `0` (like the builtins); `mulle_c_log2_floor` is defined for `0` and answers `0`.
 
 ### 3.3. `mulle-allocator` — flexible memory allocation scheme
 
@@ -91,7 +99,12 @@ This section summarizes each constituent. Signatures are copied verbatim from th
   ```
   The `reallocarray*` variants are **NEW**: they multiply `n * size` with overflow checking (`mulle_allocator_size_multiply`), call the vtable `reallocarray`, and call `fail` on failure. `_strict` frees the block when `n || size` is 0 instead of failing.
 - Failure hook: `void   mulle_allocation_fail( struct mulle_allocator *allocator, void *block, size_t size)` (no-return); configurable via `mulle_allocator_set_fail`.
-- `mulle-alloca.h` stack/heap hybrid macros: `mulle_alloca_do( name, type, count)`, `mulle_calloca_do_*`, `mulle_malloc_do`, `mulle_calloc_do`, `mulle_alloca_do_flexible`, `mulle_calloca_do_flexible`, ... (alloca when it fits the fixed `MULLE_ALLOCA_STACKSIZE` (128 bytes), else malloc; automatic free at scope end).
+- **NEW** `mulle_allocator_fail_t` — noreturn-qualified function-pointer typedef for the `fail` field and `mulle_allocator_set_fail`'s parameter:
+  ```c
+  typedef void  (*mulle_allocator_fail_t)( struct mulle_allocator *allocator,
+                                           void *block, size_t size) MULLE_C_NO_RETURN;
+  ```
+- `mulle-alloca.h` stack/heap hybrid macros: `mulle_alloca_do( name, type, count)`, `mulle_calloca_do_*`, `mulle_malloc_do`, `mulle_calloc_do`, `mulle_alloca_do_flexible`, `mulle_calloca_do_flexible`, ... (alloca when it fits the fixed `MULLE_ALLOCA_STACKSIZE` (128 bytes), else malloc; automatic free at scope end). The legacy alias `mulle_flexarray_do( a, b, c, d)` now maps to `mulle_alloca_do_flexible( a, b, (c) * sizeof( b), d)` (the old stack-size argument was a count of `type` elements).
 
 ### 3.4. `mulle-data` — hash functions, ranges, qsort
 
@@ -130,7 +143,7 @@ This section summarizes each constituent. Signatures are copied verbatim from th
 
 ### 3.5. `mulle-buffer` — growable char buffer and stream
 
-- Version `MULLE__BUFFER_VERSION ((5UL << 20) | (2 << 8) | 0)`. **NOT thread-safe**; one thread per instance.
+- Version `MULLE__BUFFER_VERSION ((5UL << 20) | (2 << 8) | 1)`. **NOT thread-safe**; one thread per instance.
 - Structure:
   ```c
   struct mulle_buffer
@@ -138,7 +151,7 @@ This section summarizes each constituent. Signatures are copied verbatim from th
      MULLE_BUFFER_BASE;
   };
   ```
-  `MULLE_BUFFER_BASE` = `MULLE__BUFFER_BASE` (`_storage`, `_curr`, `_sentinel`, `_initial_storage`, `_size`, `_type`) + a public `struct mulle_allocator *_allocator`.
+  `MULLE_BUFFER_BASE` = a nested `struct mulle__buffer base` (holding `_storage`, `_curr`, `_sentinel`, `_initial_storage`, `_size`, `_type`) + a public `struct mulle_allocator *_allocator`. The nested member replaces the former layout-compatible prefix cast, which was strict-aliasing undefined behavior (C11 6.5p7); fields are now reached as `buffer->base._type`, etc. `struct mulle_flushablebuffer` likewise embeds a `struct mulle_buffer base`.
 - Mode flags (`_type`): `MULLE_BUFFER_IS_FLEXIBLE` (0, grows by malloc), `MULLE_BUFFER_IS_INFLEXIBLE` (1, sets `MULLE_BUFFER_IS_OVERFLOWN` on excess), `MULLE_BUFFER_IS_FLUSHABLE` (3), `MULLE_BUFFER_IS_SPRINTF_INFLEXIBLE` (5), `MULLE_BUFFER_IS_OVERFLOWN` (8, sticky) plus `MULLE_BUFFER_IS_READONLY/WRITEONLY/TEXT/BINARY`.
 - Lifecycle:
   ```c
@@ -181,8 +194,9 @@ This section summarizes each constituent. Signatures are copied verbatim from th
 
 ### 3.6. `mulle-container` — arrays, hashtables, queues
 
-- Version `MULLE__CONTAINER_VERSION ((10UL << 20) | (1 << 8) | 3)`.
-- Engineered types (names to use): `struct mulle_pointerarray` (ordered `void *` array), `struct mulle_map` (key/value hashtable), `struct mulle_set` (membership), `struct mulle_pointerqueue`/`struct mulle_structqueue` (FIFO), plus generic `mulle__pointerarray`, `mulle__pointermap`, `mulle__pointerset`, `mulle_structarray` etc.
+- Version `MULLE__CONTAINER_VERSION ((10UL << 20) | (1 << 8) | 4)`.
+- Engineered types (names to use): `struct mulle_pointerarray` (ordered `void *` array), `struct mulle_map` (key/value hashtable), `struct mulle_set` (membership), `struct mulle_pointerqueue`/`struct mulle_structqueue` (FIFO), plus generic `mulle__pointerarray`, `mulle__pointermap`, `mulle__pointerset`, `mulle_structarray` etc. Each public type embeds its private counterpart as a real member named `base` (`MULLE_POINTERARRAY_BASE`, `MULLE__MAP_BASE`, ...), avoiding the former layout-prefix cast.
+- **NEW mutation pointers** (enumeration change detection): every container exposes a `*_get_mutation_pointer` returning `uintptr_t *` whose pointed-to value changes on mutation — the value suited to `NSFastEnumeration`'s `mutationsPtr`. Double-underscore containers provide `_mulle__<container>_get_mutation_pointer` (built on `_mulle__pointerarray_get_mutation_pointer`) and the NULL-safe `mulle__<container>_get_mutation_pointer`; the single-underscore wrappers are `_mulle_<container>_get_mutation_pointer`/`mulle_<container>_get_mutation_pointer`. Covered: array, pointerarray, structarray, assoc, pointerpairarray, map, pointermap, set, pointerset, pointerqueue, structqueue, rangemap. Also **NEW**: `void   mulle_pointerarray_remove_last( struct mulle_pointerarray *array)` (and `_mulle_pointerarray_remove_last`).
 - **Callbacks** (`mulle-container-callback.h`) drive hashing/equality/retain/release. Key ones:
   ```c
   typedef uintptr_t
@@ -328,7 +342,15 @@ This section summarizes each constituent. Signatures are copied verbatim from th
      size_t                       _page_index;  // index of current page in _pages
   };
 
-  #define MULLE_ARENA_DEFAULT_ALIGNMENT   alignof( max_align_t)
+  union mulle_arena_max_align
+  {
+     long long        _ll;
+     long double      _ld;
+     void            *_p;
+     void           (*_fp)( void);
+  };
+
+  #define MULLE_ARENA_DEFAULT_ALIGNMENT   alignof( union mulle_arena_max_align)
 
   static inline void   mulle_arena_init( struct mulle_arena *arena,
                                          size_t page_size,
@@ -344,7 +366,7 @@ This section summarizes each constituent. Signatures are copied verbatim from th
   static inline struct mulle_allocator  *mulle_arena_get_allocator( struct mulle_arena *arena)
   static inline size_t   mulle_arena_get_page_count( struct mulle_arena *arena)
   ```
-  `page_size == 0` selects a 4096-byte default. The allocator argument is unused internally (pages come from `mulle_allocator_default`). `_mulle_arena_realloc` extends in place or copies. Oversized requests get a dedicated page.
+  `page_size == 0` selects a 4096-byte default. The allocator argument is unused internally (pages come from `mulle_allocator_default`). The vtable's `reallocarray` entry extends in place or copies (a zero `n`/`size` or overflowing product goes through `fail`). Oversized requests get a dedicated page. `union mulle_arena_max_align` derives `MULLE_ARENA_DEFAULT_ALIGNMENT` portably (avoids MSVC, which lacks `max_align_t` in C mode).
 
 ### 3.10. `mulle-http` and `mulle-url`
 
@@ -370,6 +392,10 @@ This section summarizes each constituent. Signatures are copied verbatim from th
 
 - Opaque `struct mulle_utf32regex *`, compiled from UTF-32 patterns.
   ```c
+  #define MULLE_UTF32REGEX_EXTENDED   0x0001
+
+  struct mulle_utf32regex   *mulle_utf32regex_compile_options( const mulle_utf32_t *pattern,
+                                                               unsigned int options);
   struct mulle_utf32regex   *mulle_utf32regex_compile( const mulle_utf32_t *pattern);
   static inline void   mulle_utf32regex_free( struct mulle_utf32regex *regex);
   int   mulle_utf32regex_execute( struct mulle_utf32regex *regex, const mulle_utf32_t *src);
@@ -379,7 +405,7 @@ This section summarizes each constituent. Signatures are copied verbatim from th
   mulle_utf32_t   *mulle_utf32_match( const mulle_utf32_t *pattern, const mulle_utf32_t *src);
   struct mulle_range   mulle_utf32regex_range_for_index( struct mulle_utf32regex *regex, unsigned int i);
   ```
-  `execute` returns `<0` error / `1` match / `0` no match. `range_for_index` index `0` = whole match, `1-9` = capture groups.
+  `execute` returns `<0` error / `1` match / `0` no match. `range_for_index` index `0` = whole match, `1-9` = capture groups; a non-participating group (or out-of-range index) yields `mulle_range_make_invalid()`. `MULLE_UTF32REGEX_EXTENDED` (NEW) enables character-class escapes (`\t \n \r \f \v \a \e`, `\] \\ \- \^`) and named classes (`[[:alpha:]]`, `[[:digit:]]`, `[[:space:]]`, ...) resolved via `mulle-unicode`.
 
 ### 3.12. `mulle-slug` — URL slugs
 
@@ -416,7 +442,7 @@ This section summarizes each constituent. Signatures are copied verbatim from th
   int   mulle_unicode_is_letter( int32_t c);
   int   mulle_unicode_is_letterplane( unsigned int plane);
   ```
-  Predicates: `is_alphanumeric`, `is_capitalized`, `is_control`, `is_decimaldigit`, `is_decomposable`, `is_identifierstart`, `is_identifiercontinuation`, `is_legalcharacter`, `is_lowercase`, `is_newline`, `is_nonbase`, `is_noncharacter`, `is_punctuation`, `is_symbol`, `is_uppercase`, `is_whitespace`, `is_whitespaceornewline`, `is_zerodigit`. Case conversion: `mulle_unicode_tolower/16_tolower`, `mulle_unicode_toupper/16_toupper`, `mulle_unicode_totitlecase/16_totitlecase`. Each predicate also has a per-plane form, `mulle_unicode_is_*plane( unsigned int plane)`, for a whole plane.
+  Predicates: `is_alphanumeric`, `is_capitalized`, `is_control`, `is_decimaldigit`, `is_decomposable`, `is_identifierstart`, `is_identifiercontinuation`, `is_legalcharacter`, `is_lowercase`, `is_newline`, `is_nonbase`, `is_noncharacter`, `is_punctuation`, `is_symbol`, `is_uppercase`, `is_whitespace`, `is_whitespaceornewline`, `is_zerodigit`. Case conversion: `mulle_unicode_tolower/16_tolower`, `mulle_unicode_toupper/16_toupper`, `mulle_unicode_totitlecase/16_totitlecase`. Each predicate also has a per-plane form, `mulle_unicode_is_*plane( unsigned int plane)`, for a whole plane. **NEW ASCII-only predicates** (`mulle-unicode-is-ascii.h`, `static inline`, no tables): `mulle_unicode_is_asciidigit`, `mulle_unicode_is_asciiuppercase`, `mulle_unicode_is_asciilowercase`, `mulle_unicode_is_asciiletter` (`[A-Za-z]`), `mulle_unicode_is_asciispace`, `mulle_unicode_is_asciiidentifierstart` (`[A-Za-z_]`), `mulle_unicode_is_asciiidentifiercontinuation` (`[A-Za-z0-9_]`) — for lexers whose alphabet is deliberately ASCII.
 - `mulle-utf`: UTF-8/16/32 analysis and conversion.
   ```c
   typedef uint16_t   mulle_utf16_t;
@@ -445,7 +471,7 @@ This section summarizes each constituent. Signatures are copied verbatim from th
 
 ### 3.15. `mulle-thread` (+ `mintomic`) — threads, synch, atomics
 
-- Version `MULLE__THREAD_VERSION ((4UL << 20) | (10 << 8) | 0)`. Backend auto-selected: C11 threads (`HAVE_C11_THREADS`), Windows, or pthreads. API identical across backends.
+- Version `MULLE__THREAD_VERSION ((4UL << 20) | (11 << 8) | 0)`. Backend auto-selected: C11 threads (`HAVE_C11_THREADS`), Windows, or pthreads. API identical across backends.
 - Thread types (pthreads backend): `typedef pthread_t mulle_thread_t;`, `typedef pthread_mutex_t mulle_thread_mutex_t;`, `typedef pthread_cond_t mulle_thread_cond_t;`, `typedef pthread_key_t mulle_thread_tss_t;`, `typedef void *mulle_thread_rval_t;`, with `typedef mulle_thread_rval_t (MULLE_THREAD_CALL mulle_thread_function_t)( void *);`. Functions return `0` on success.
   ```c
   static inline int   mulle_thread_create( mulle_thread_function_t *f, void *arg, mulle_thread_t *p_thread)
@@ -498,7 +524,14 @@ This section summarizes each constituent. Signatures are copied verbatim from th
 
 ### 3.16. `mulle-concurrent` — lock-/wait-free hashtables, sets, arrays
 
-- Version `MULLE__CONCURRENT_VERSION ((4UL << 20) | (0 << 8) | 0)`. Coordination relies on `mulle-aba` for safe reclamation (see 3.17).
+- Version `MULLE__CONCURRENT_VERSION ((4UL << 20) | (1 << 8) | 0)`. Coordination relies on `mulle-aba` for safe reclamation (see 3.17).
+- **NEW `mulle-concurrent-math.h`** bit-twiddling helpers (namespaced to avoid collision with `mulle-container-math.h`; `0` counts as a power of two for `_mulle_concurrent_is_pow2`):
+  ```c
+  static inline int        _mulle_concurrent_is_pow2( size_t x);
+  static inline uint32_t   _mulle_concurrent_pow2roundup_32( uint32_t v);
+  static inline uint64_t   _mulle_concurrent_pow2roundup_64( uint64_t v);
+  static inline size_t     _mulle_concurrent_pow2roundup( size_t v);
+  ```
 - **NEW resizable wait-free `mulle_concurrent_hashtable`** (`mulle-concurrent-hashtable.h`). The *hash word* carries the migration "FROZEN" state, so values are never overwritten during resize (no tombstones; a removed slot keeps its hash claim and is immediately reusable). `NULL` is the only reserved payload. Process must call `mulle_aba_init(NULL)` once; each worker thread must `mulle_aba_register()`/`mulle_aba_unregister()`.
   ```c
   struct _mulle_concurrent_hashtablepair
@@ -530,8 +563,11 @@ This section summarizes each constituent. Signatures are copied verbatim from th
   void  *mulle_concurrent_hashtable_lookup( struct mulle_concurrent_hashtable *map, intptr_t hash);
   size_t   mulle_concurrent_hashtable_get_size( struct mulle_concurrent_hashtable *map);
   size_t   mulle_concurrent_hashtable_count( struct mulle_concurrent_hashtable *map);
+  static inline int
+     mulle_concurrent_hashtable_hash_is_valid( struct mulle_concurrent_hashtable *map,
+                                               intptr_t hash);
   ```
-  Hash keys must be `intptr_t` in `[1, INTPTR_MAX]` (positive mode, FROZEN is the top bit; `0 == MULLE_CONCURRENT_NO_HASH`). Sentinel macros: `MULLE_CONCURRENT_NO_HASH 0`, `MULLE_CONCURRENT_NO_POINTER ((void *) 0)`, `MULLE_CONCURRENT_INVALID_POINTER`, `MULLE_CONCURRENT_TOMBSTONE_POINTER`. Return codes: `insert` → `0`/`EEXIST`/`EINVAL`; `remove` → `0`/`ENOENT`/`EINVAL`; enumerators → `1`=next, `0`=end, `ECANCELED`=storage migrated (restart enumeration).
+  Hash keys must be `intptr_t` in `[1, INTPTR_MAX]` (positive mode, FROZEN is the top bit; `0 == MULLE_CONCURRENT_NO_HASH`). An out-of-range hash is **rejected**: mutating calls return `EINVAL` and `lookup` returns NULL, exactly like an absent key — use the NEW `mulle_concurrent_hashtable_hash_is_valid` to distinguish the two. Sentinel macros: `MULLE_CONCURRENT_NO_HASH 0`, `MULLE_CONCURRENT_NO_POINTER ((void *) 0)`, `MULLE_CONCURRENT_INVALID_POINTER`, `MULLE_CONCURRENT_TOMBSTONE_POINTER`. Return codes: `insert` → `0`/`EEXIST`/`EINVAL`; `remove` → `0`/`ENOENT`/`EINVAL`; enumerators → `1`=next, `0`=end, `ECANCELED`=storage migrated (restart enumeration).
   Enumeration with the `mulle_concurrent_hashtable_for( name, hash, value)` / `..._for_rval` macros (plus explicit `mulle_concurrent_hashtable_enumerate`/`enumerator_next`/`enumerator_done`).
 - `mulle_concurrent_hashmap` (legacy, when you must store `NULL` payloads or want a backing value-sentinel scheme):
   ```c
@@ -577,7 +613,10 @@ This section summarizes each constituent. Signatures are copied verbatim from th
   int    mulle_aba_free( void (*p_free)( void *), void *pointer);
   int    mulle_aba_free_owned_pointer( void (*p_free)( void *pointer, void *owner),
                                        void *pointer, void *owner);
+  int    _mulle_aba_free_owned_pointer( void *aba, void (*p_free)( void *, void *),
+                                        void *pointer, void *owner);
   ```
+  `_mulle_aba_free_owned_pointer` is the NEW instance variant used as the allocator's `abafree` callback (`aba` matches the callback signature).
 
 ### 3.18. `mulle-fifo`, `mulle-multififo`, `mulle-linkedlist`
 
@@ -648,8 +687,9 @@ This section summarizes each constituent. Signatures are copied verbatim from th
   struct mulle_mmap_shared_memory   mulle_mmap_alloc_shared_memory( size_t size);
   int   mulle_mmap_free_shared_memory( struct mulle_mmap_shared_memory *mem);
   size_t   mulle_mmap_get_system_pagesize( void);
+  size_t   mulle_mmap_get_allocation_granularity( void);
   ```
-  `enum mulle_mmap_accessmode { mulle_mmap_read, mulle_mmap_write, mulle_mmap_no_unmap = 0x80 };`. Accessors: `mulle_mmap_get_bytes/length/mapped_length/is_open/is_mapped/is_empty/is_writable`.
+  `enum mulle_mmap_accessmode { mulle_mmap_read, mulle_mmap_write, mulle_mmap_no_unmap = 0x80 };`. Accessors: `mulle_mmap_get_bytes/length/mapped_length/is_open/is_mapped/is_empty/is_writable`. `mulle_mmap_get_allocation_granularity` (NEW; Windows 65536, POSIX the page size) is the alignment a preferred address for `mulle_mmap_map_shared_memory` must satisfy; a non-NULL preferred address is honoured or the call fails (it is never silently relocated, and `MAP_FIXED` is deliberately not used).
 
 ### 3.20. `mulle-dtostr`, `mulle-sprintf`, `mulle-fprintf`
 
@@ -716,6 +756,40 @@ This section summarizes each constituent. Signatures are copied verbatim from th
   struct mulle_timeintervalrange   { mulle_timeinterval_t start; mulle_timeinterval_t end; };
   ```
 - Functions: `mulle_timeinterval_now`, `mulle_timeinterval_now_monotonic`, `mulle_relativetime_now`, `mulle_absolutetime_now`, `mulle_calendartime_now`, `mulle_relativetime_sleep`, `mulle_relativetime_make_with_s_ns`, `mulle_timeinterval_quantize`, `mulle_absolutetime_init_with_timespec`, plus `timespec_add/sub/compare/make_with_relativetime` and range makers `mulle_absolutetimerange_make/mulle_relativetimerange_make/mulle_calendartimerange_make/mulle_timeintervalrange_make`.
+
+### 3.22. `mulle-spawn` — launching and controlling child processes
+
+- Portable process spawning (POSIX `fork`/`exec` vs. Windows `CreateProcessW`) around `struct mulle_spawn_handle` (public `in`/`out`/`err` descriptors, `pid`, opaque `platform[4]`), `struct mulle_spawn_result`, `mulle_spawn_run` and `mulle_spawn_get_executable_path`. The migration adds a **launch description** (`struct mulle_spawn_options`) and cooperative control:
+  ```c
+  #define MULLE_SPAWN_INHERIT     0   // parent's own stream, untouched
+  #define MULLE_SPAWN_PIPE        1   // a new pipe, end stored in the handle
+  #define MULLE_SPAWN_DISCARD     2   // the null device
+  #define MULLE_SPAWN_DESCRIPTOR  3   // NEW: use the descriptor named alongside
+
+  struct mulle_spawn_options
+  {
+     char * const   *env;               // replacement environment (NULL = inherit)
+     char const     *directory;         // child cwd (NULL = inherit)
+     int            in_descriptor;      // used by MULLE_SPAWN_DESCRIPTOR
+     int            out_descriptor;
+     int            err_descriptor;
+     int            new_process_group;  // Windows: CREATE_NEW_PROCESS_GROUP
+     int            in_mode;            // MULLE_SPAWN_INHERIT/PIPE/DISCARD/DESCRIPTOR
+     int            out_mode;
+     int            err_mode;
+  };
+
+  static inline void   mulle_spawn_options_init( struct mulle_spawn_options *p)
+
+  int   mulle_spawn_open_with_options( struct mulle_spawn_handle *h,
+                                       char * const *argv,
+                                       struct mulle_spawn_options const *options);
+  int   mulle_spawn_interrupt( struct mulle_spawn_handle *h);
+  int   mulle_spawn_suspend( struct mulle_spawn_handle *h);
+  int   mulle_spawn_resume( struct mulle_spawn_handle *h);
+  int   mulle_spawn_detach( struct mulle_spawn_handle *h);
+  ```
+  A zeroed `mulle_spawn_options` is the default (inherit environment and all three streams); `mulle_spawn_open` is `mulle_spawn_open_with_options` with that zeroed struct. `mulle_spawn_interrupt` sends SIGINT / `CTRL_BREAK_EVENT` (Windows requires `new_process_group`); `suspend`/`resume` are SIGSTOP/SIGCONT or `NtSuspendProcess`/`NtResumeProcess`; `detach` releases the handle without terminating or reaping the child.
 
 ## 4. Performance Characteristics
 
@@ -885,6 +959,7 @@ The amalgamation itself has no build-time library dependencies beyond the C runt
 - mulle-linkedlist
 - mulle-dlfcn
 - mulle-mmap
+- mulle-spawn
 - mulle-dtostr
 - mulle-sprintf
 - mulle-fprintf

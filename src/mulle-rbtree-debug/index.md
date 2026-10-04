@@ -132,11 +132,11 @@ void  mulle__rbtree_node_ascii_fprintf( FILE *fp,
 #### Version macro
 
 ```c
-#define MULLE__RBTREE__DEBUG_VERSION   ((0UL << 20) | (1 << 8) | 3)
+#define MULLE__RBTREE__DEBUG_VERSION   ((0UL << 20) | (1 << 8) | 4)
 ```
 
 Consumed by the mulle-sde dependency version-check mechanism. Bumped from
-`(1 << 8) | 2` to `(1 << 8) | 3`.
+`(1 << 8) | 3` to `(1 << 8) | 4`.
 
 ## 4. Performance Characteristics
 
@@ -349,7 +349,7 @@ Direct `mulle-sde` dependencies (from `.mulle/etc/sourcetree/config`):
 The previous `index.md` was committed as `b5b10d1` ("docs: add comprehensive
 AI-oriented API documentation") on 2026-08-04. Since that commit, the only
 public-API change is a version bump (`MULLE__RBTREE__DEBUG_VERSION` from
-`(1 << 8) | 2` to `(1 << 8) | 3`). The prior document mistakenly described the
+`(1 << 8) | 3` to `(1 << 8) | 4`). The prior document mistakenly described the
 `mulle-rbtree` dependency API instead of this project's API, so it was
 rewritten here to document the actual three public functions of
 `mulle-rbtree-debug`.

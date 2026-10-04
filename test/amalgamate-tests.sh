@@ -252,17 +252,20 @@ for i in "${!CONSTITUENTS[@]}"; do
    echo "amalgamate-tests: vendored ${name} (${vendored} test sources, skipped ${#skip_test[@]} testallocator tests)"
 done
 
-if [ "${dry_run}" != 'YES' ]; then
-   revision_file="${dest_root}/VENDORED"
-   : > "${revision_file}"
-   for i in "${!CONSTITUENTS[@]}"; do
-      name="${CONSTITUENTS[$i]}"
-      repo="${repo_of[$i]}"
-      rev='-'
-      if [ -n "${repo}" ] && [ -d "${repo}/.git" ]; then
-         rev="$(git -C "${repo}" describe --always --dirty 2>/dev/null || echo '-')"
-      fi
-      printf '%s %s\n' "${name}" "${rev}" >> "${revision_file}"
-   done
-   echo "amalgamate-tests: wrote VENDORED"
-fi
+# provenance is tracked by the meta-repo commit/tags, so no VENDORED manifest
+# is written here anymore
+#
+# if [ "${dry_run}" != 'YES' ]; then
+#    revision_file="${dest_root}/VENDORED"
+#    : > "${revision_file}"
+#    for i in "${!CONSTITUENTS[@]}"; do
+#       name="${CONSTITUENTS[$i]}"
+#       repo="${repo_of[$i]}"
+#       rev='-'
+#       if [ -n "${repo}" ] && [ -d "${repo}/.git" ]; then
+#          rev="$(git -C "${repo}" describe --always --dirty 2>/dev/null || echo '-')"
+#       fi
+#       printf '%s %s\n' "${name}" "${rev}" >> "${revision_file}"
+#    done
+#    echo "amalgamate-tests: wrote VENDORED"
+# fi

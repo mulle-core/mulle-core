@@ -13,7 +13,7 @@
 - It is a foundational part of `mulle-core` and a companion to `mulle-container`.
   It is intentionally kept outside `mulle-c` because it builds on `mulle-buffer`
   and `mulle-sprintf`, and `mulle-sprintf` in turn pulls in `mulle-thread`.
-- Version 0.1.4.
+- Version 0.1.5.
 
 ## 2. Key Concepts & Design Philosophy
 
@@ -31,7 +31,8 @@
   `mulle__` (double underscore) and operate on the private struct
   `struct mulle__pointerarray`. Public thin static-inline wrappers are prefixed
   with `mulle_` (single underscore) and accept the public
-  `struct mulle_pointerarray`, casting internally.
+  `struct mulle_pointerarray`, forwarding to the private struct through its
+  embedded `base` member.
 - **Output format**: A NULL array renders as `NULL`. An empty array renders as
   `{}`. A single-element array renders as `{ %p }`. A multi-element array renders
   as a brace-enclosed, comma-separated, indented multi-line block.
@@ -46,7 +47,7 @@ Top-level header. Defines the version and pulls in every public header via the
 auto-generated `_mulle-container-debug-provide.h`.
 
 ```c
-#define MULLE__CONTAINER__DEBUG_VERSION  ((0UL << 20) | (1 << 8) | 4)
+#define MULLE__CONTAINER__DEBUG_VERSION  ((0UL << 20) | (1 << 8) | 5)
 
 static inline unsigned int   mulle_container_debug_get_version_major( void)
 static inline unsigned int   mulle_container_debug_get_version_minor( void)
@@ -56,7 +57,7 @@ MULLE__CONTAINER__DEBUG_GLOBAL
 uint32_t   mulle_container_debug_get_version( void);
 ```
 
-- `MULLE__CONTAINER__DEBUG_VERSION` — packed `major.minor.patch` (0.1.4).
+- `MULLE__CONTAINER__DEBUG_VERSION` — packed `major.minor.patch` (0.1.5).
 - `mulle_container_debug_get_version_major/minor/patch()` — static inline
   accessors unpacking the version fields.
 - `mulle_container_debug_get_version()` — returns the packed version as `uint32_t`.
@@ -108,8 +109,8 @@ char   *mulle__pointerarray_describe( struct mulle__pointerarray *array);
 ### 3.3. `src/array/pointer/mulle-pointerarray-debug.h` (public facade)
 
 Thin static-inline wrappers. Prefer these over the `mulle__` variants; they take
-the public `struct mulle_pointerarray` from `mulle-container` and cast to the
-private struct.
+the public `struct mulle_pointerarray` from `mulle-container` and forward to the
+private struct through its embedded `base` member.
 
 ```c
 static inline void

@@ -43,7 +43,7 @@ All public API is in `src/http_parser.h`, included via the umbrella header
 `src/mulle-http.h`. The library version is exposed as:
 
 ```c
-#define MULLE__HTTP_VERSION  ((0UL << 20) | (1 << 8) | 14)
+#define MULLE__HTTP_VERSION  ((0UL << 20) | (1 << 8) | 15)
 ```
 
 ### 3.1. `http_parser.h`
@@ -660,6 +660,7 @@ No other runtime dependencies. The project is a leaf component of `mulle-core`.
 This `index.md` was last committed as part of `2d7faa3` ("maintenance: add
 BSD-3-Clause license headers ..."). Since then the only public API-visible
 change is the library version bump in `src/mulle-http.h`
-(`MULLE__HTTP_VERSION` `0.1.13` → `0.1.14`) and a tightened `mulle-c11`
-versioncheck range; `src/http_parser.h` and the parser implementation are
-unchanged. All documentation above was verified against the current headers.
+(`MULLE__HTTP_VERSION` `0.1.14` → `0.1.15`) and a tightened `mulle-c11`
+versioncheck range (`MULLE__C11_VERSION_MIN` `4.9.0` → `4.9.1`);
+`src/http_parser.h` and the parser implementation are unchanged. All
+documentation above was verified against the current headers.

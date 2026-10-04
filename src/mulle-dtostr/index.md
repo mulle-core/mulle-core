@@ -43,7 +43,7 @@ The implementation provides fallback code for systems without 128-bit integer su
 
 ##### `MULLE__DTOSTR_VERSION`
 - **Purpose:** Version identifier macro for the library
-- **Value:** `((0 << 24) | (2 << 8) | 0)` representing version 0.2.0
+- **Value:** `((0UL << 20) | (2 << 8) | 1)` representing version 0.2.1
 
 ##### `MULLE__DTOSTR_BUFFER_SIZE`
 - **Purpose:** Minimum buffer size required for `mulle_dtostr` output
