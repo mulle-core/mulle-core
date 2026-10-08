@@ -1,5 +1,6 @@
 ## 0.10.0
 
+
 feature: update amalgamated snapshots to 0.10.0 with new APIs
 
 * add process spawning with ``mulle_spawn_options`` / ``mulle_spawn_open_with_options`,` plus ``mulle_spawn_interrupt/suspend/resume/detach`` and ``MULLE_SPAWN_DESCRIPTOR``
