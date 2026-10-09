@@ -71,7 +71,7 @@ jobs:
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v4
+      uses: actions/checkout@v7
 
     - name: Install packages (Windows)
       if: runner.os == 'Windows'
@@ -99,7 +99,7 @@ jobs:
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v4
+      uses: actions/checkout@v7
 
     - name: Build in FreeBSD VM
       uses: vmactions/freebsd-vm@v1

@@ -42,7 +42,7 @@ jobs:
            sudo apt-get install -y git curl build-essential
            # git config --global --add safe.directory "*"
            
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v7
 
     - uses: mulle-sde/github-ci@v2
 
@@ -92,7 +92,7 @@ jobs:
             echo "RPM_PACKAGE=package/${package}" >> $GITHUB_ENV
 
     - name: Upload packages (ZIP)
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: Linux-packages-${{ matrix.arch }}
         path: |
@@ -139,7 +139,7 @@ jobs:
             # sudo systemctl enable dbus
             # sudo systemctl start dbus
            
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v7
  
     - uses: mulle-sde/github-ci@v2
     
@@ -178,7 +178,7 @@ jobs:
             echo "ARCH_PACKAGE=package/*.zst" >> $GITHUB_ENV
 
     - name: Upload packages (ZIP)
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: Arch-packages-${{ matrix.arch }}
         path: |
@@ -193,13 +193,13 @@ jobs:
         arch: [x86_64, aarch64]  # not real hardware, just a variable
     steps:
       - name: Download artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: Linux-packages-${{ matrix.arch }}
           path: ./release-files
 
       - name: Upload to Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v3
         with:
           files: ./release-files/*
         env:

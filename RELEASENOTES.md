@@ -1,5 +1,11 @@
 ## 0.10.0
 
+
+* sprintf utf8/utf16/utf32 tests now verify format truncation and `*` width/precision agreement internally instead of printing to stdout
+* buffer growstress test validates buffer contents and length, reporting failures via stderr and exit status
+* removed golden .stdout files now that tests assert their own correctness
+
+
 feature: update amalgamated snapshots to 0.10.0 with new APIs
 
 * add process spawning with ``mulle_spawn_options`` / ``mulle_spawn_open_with_options`,` plus ``mulle_spawn_interrupt/suspend/resume/detach`` and ``MULLE_SPAWN_DESCRIPTOR``
