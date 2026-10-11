@@ -1,6 +1,12 @@
 ## 0.10.0
 
 
+* add a `mulle-socket` section covering the portable TCP client/server API, Unix-domain sockets, the ``mulle_socket_t`` handle, socket options and timeouts, and the ``read`/`write_all`/`shutdown`/`close`` lifecycle
+* add a portable TCP echo example and mark `mulle-socket` (self-contained leaf over the OS) in the dependency graph
+* refresh constituent version strings (mulle-data, mulle-container-debug, mulle-http, mulle-slug) in the API toc
+
+
+
 feature: update amalgamated snapshots to 0.10.0 with new APIs
 
 * add process spawning with ``mulle_spawn_options`` / ``mulle_spawn_open_with_options`,` plus ``mulle_spawn_interrupt/suspend/resume/detach`` and ``MULLE_SPAWN_DESCRIPTOR``

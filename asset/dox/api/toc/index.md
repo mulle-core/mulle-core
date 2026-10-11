@@ -1,5 +1,5 @@
 # mulle-core Library Documentation for AI
-<!-- Keywords: amalgamation, C, wait-free, allocator, container, buffer, thread -->
+<!-- Keywords: amalgamation, wait-free, allocator, container, buffer, thread, socket -->
 
 ## 1. Introduction & Purpose
 
@@ -108,7 +108,7 @@ This section summarizes each constituent. Signatures are copied verbatim from th
 
 ### 3.4. `mulle-data` — hash functions, ranges, qsort
 
-- Version `MULLE__DATA_VERSION` (see `mulle-data.h`).
+- Version `MULLE__DATA_VERSION ((0UL << 20) | (6 << 8) | 1)`.
 - Byte blob type:
   ```c
   struct mulle_data
@@ -258,7 +258,7 @@ This section summarizes each constituent. Signatures are copied verbatim from th
 
 ### 3.7. `mulle-container-debug` — container describe helpers
 
-- Version `MULLE__CONTAINER__DEBUG_VERSION ((0UL << 20) | (1 << 8) | 4)`.
+- Version `MULLE__CONTAINER__DEBUG_VERSION ((0UL << 20) | (1 << 8) | 5)`.
 - Provides `mulle_*_describe` for most container types; the pointer array also has `mulle_pointerarray_describe_buffer` (and its `_callback` form). e.g.:
   ```c
   typedef void   mulle_container_item_printer_t( struct mulle_buffer *buffer,
@@ -370,7 +370,7 @@ This section summarizes each constituent. Signatures are copied verbatim from th
 
 ### 3.10. `mulle-http` and `mulle-url`
 
-- `mulle-http` (version `MULLE__HTTP_VERSION ((0UL << 20) | (1 << 8) | 14)`) bundles the **node.js http-parser** (v2.7.0). The main struct is `struct http_parser` (opaque-ish, has public `data` field). Callbacks are set in `struct http_parser_settings` (`on_message_begin`, `on_url`, `on_header_field`, `on_header_value`, `on_headers_complete`, `on_body`, `on_message_complete`, `on_chunk_header`, `on_chunk_complete`).
+- `mulle-http` (version `MULLE__HTTP_VERSION ((0UL << 20) | (1 << 8) | 15)`) bundles the **node.js http-parser** (v2.7.0). The main struct is `struct http_parser` (opaque-ish, has public `data` field). Callbacks are set in `struct http_parser_settings` (`on_message_begin`, `on_url`, `on_header_field`, `on_header_value`, `on_headers_complete`, `on_body`, `on_message_complete`, `on_chunk_header`, `on_chunk_complete`).
   ```c
   void   http_parser_init( http_parser *parser, enum http_parser_type type);
   size_t http_parser_execute( http_parser *parser,
@@ -409,7 +409,7 @@ This section summarizes each constituent. Signatures are copied verbatim from th
 
 ### 3.12. `mulle-slug` — URL slugs
 
-- Version `MULLE__SLUG_VERSION ((0UL << 20) | (2 << 8) | 0)`. Converts text into URL- or filename-safe slugs. Transliterates where possible; non-transliterable letters are either dropped (ASCII-only) or **kept as UTF-8** (new `_utf8` variants).
+- Version `MULLE__SLUG_VERSION ((0UL << 20) | (2 << 8) | 1)`. Converts text into URL- or filename-safe slugs. Transliterates where possible; non-transliterable letters are either dropped (ASCII-only) or **kept as UTF-8** (new `_utf8` variants).
   ```c
   // allocated string, mulle_free it; non-transliterable chars dropped
   char   *mulle_utf8_slugify( const char *s);
@@ -791,6 +791,57 @@ This section summarizes each constituent. Signatures are copied verbatim from th
   ```
   A zeroed `mulle_spawn_options` is the default (inherit environment and all three streams); `mulle_spawn_open` is `mulle_spawn_open_with_options` with that zeroed struct. `mulle_spawn_interrupt` sends SIGINT / `CTRL_BREAK_EVENT` (Windows requires `new_process_group`); `suspend`/`resume` are SIGSTOP/SIGCONT or `NtSuspendProcess`/`NtResumeProcess`; `detach` releases the handle without terminating or reaping the child.
 
+### 3.23. `mulle-socket` — portable TCP and Unix-domain sockets
+
+- Version `MULLE__SOCKET_VERSION ((1UL << 20) | (0 << 8) | 0)`. One blocking-socket API over POSIX and Winsock; it does **not** treat a socket as a file descriptor, because on Windows it is a distinct kernel handle. It settles the platform differences once: `WSAStartup` (lazily, idempotent), error translation from `WSAGetLastError()` to `errno`, `MSG_NOSIGNAL` (no global `SIGPIPE` disarming needed), and automatic `EINTR` retry in `read`/`write`/`accept`/`connect`. No framing, no timeouts beyond the socket options below.
+- Handle type / sentinel:
+  ```c
+  typedef int   mulle_socket_t;               // POSIX
+  typedef SOCKET   mulle_socket_t;            // Windows
+
+  # define MULLE_SOCKET_INVALID   (-1)         // INVALID_SOCKET on Windows
+  # define MULLE_SOCKET_HAVE_UNIX   1          // defined on POSIX only
+  ```
+  Every function that returns a `mulle_socket_t` returns `MULLE_SOCKET_INVALID` on failure, with the reason in `mulle_socket_error()`.
+- Lifecycle / setup / errors:
+  ```c
+  int   mulle_socket_init( void);              // 0 or -1; idempotent, no shutdown
+  int   mulle_socket_error( void);             // errno value of last failure, 0 if none
+  ```
+- Servers and clients:
+  ```c
+  mulle_socket_t   mulle_socket_listen( char const *address,
+                                        unsigned int port,
+                                        unsigned int *p_port);
+  mulle_socket_t   mulle_socket_accept( mulle_socket_t listener);
+  mulle_socket_t   mulle_socket_connect( char const *host, unsigned int port);
+  unsigned int     mulle_socket_find_free_port( void);
+  ```
+  `listen` takes a literal IPv4 `address` or `NULL` for all interfaces; `port` `0` asks the OS for a free port and `*p_port` (may be NULL) receives the bound port. `SO_REUSEADDR` is set on POSIX only. `accept` sets `TCP_NODELAY`; `connect` tries every address the platform resolves for `host` and sets `TCP_NODELAY` on success. `find_free_port` binds port `0`, reads the port, closes again (racy by nature).
+- Socket options:
+  ```c
+  int   mulle_socket_set_reuseaddr( mulle_socket_t socket);      // no-op on Windows
+  int   mulle_socket_set_nodelay( mulle_socket_t socket);
+  int   mulle_socket_set_read_timeout( mulle_socket_t socket, double seconds);
+  int   mulle_socket_set_write_timeout( mulle_socket_t socket, double seconds);
+  ```
+  A timeout of `0` seconds means wait forever; expiry yields `-1` with `mulle_socket_error() == ETIMEDOUT` on every platform. Note `accept` honours the receive timeout only on Linux; `connect` is never bounded; `write_all` is bounded per send, not as a whole.
+- I/O and teardown:
+  ```c
+  intptr_t   mulle_socket_read( mulle_socket_t socket, void *buffer, size_t length);
+  intptr_t   mulle_socket_write( mulle_socket_t socket, void const *bytes, size_t length);
+  int   mulle_socket_write_all( mulle_socket_t socket, void const *bytes, size_t length);
+  int   mulle_socket_shutdown( mulle_socket_t socket);
+  int   mulle_socket_close( mulle_socket_t socket);
+  ```
+  Return type is `intptr_t` (not `ssize_t`) for MSVC. A read of `0` means the peer closed; negative is an error in `mulle_socket_error()`. `write_all` loops until the whole buffer is sent. `shutdown` is a half-close; `close` is the one release call and accepts `MULLE_SOCKET_INVALID`.
+- Unix-domain sockets (POSIX only, guarded by `MULLE_SOCKET_HAVE_UNIX`):
+  ```c
+  mulle_socket_t   mulle_socket_listen_unix( char const *path);
+  mulle_socket_t   mulle_socket_connect_unix( char const *path);
+  ```
+  `listen_unix` binds the path; removing a pre-existing socket file is left to the caller.
+
 ## 4. Performance Characteristics
 
 - Generic guidance by constituent:
@@ -930,6 +981,48 @@ main( void)
 }
 ```
 
+### Example 5: A portable TCP echo (connect, write_all, read)
+
+```c
+#include <mulle-core/mulle-core.h>
+#include <string.h>
+
+int
+main( void)
+{
+   mulle_socket_t   socket;
+   char             reply[ 256];
+   intptr_t         n;
+
+   socket = mulle_socket_connect( "127.0.0.1", 8080);
+   if( socket == MULLE_SOCKET_INVALID)
+   {
+      fprintf( stderr, "connect: %d\n", mulle_socket_error());
+      return( 1);
+   }
+
+   // write_all is bounded per send, not as a whole
+   if( mulle_socket_write_all( socket, "PING\n", 5))
+   {
+      fprintf( stderr, "write: %d\n", mulle_socket_error());
+      mulle_socket_close( socket);
+      return( 1);
+   }
+
+   // read returns 0 when the peer closed, negative on error
+   n = mulle_socket_read( socket, reply, sizeof( reply) - 1);
+   if( n > 0)
+   {
+      reply[ n] = 0;
+      printf( "%s", reply);
+   }
+
+   mulle_socket_shutdown( socket);
+   mulle_socket_close( socket);
+   return( 0);
+}
+```
+
 ## 7. Dependencies
 
 The amalgamation itself has no build-time library dependencies beyond the C runtime and OS (pthreads/Windows threads); but it *contains* the following constituent libraries (each documented separately in `mulle-core/<name>/index.md`):
@@ -959,13 +1052,14 @@ The amalgamation itself has no build-time library dependencies beyond the C runt
 - mulle-linkedlist
 - mulle-dlfcn
 - mulle-mmap
+- mulle-socket
 - mulle-spawn
 - mulle-dtostr
 - mulle-sprintf
 - mulle-fprintf
 - mulle-time
 
-Internal dependency edges among constituents (relevant when reading code): `mulle-concurrent`/`mulle-multififo`/`mulle-aba` consume `mulle-thread` + `mulle-allocator`; `mulle-storage` uses `mulle-allocator` + `mulle-container` pointer array; `mulle-rbtree` uses `mulle-storage` and `mulle-container` value callback; `mulle-sprintf` uses `mulle-buffer`, `mulle-vararg`, `mulle-dtostr`, `mulle-utf`; `mulle-fprintf` uses `mulle-sprintf`.
+Internal dependency edges among constituents (relevant when reading code): `mulle-concurrent`/`mulle-multififo`/`mulle-aba` consume `mulle-thread` + `mulle-allocator`; `mulle-storage` uses `mulle-allocator` + `mulle-container` pointer array; `mulle-rbtree` uses `mulle-storage` and `mulle-container` value callback; `mulle-sprintf` uses `mulle-buffer`, `mulle-vararg`, `mulle-dtostr`, `mulle-utf`; `mulle-fprintf` uses `mulle-sprintf`; `mulle-socket` and `mulle-spawn` are self-contained leaves over the OS.
 
 ---
 

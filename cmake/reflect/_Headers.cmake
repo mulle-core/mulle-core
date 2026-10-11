@@ -256,7 +256,6 @@ src/mulle-c11/mulle-c11.h
 src/mulle-c11/mulle-c11-integer.h
 src/mulle-c11/mulle-c11-rotate.h
 src/mulle-c11/mulle-c11-swap.h
-src/mulle-c11/_mulle-c11-versioncheck.h
 src/mulle-concurrent/mulle-concurrent.h
 src/mulle-concurrent/mulle-concurrent-hashmap.h
 src/mulle-concurrent/mulle-concurrent-hashtable.h
