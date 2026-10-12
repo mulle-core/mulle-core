@@ -1,6 +1,11 @@
 ## 0.10.0
 
 
+* version checks now accept older mulle-allocator (>= 8.1.0), mulle-c11 (>= 4.9.0), mulle-buffer (>= 5.2.0), mulle-thread (>= 4.10.0), mulle-utf (>= 6.0.0), mulle-vararg (>= 1.2.2) and mulle-rbtree (>= 0.2.0)
+* relaxes compile-time version constraints for downstream users
+
+
+
 * add a `mulle-socket` section covering the portable TCP client/server API, Unix-domain sockets, the ``mulle_socket_t`` handle, socket options and timeouts, and the ``read`/`write_all`/`shutdown`/`close`` lifecycle
 * add a portable TCP echo example and mark `mulle-socket` (self-contained leaf over the OS) in the dependency graph
 * refresh constituent version strings (mulle-data, mulle-container-debug, mulle-http, mulle-slug) in the API toc

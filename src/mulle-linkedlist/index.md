@@ -146,8 +146,8 @@ Included automatically by `mulle-linkedlist.h` unless
   `add`/`remove_all`/`remove_one`. `init`/`done`/`walk` and the single-threaded
   list require exclusive access / external locking.
 - **Version constraints (enforced by `_mulle-linkedlist-versioncheck.h`):**
-  `mulle-thread >= 4.11.0` (for the `_relaxed` atomic API), `mulle-c11 >= 4.9.1`,
-  `mulle-allocator >= 9.0.0`.
+  `mulle-thread >= 4.11.0` (for the `_relaxed` atomic API), `mulle-c11 >= 4.9.0`,
+  `mulle-allocator >= 8.1.0`.
 
 ## 5. AI Usage Recommendations & Patterns
 
@@ -292,9 +292,9 @@ int   main( void)
 Direct `mulle-sde` dependencies (per `.mulle/etc/sourcetree/config` and
 `clib.json`):
 
-- `mulle-c11` — cross-platform C compiler glue; minimum 4.9.1.
+- `mulle-c11` — cross-platform C compiler glue; minimum 4.9.0.
 - `mulle-allocator` — allocation scheme used for the free-on-walk convenience
-  pattern; minimum 9.0.0.
+  pattern; minimum 8.1.0.
 - `mulle-thread` — provides `mulle_atomic_pointer_t` and the atomics/CAS API;
   minimum 4.11.0.
 
