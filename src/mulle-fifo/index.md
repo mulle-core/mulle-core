@@ -421,7 +421,7 @@ int   main( void)
 
 Direct dependencies (from `.mulle/etc/sourcetree/config`):
 - `mulle-thread` (>= 4.11.0): sequentially consistent atomic operations, memory barriers
-- `mulle-allocator` (>= 8.1.0): storage allocation for the dynamic FIFO
+- `mulle-allocator` (>= 9.0.0): storage allocation for the dynamic FIFO
 
 Minimum versions are enforced by `src/reflect/_mulle-fifo-versioncheck.h`
 (current as of version 0.1.9). `MULLE_C_GLOBAL`, `MULLE_C_UNUSED` and friends

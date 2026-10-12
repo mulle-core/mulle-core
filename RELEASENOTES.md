@@ -1,6 +1,11 @@
 ## 0.10.0
 
 
+* mulle-multififo headers now use ``_mulle_multififo_include_h__`` and ``_mulle_multififo_include_private_h__`` guards, avoiding a clash with mulle-fifo
+* raise minimum dependency versions: mulle-allocator 9.0.0, mulle-c11 4.9.1, mulle-rbtree 0.2.1, mulle-buffer 5.2.1, mulle-thread 4.11.0, mulle-utf 6.0.1, mulle-vararg 1.2.3
+
+
+
 * version checks now accept older mulle-allocator (>= 8.1.0), mulle-c11 (>= 4.9.0), mulle-buffer (>= 5.2.0), mulle-thread (>= 4.10.0), mulle-utf (>= 6.0.0), mulle-vararg (>= 1.2.2) and mulle-rbtree (>= 0.2.0)
 * relaxes compile-time version constraints for downstream users
 

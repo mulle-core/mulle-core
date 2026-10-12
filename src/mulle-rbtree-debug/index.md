@@ -343,8 +343,8 @@ Direct `mulle-sde` dependencies (from `.mulle/etc/sourcetree/config`):
 - `mulle-rbtree` — provides `struct mulle__rbtree`, `struct mulle_rbnode`,
   and every node/tree accessor the debug functions operate on. The generated
   version check in `src/reflect/_mulle-rbtree-debug-versioncheck.h` requires
-  `MULLE__RBTREE_VERSION_MIN  ((0UL << 20) | (2 << 8) | 0)` (lowered from
-  `((0UL << 20) | (2 << 8) | 1)`).
+  `MULLE__RBTREE_VERSION_MIN  ((0UL << 20) | (2 << 8) | 1)` (raised from
+  `((0UL << 20) | (2 << 8) | 0)`).
 - `mulle-fprintf` — used for all formatted output (`mulle_fprintf`).
 
 ## 8. Shortcut

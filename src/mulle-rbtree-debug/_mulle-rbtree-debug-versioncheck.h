@@ -25,7 +25,7 @@
 #endif
 #if defined( MULLE__RBTREE_VERSION)
 # ifndef MULLE__RBTREE_VERSION_MIN
-#  define MULLE__RBTREE_VERSION_MIN  ((0UL << 20) | (2 << 8) | 0)
+#  define MULLE__RBTREE_VERSION_MIN  ((0UL << 20) | (2 << 8) | 1)
 # endif
 # ifndef MULLE__RBTREE_VERSION_MAX
 #  define MULLE__RBTREE_VERSION_MAX  ((0UL << 20) | (3 << 8) | 0)
