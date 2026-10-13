@@ -149,7 +149,7 @@ void   mulle_allocation_fail( struct mulle_allocator *allocator,
  * @param owner  the opaque owner supplied by the allocator.
  */
 MULLE__ALLOCATOR_GLOBAL
-MULLE_C_NO_RETURN
+_MULLE_C_NO_RETURN
 int   mulle_allocator_no_aba_abort( void *aba,
                                     void (*free)( void *, void *),
                                     void *block,
