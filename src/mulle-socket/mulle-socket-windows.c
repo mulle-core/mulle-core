@@ -34,6 +34,10 @@
  */
 #ifdef _WIN32
 
+// inet_addr below is deliberate (literal dotted-quad server binds); silence
+// MSVC's deprecation warning for it.
+#define _WINSOCK_DEPRECATED_NO_WARNINGS
+
 #include "include-private.h"
 
 #include "mulle-socket.h"

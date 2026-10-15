@@ -120,35 +120,35 @@
 <path fill="none" stroke="black" d="M47.03,-873.29C49.72,-952.99 64.24,-1269.07 127,-1341 129.77,-1344.17 132.9,-1346.98 136.3,-1349.46"/>
 <polygon fill="black" stroke="black" points="134.16,-1352.26 144.52,-1354.5 137.82,-1346.29 134.16,-1352.26"/>
 </g>
-<!-- mulle&#45;container&#45;debug -->
-<g id="node9" class="node">
-<title>mulle&#45;container&#45;debug</title>
-<g id="a_node9"><a xlink:href="https://github.com/mulle-c/mulle-container-debug@*" xlink:title="mulle&#45;container&#45;debug">
-<polygon fill="lightgrey" stroke="black" points="303.5,-1332 127,-1332 127,-1296 303.5,-1296 303.5,-1332"/>
-<text xml:space="preserve" text-anchor="middle" x="215.25" y="-1309.33" font-family="Times,serif" font-size="14.00">mulle&#45;container&#45;debug</text>
-</a>
-</g>
-</g>
-<!-- mulle&#45;core&#45;&gt;mulle&#45;container&#45;debug -->
-<g id="edge9" class="edge">
-<title>mulle&#45;core&#45;&gt;mulle&#45;container&#45;debug</title>
-<path fill="none" stroke="black" d="M47.46,-873.49C51.68,-947.83 70.94,-1224.04 127,-1287 127.36,-1287.4 127.72,-1287.79 128.08,-1288.18"/>
-<polygon fill="black" stroke="black" points="125.55,-1290.62 135.4,-1294.52 130.13,-1285.33 125.55,-1290.62"/>
-</g>
 <!-- mulle&#45;container -->
-<g id="node10" class="node">
+<g id="node9" class="node">
 <title>mulle&#45;container</title>
-<g id="a_node10"><a xlink:href="https://github.com/mulle-c/mulle-container@*" xlink:title="mulle&#45;container">
-<polygon fill="lightgrey" stroke="black" points="279.12,-1278 151.38,-1278 151.38,-1242 279.12,-1242 279.12,-1278"/>
-<text xml:space="preserve" text-anchor="middle" x="215.25" y="-1255.33" font-family="Times,serif" font-size="14.00">mulle&#45;container</text>
+<g id="a_node9"><a xlink:href="https://github.com/mulle-c/mulle-container@*" xlink:title="mulle&#45;container">
+<polygon fill="lightgrey" stroke="black" points="279.12,-1332 151.38,-1332 151.38,-1296 279.12,-1296 279.12,-1332"/>
+<text xml:space="preserve" text-anchor="middle" x="215.25" y="-1309.33" font-family="Times,serif" font-size="14.00">mulle&#45;container</text>
 </a>
 </g>
 </g>
 <!-- mulle&#45;core&#45;&gt;mulle&#45;container -->
 <g id="edge8" class="edge">
 <title>mulle&#45;core&#45;&gt;mulle&#45;container</title>
-<path fill="none" stroke="black" d="M47.99,-873.47C53.87,-941.78 77.56,-1178.88 127,-1233 131.14,-1237.54 136.03,-1241.32 141.35,-1244.47"/>
-<polygon fill="black" stroke="black" points="139.44,-1247.43 149.95,-1248.81 142.59,-1241.18 139.44,-1247.43"/>
+<path fill="none" stroke="black" d="M47.46,-873.49C51.68,-947.83 70.94,-1224.04 127,-1287 131.09,-1291.59 135.93,-1295.41 141.22,-1298.58"/>
+<polygon fill="black" stroke="black" points="139.29,-1301.53 149.79,-1302.95 142.47,-1295.29 139.29,-1301.53"/>
+</g>
+<!-- mulle&#45;container&#45;debug -->
+<g id="node10" class="node">
+<title>mulle&#45;container&#45;debug</title>
+<g id="a_node10"><a xlink:href="https://github.com/mulle-c/mulle-container-debug@*" xlink:title="mulle&#45;container&#45;debug">
+<polygon fill="lightgrey" stroke="black" points="303.5,-1278 127,-1278 127,-1242 303.5,-1242 303.5,-1278"/>
+<text xml:space="preserve" text-anchor="middle" x="215.25" y="-1255.33" font-family="Times,serif" font-size="14.00">mulle&#45;container&#45;debug</text>
+</a>
+</g>
+</g>
+<!-- mulle&#45;core&#45;&gt;mulle&#45;container&#45;debug -->
+<g id="edge9" class="edge">
+<title>mulle&#45;core&#45;&gt;mulle&#45;container&#45;debug</title>
+<path fill="none" stroke="black" d="M47.99,-873.47C53.87,-941.78 77.56,-1178.88 127,-1233 127.47,-1233.51 127.95,-1234.01 128.43,-1234.51"/>
+<polygon fill="black" stroke="black" points="125.95,-1237 135.87,-1240.73 130.44,-1231.63 125.95,-1237"/>
 </g>
 <!-- mulle&#45;data -->
 <g id="node11" class="node">

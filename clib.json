@@ -44,7 +44,6 @@
       "src/mulle-c11/mulle-c11-rotate.h",
       "src/mulle-c11/mulle-c11-swap.h",
       "src/mulle-c11/mulle-c11.h",
-      "src/mulle-c11/_mulle-c11-versioncheck.h",
       "src/mulle-concurrent/include-private.h",
       "src/mulle-concurrent/include.h",
       "src/mulle-concurrent/mulle-concurrent-hashmap.c",

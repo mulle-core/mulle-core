@@ -1,9 +1,20 @@
 ## 0.10.0
 
 
-* sprintf utf8/utf16/utf32 tests now verify format truncation and `*` width/precision agreement internally instead of printing to stdout
-* buffer growstress test validates buffer contents and length, reporting failures via stderr and exit status
-* removed golden .stdout files now that tests assert their own correctness
+* mulle-multififo headers now use ``_mulle_multififo_include_h__`` and ``_mulle_multififo_include_private_h__`` guards, avoiding a clash with mulle-fifo
+* raise minimum dependency versions: mulle-allocator 9.0.0, mulle-c11 4.9.1, mulle-rbtree 0.2.1, mulle-buffer 5.2.1, mulle-thread 4.11.0, mulle-utf 6.0.1, mulle-vararg 1.2.3
+
+
+
+* version checks now accept older mulle-allocator (>= 8.1.0), mulle-c11 (>= 4.9.0), mulle-buffer (>= 5.2.0), mulle-thread (>= 4.10.0), mulle-utf (>= 6.0.0), mulle-vararg (>= 1.2.2) and mulle-rbtree (>= 0.2.0)
+* relaxes compile-time version constraints for downstream users
+
+
+
+* add a `mulle-socket` section covering the portable TCP client/server API, Unix-domain sockets, the ``mulle_socket_t`` handle, socket options and timeouts, and the ``read`/`write_all`/`shutdown`/`close`` lifecycle
+* add a portable TCP echo example and mark `mulle-socket` (self-contained leaf over the OS) in the dependency graph
+* refresh constituent version strings (mulle-data, mulle-container-debug, mulle-http, mulle-slug) in the API toc
+
 
 
 feature: update amalgamated snapshots to 0.10.0 with new APIs
