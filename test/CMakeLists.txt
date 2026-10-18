@@ -20,6 +20,15 @@ endif()
 
 enable_testing()
 
+# __VA_OPT__ is a C23 feature. gcc and clang also accept it before C23 as an
+# extension, TinyCC 0.9.27 implements it in no mode at all. Tests that need it
+# carry a `.skip.no-va-opt` marker rather than being compiled into a failure
+# that reads like a library bug. Probe the capability, not __STDC_VERSION__:
+# gcc answers yes in -std=c11 mode.
+include( CheckCSourceCompiles)
+check_c_source_compiles( "#define V( ...) 0 __VA_OPT__(+ 1)\nint a = V();\nint b = V( 1);\nint main( void) { return( a + b - 1); }"
+                         MULLE_CORE_TEST_HAS_VA_OPT)
+
 set( MULLE_CORE_TEST_ROOT "${CMAKE_CURRENT_SOURCE_DIR}")
 
 # The tests use `#include "include.h"` (shared umbrella header). The library's
@@ -55,12 +64,17 @@ foreach( TEST_SOURCE ${MULLE_CORE_TEST_SOURCES})
 
    # skip the whole directory / single test, mirroring mulle-test
    set( TEST_SKIPPED FALSE)
+   set( _capability_skips)
+   if( NOT MULLE_CORE_TEST_HAS_VA_OPT)
+      set( _capability_skips "${TEST_NAME}.skip.no-va-opt")
+   endif()
    foreach( _skip
             "no-mulle-test"
             "no-mulle-test.${MULLE_CORE_TEST_PLATFORM}"
             "${TEST_NAME}.skip"
             "${TEST_NAME}.skip.${MULLE_CORE_TEST_PLATFORM}"
-            "${TEST_NAME}.skip.${MULLE_CORE_TEST_PLATFORM}.${MULLE_CORE_TEST_ARCH}")
+            "${TEST_NAME}.skip.${MULLE_CORE_TEST_PLATFORM}.${MULLE_CORE_TEST_ARCH}"
+            ${_capability_skips})
       if( EXISTS "${MULLE_CORE_TEST_ROOT}/${TEST_DIR}/${_skip}")
          set( TEST_SKIPPED TRUE)
       endif()
@@ -111,10 +125,13 @@ foreach( TEST_SOURCE ${MULLE_CORE_TEST_SOURCES})
 
    # tests that sleep or start many threads produce different but equivalent
    # output depending on scheduling and load; keep them from running next to
-   # other tests
+   # other tests. These also spin hard (pointerset/stress.c burns minutes of
+   # CPU), so they get a larger budget than the 120s default.
    if( TEST_DIR MATCHES "multithreaded" OR TEST_DIR MATCHES "stress"
        OR TEST_DIR MATCHES "relativetime" OR TEST_DIR MATCHES "sleep"
-       OR TEST_DIR MATCHES "bench")
-      set_tests_properties( "${TEST_SOURCE}" PROPERTIES RUN_SERIAL TRUE)
+       OR TEST_DIR MATCHES "bench" OR TEST_NAME MATCHES "stress")
+      set_tests_properties( "${TEST_SOURCE}" PROPERTIES
+         RUN_SERIAL TRUE
+         TIMEOUT 300)
    endif()
 endforeach()

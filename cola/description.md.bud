@@ -37,6 +37,7 @@ matrix:
 | Ubuntu   | GCC        | -O3    | 
 | Ubuntu   | Clang      | &nbsp; | 
 | Ubuntu   | Clang      | Debug  | 
+| Ubuntu   | TCC        | &nbsp; | 
 | Windows  | MSVC Win32 | &nbsp; |       
 | Windows  | MSVC Win64 | &nbsp; |       
 | Windows  | GCC        | &nbsp; | 

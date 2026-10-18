@@ -6,6 +6,18 @@
 #include <math.h>
 #include <stdint.h>
 
+// NAN's sign bit is implementation-defined (gcc positive, tcc negative) and
+// this test prints the value. Pin the bit pattern instead of inheriting it.
+static double nan_with_sign(int negative) {
+    uint64_t bits = 0x7ff8000000000000ull;
+    double value;
+
+    if (negative)
+        bits |= 0x8000000000000000ull;
+    memcpy(&value, &bits, sizeof(value));
+    return value;
+}
+
 void test_roundtrip(double value, const char* name) {
     char buffer[MULLE__DTOSTR_BUFFER_SIZE];
     mulle_dtostr(value, buffer);
@@ -71,8 +83,8 @@ int main() {
     test_roundtrip(-1.7976931348623157e+308, "-DBL_MAX");
     test_roundtrip(1.0/0.0, "+INFINITY");
     test_roundtrip(-1.0/0.0, "-INFINITY");
-    test_roundtrip(NAN, "NAN");
-    test_roundtrip(-NAN, "-NAN");
+    test_roundtrip(nan_with_sign(0), "NAN");
+    test_roundtrip(nan_with_sign(1), "-NAN");
     
     /* Additional specific test values */
     test_roundtrip(8.589973428413488e+09, "8.589973428413488e+09");

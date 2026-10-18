@@ -41,6 +41,7 @@ matrix:
 | Ubuntu   | GCC        | -O3    | 
 | Ubuntu   | Clang      | &nbsp; | 
 | Ubuntu   | Clang      | Debug  | 
+| Ubuntu   | TCC        | &nbsp; | 
 | Windows  | MSVC Win32 | &nbsp; |       
 | Windows  | MSVC Win64 | &nbsp; |       
 | Windows  | GCC        | &nbsp; | 
@@ -98,7 +99,6 @@ support files.
 | [mulle-allocator](https://github.com/mulle-c/mulle-allocator) | 🔄 Flexible C memory allocation scheme
 | [mulle-buffer](https://github.com/mulle-c/mulle-buffer) | ↗️  A growable C char array and also a stream - on stack and heap
 | [mulle-c11](https://github.com/mulle-c/mulle-c11) | 🔀 Cross-platform C compiler glue (and some cpp conveniences)
-| [mulle-container-debug](https://github.com/mulle-c/mulle-container-debug) | 🛄 Debugging support for mulle-container
 | [mulle-container](https://github.com/mulle-c/mulle-container) | 🛄 Arrays, hashtables and a queue
 | [mulle-data](https://github.com/mulle-c/mulle-data) | #️⃣  A collection of hash functions
 | [mulle-http](https://github.com/mulle-c/mulle-http) | 🈚 http URL parser
@@ -118,6 +118,7 @@ support files.
 | [mulle-multififo](https://github.com/mulle-concurrent/mulle-multififo) | 🐛 mulle-multififo multi-producer/multi-consumer FIFO holding `void *`
 | [mulle-thread](https://github.com/mulle-concurrent/mulle-thread) | 🔠 Cross-platform thread/mutex/tss/atomic operations in C
 | [dlfcn-win32](https://github.com/mulle-core/dlfcn-win32) | dlfcn-win32 [![Build status](https://ci.appveyor.com/api/projects/status/celmbkqj0k41fk04/branch/master?svg=true)](https://ci.appveyor.com/project/dlfcn-win32/dlfcn-win32/branch/master)
+| [mulle-container-debug](https://github.com/mulle-core/mulle-container-debug) | 🛄 Debugging support for mulle-container
 | [mulle-dlfcn](https://github.com/mulle-core/mulle-dlfcn) | ♿️ Shared library helper
 | [mulle-dtostr](https://github.com/mulle-core/mulle-dtostr) | 🧶 Double to string conversion
 | [mulle-fprintf](https://github.com/mulle-core/mulle-fprintf) | 🔢 mulle-fprintf marries mulle-sprintf to stdio.h
@@ -165,17 +166,21 @@ add these libraries, it is important that mulle-core is added before them.
 
 
 
-### Add as subproject with cmake and git
+### Add as subproject with cmake
 
-``` bash
-git submodule add https://github.com/mulle-core/mulle-core.git stash/mulle-core
-git submodule update --init --recursive
-```
-
-Add this to your `CMakeLists.txt`:
+Add mulle-core to your `CMakeLists.txt` with
+[FetchContent](https://cmake.org/cmake/help/latest/module/FetchContent.html):
 
 ``` cmake
-add_subdirectory( stash/mulle-core)
+include( FetchContent)
+
+set( MULLE__CORE_TAG "master" CACHE STRING "branch or tag to fetch mulle-core from")
+
+FetchContent_Declare( MULLE__CORE
+   GIT_REPOSITORY https://github.com/mulle-core/mulle-core.git
+   GIT_TAG        "${MULLE__CORE_TAG}")
+FetchContent_MakeAvailable( MULLE__CORE)
+
 target_link_libraries( ${PROJECT_NAME} PRIVATE mulle-core)
 ```
 

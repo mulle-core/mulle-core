@@ -8,7 +8,7 @@
 #
 cmake_minimum_required( VERSION 3.19...99.99) # for REAL_PATH
 
-project( mulle-core VERSION 0.10.0 LANGUAGES C)
+project( mulle-core VERSION 0.10.1 LANGUAGES C)
 
 #
 # The vendored constituent tests in test/ are opt-in. mulle-core is normally
@@ -136,6 +136,34 @@ target_compile_definitions( "${LIBRARY_COMPILE_TARGET}" PUBLIC)
 target_compile_options( "${LIBRARY_COMPILE_TARGET}" PUBLIC)
 if( NOT MSVC)
    target_compile_options( "${LIBRARY_COMPILE_TARGET}" PUBLIC -Wunused)
+endif()
+
+#
+# TinyCC only honours `-std=c11`. `-std=gnu11`, `-std=gnu99` and even
+# `-std=c17` are accepted but leave __STDC_VERSION__ at 199901, and tcc's
+# headers only declare TIME_UTC, max_align_t and timespec_get() in C11 mode.
+# Without it the vendored tests fail to compile. PUBLIC, because the exported
+# target should hand consumers the same language mode as the library itself.
+# GCC and Clang are left alone: -std=c11 would define __STRICT_ANSI__ for them
+# and quietly drop GNU extensions.
+#
+if( CMAKE_C_COMPILER_ID MATCHES "TinyCC")
+   #
+   # LIBRARY_COMPILE_TARGET is an OBJECT library ("_1_mulle-core") and
+   # LIBRARY_LINK_TARGET is built from $<TARGET_OBJECTS:...>, so it inherits
+   # none of the object library's usage requirements. Both need the flag, or
+   # the tests (which link LIBRARY_LINK_TARGET) and consumers of the exported
+   # target end up back in tcc's default C99 mode.
+   #
+   set( _tcc_targets "${LIBRARY_COMPILE_TARGET}" "${LIBRARY_STAGE2_TARGET}" "${LIBRARY_LINK_TARGET}")
+   list( REMOVE_DUPLICATES _tcc_targets)
+   foreach( _tcc_target ${_tcc_targets})
+      if( _tcc_target)
+         target_compile_options( "${_tcc_target}" PUBLIC "-std=c11")
+      endif()
+   endforeach()
+   unset( _tcc_target)
+   unset( _tcc_targets)
 endif()
 
 #

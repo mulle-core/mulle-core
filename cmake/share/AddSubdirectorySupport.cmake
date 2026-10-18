@@ -320,6 +320,3 @@ endif()
 #
 #      protect_cmake_include_directory( "${SOURCE_ROOT_INCLUDE_DIR}")
 #   endif()
-
-
-

@@ -74,8 +74,8 @@
          domain="clib";
          name="src/mulle-container-debug";
          repo="mulle-container-debug@*";
-         url="https://github.com/mulle-c/mulle-container-debug@*";
-         user="mulle-c";
+         url="https://github.com/mulle-core/mulle-container-debug@*";
+         user="mulle-core";
       },
       {
          description="🛄 Arrays, hashtables and a queue";

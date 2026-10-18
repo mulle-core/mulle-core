@@ -94,7 +94,7 @@
 // symbol output (like weak does) for cross compilation use another batch
 // of definitons (see above)
 //
-#if defined( __clang__) || defined( __GNUC__)
+#if defined( __clang__) || defined( __GNUC__) || defined( __TINYC__)
 
 # define MULLE_C_WEAK                 __attribute__(( weak))
 # define MULLE_C_STATIC_ALWAYS_INLINE  static inline  __attribute__(( always_inline))
@@ -161,15 +161,31 @@
 # define MULLE_C_LIKELY( expr)         __builtin_expect( (expr), 1)
 # define MULLE_C_UNLIKELY( expr)       __builtin_expect( (expr), 0)
 # define MULLE_C_EXPECT( expr, value)  __builtin_expect( (expr), value)
-# define MULLE_C_TYPE_OF( expr)        __typeof__( expr)
 
 #else
 
 # define MULLE_C_LIKELY( expr)         (expr)
 # define MULLE_C_UNLIKELY( expr)       (expr)
 # define MULLE_C_EXPECT( expr, value)  (expr)
-# define MULLE_C_TYPE_OF( expr)        __typeof( expr)
 
+#endif
+
+
+//
+// __typeof__ is *not* C11. It is a GNU extension (also understood by clang)
+// that only became standard as `typeof` with C23. Like __VA_OPT__ it is a
+// language feature, so it lives in its own mulle-c23-feature.h and is probed
+// here instead of assumed: gcc and clang accept the reserved __typeof__
+// spelling even in -std=c11 mode, TinyCC has no typeof at all. Guard optional
+// use with MULLE_C_HAS_TYPEOF and include mulle-c23-feature.h for
+// MULLE_C_TYPE_OF.
+//
+#ifndef MULLE_C_HAS_TYPEOF
+# if defined( __clang__) || defined( __GNUC__) || defined( __TINYC__)
+#  define MULLE_C_HAS_TYPEOF          1
+# else
+#  define MULLE_C_HAS_TYPEOF          0
+# endif
 #endif
 
 

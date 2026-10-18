@@ -337,22 +337,33 @@ int   mulle_buffer_fputs( const char *s, void *buffer)
 
 int   mulle_buffer_fflush( void *buffer)
 {
+   struct mulle_buffer   *p;
+
    if( ! buffer)
    {
       errno = EBADF;
       return( EOF);
    }
 
+   p = (struct mulle_buffer *) buffer;
+
    // When  a  stream that has been opened for writing is flushed
    // a null byte is written at the end of
    // the buffer if there is space.  The caller should ensure that an extra
    // byte is available in the buffer (and that size counts that byte) to allow
    // for this.
-   if( ((struct mulle_buffer *) buffer)->base._type & MULLE_BUFFER_IS_TEXT)
-      _mulle__buffer_zero_last_byte_no_truncate( &((struct mulle_buffer *) buffer)->base);
+   //
+   // A stream opened for reading is text mode as well, but it has no end to
+   // terminate: _mulle__buffer_zero_last_byte_no_truncate would put the NUL at
+   // the *read* position and scribble on the backing store. For a buffer
+   // obtained through fmemopen() that store is owned by the caller, so flushing
+   // (and therefore fclose) a read-only stream must not write anything.
+   //
+   if( (p->base._type & MULLE_BUFFER_IS_TEXT) && ! mulle_buffer_is_readonly( p))
+      _mulle__buffer_zero_last_byte_no_truncate( &p->base);
 
-   if( _mulle__buffer_is_flushable( &((struct mulle_buffer *) buffer)->base))
-      _mulle__buffer_flush( &((struct mulle_buffer *) buffer)->base);
+   if( _mulle__buffer_is_flushable( &p->base))
+      _mulle__buffer_flush( &p->base);
    return( 0);
 }
 

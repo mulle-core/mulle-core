@@ -11,8 +11,8 @@
  *
  */
 
-#ifndef _mulle_multififo_include_private_h__
-#define _mulle_multififo_include_private_h__
+#ifndef _mulle_fifo_include_private_h__
+#define _mulle_fifo_include_private_h__
 
 /* no headers */
 

@@ -40,17 +40,27 @@ file).
 {% endif %}
 
 
-### Add as subproject with cmake and git
+{%
+   identifier = [[project.repo uppercaseString] stringByReplacingOccurrencesOfString:@"-" withString:@"__"];
+   tag        = [identifier stringByAppendingString:@"_TAG"];
+   tagref     = [@"${" stringByAppendingString:tag];
+   tagref     = [tagref stringByAppendingString:@"}"];
+%}
+### Add as subproject with cmake
 
-``` bash
-git submodule add https://github.com/{{ project.user }}/{{ project.repo }}.git stash/{{ project.repo }}
-git submodule update --init --recursive
-```
-
-Add this to your `CMakeLists.txt`:
+Add {{ project.repo }} to your `CMakeLists.txt` with
+[FetchContent](https://cmake.org/cmake/help/latest/module/FetchContent.html):
 
 ``` cmake
-add_subdirectory( stash/{{ project.repo }})
+include( FetchContent)
+
+set( {{ identifier }}_TAG "master" CACHE STRING "branch or tag to fetch {{ project.repo }} from")
+
+FetchContent_Declare( {{ identifier }}
+   GIT_REPOSITORY https://github.com/{{ project.user }}/{{ project.repo }}.git
+   GIT_TAG        "{{ tagref }}")
+FetchContent_MakeAvailable( {{ identifier }})
+
 target_link_libraries( ${PROJECT_NAME} PRIVATE {{ project.repo }})
 ```
 

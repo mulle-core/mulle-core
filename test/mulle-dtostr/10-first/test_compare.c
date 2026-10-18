@@ -1,6 +1,23 @@
 #include <mulle-dtostr/mulle-dtostr.h>
 #include <stdio.h>
 #include <math.h>
+#include <stdint.h>
+#include <string.h>
+
+// The sign bit of NAN is implementation-defined: gcc's NAN is positive
+// (0x7ff8...), tcc's is negative (0xfff8...). This test prints the sign, so
+// build the NaN from an explicit bit pattern instead of inheriting one from
+// <math.h> -- otherwise the expected output depends on the compiler.
+static double  nan_with_sign( int negative)
+{
+   uint64_t   bits = 0x7ff8000000000000ull;
+   double     value;
+
+   if( negative)
+      bits |= 0x8000000000000000ull;
+   memcpy( &value, &bits, sizeof( value));
+   return( value);
+}
 
 void test_value(double value, const char* label) {
   char buf[MULLE__DTOSTR_BUFFER_SIZE];
@@ -18,8 +35,8 @@ int main(void) {
   
   test_value(INFINITY, "+INFINITY");
   test_value(-INFINITY, "-INFINITY");
-  test_value(NAN, "NAN");
-  test_value(-NAN, "-NAN");
+  test_value(nan_with_sign( 0), "NAN");
+  test_value(nan_with_sign( 1), "-NAN");
   test_value(0.0, "+0.0");
   test_value(-0.0, "-0.0");
   test_value(1.0, "1.0");

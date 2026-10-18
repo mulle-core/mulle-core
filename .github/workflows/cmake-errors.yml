@@ -26,6 +26,13 @@ jobs:
             compiler: gcc
             cflags: -O3 -Werror -Wall -Wextra
 
+          # tcc has a limited set of warning flags, no -Wextra
+          - name: Ubuntu TCC
+            os: ubuntu-latest
+            compiler: tcc
+            cflags: -Werror -Wall
+            packages: tcc
+
           - name: Ubuntu Clang
             os: ubuntu-latest
             compiler: clang
@@ -77,6 +84,12 @@ jobs:
       if: runner.os == 'Windows'
       run: |
         choco install --no-progress ninja ${{ matrix.packages }}
+
+    - name: Install packages (Linux)
+      if: runner.os == 'Linux' && matrix.packages
+      run: |
+        sudo apt-get update
+        sudo apt-get install --no-install-recommends -y ${{ matrix.packages }}
 
     - name: Setup MSVC developer environment
       if: matrix.msvc-arch

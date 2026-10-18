@@ -27,8 +27,8 @@
 <!-- mulle&#45;core&#45;&gt;dlfcn&#45;win32 -->
 <g id="edge1" class="edge">
 <title>mulle&#45;core&#45;&gt;dlfcn&#45;win32</title>
-<path fill="none" stroke="black" d="M47.12,-873.35C51.16,-987.85 75.15,-1601.52 127,-1665 134.15,-1673.75 144.07,-1679.72 154.68,-1683.78"/>
-<polygon fill="black" stroke="black" points="153.4,-1687.05 163.99,-1686.78 155.54,-1680.38 153.4,-1687.05"/>
+<path fill="none" stroke="#666666" d="M47.12,-873.35C51.16,-987.85 75.15,-1601.52 127,-1665 134.67,-1674.39 145.54,-1680.58 157.01,-1684.64"/>
+<ellipse fill="#666666" stroke="#666666" cx="161.13" cy="-1685.91" rx="4" ry="4"/>
 </g>
 <!-- mintomic -->
 <g id="node3" class="node">
@@ -42,8 +42,8 @@
 <!-- mulle&#45;core&#45;&gt;mintomic -->
 <g id="edge2" class="edge">
 <title>mulle&#45;core&#45;&gt;mintomic</title>
-<path fill="none" stroke="black" d="M47.25,-873.18C51.94,-982.72 78.52,-1552.07 127,-1611 135.98,-1621.92 149.29,-1628.51 162.82,-1632.46"/>
-<polygon fill="black" stroke="black" points="161.63,-1635.77 172.18,-1634.73 163.29,-1628.97 161.63,-1635.77"/>
+<path fill="none" stroke="#666666" d="M47.25,-873.18C51.94,-982.72 78.52,-1552.07 127,-1611 136.52,-1622.57 150.89,-1629.27 165.24,-1633.13"/>
+<ellipse fill="#666666" stroke="#666666" cx="169.26" cy="-1634.07" rx="4" ry="4"/>
 </g>
 <!-- mulle&#45;aba -->
 <g id="node4" class="node">
@@ -57,8 +57,8 @@
 <!-- mulle&#45;core&#45;&gt;mulle&#45;aba -->
 <g id="edge3" class="edge">
 <title>mulle&#45;core&#45;&gt;mulle&#45;aba</title>
-<path fill="none" stroke="black" d="M47.41,-873.23C52.81,-978.19 81.92,-1502.65 127,-1557 135.62,-1567.39 148.16,-1573.86 161.06,-1577.86"/>
-<polygon fill="black" stroke="black" points="159.87,-1581.17 170.43,-1580.29 161.63,-1574.39 159.87,-1581.17"/>
+<path fill="none" stroke="#666666" d="M47.41,-873.23C52.81,-978.19 81.92,-1502.65 127,-1557 136.14,-1568.02 149.68,-1574.62 163.38,-1578.56"/>
+<ellipse fill="#666666" stroke="#666666" cx="167.53" cy="-1579.59" rx="4" ry="4"/>
 </g>
 <!-- mulle&#45;allocator -->
 <g id="node5" class="node">
@@ -72,8 +72,8 @@
 <!-- mulle&#45;core&#45;&gt;mulle&#45;allocator -->
 <g id="edge4" class="edge">
 <title>mulle&#45;core&#45;&gt;mulle&#45;allocator</title>
-<path fill="none" stroke="black" d="M46.2,-873.32C44.99,-968.28 44.12,-1404.03 127,-1503 131.61,-1508.5 137.32,-1512.91 143.59,-1516.42"/>
-<polygon fill="black" stroke="black" points="141.94,-1519.51 152.47,-1520.61 144.92,-1513.18 141.94,-1519.51"/>
+<path fill="none" stroke="#666666" d="M46.2,-873.32C44.99,-968.28 44.12,-1404.03 127,-1503 132.16,-1509.16 138.69,-1513.94 145.86,-1517.64"/>
+<ellipse fill="#666666" stroke="#666666" cx="149.74" cy="-1519.4" rx="4" ry="4"/>
 </g>
 <!-- mulle&#45;buffer -->
 <g id="node6" class="node">
@@ -87,8 +87,8 @@
 <!-- mulle&#45;core&#45;&gt;mulle&#45;buffer -->
 <g id="edge5" class="edge">
 <title>mulle&#45;core&#45;&gt;mulle&#45;buffer</title>
-<path fill="none" stroke="black" d="M46.43,-873.26C46.43,-963.28 50.83,-1359.06 127,-1449 133.77,-1457 142.86,-1462.66 152.63,-1466.67"/>
-<polygon fill="black" stroke="black" points="151.38,-1469.94 161.97,-1469.91 153.67,-1463.33 151.38,-1469.94"/>
+<path fill="none" stroke="#666666" d="M46.43,-873.26C46.43,-963.28 50.83,-1359.06 127,-1449 134.35,-1457.68 144.43,-1463.61 155.13,-1467.66"/>
+<ellipse fill="#666666" stroke="#666666" cx="159.13" cy="-1468.99" rx="4" ry="4"/>
 </g>
 <!-- mulle&#45;c11 -->
 <g id="node7" class="node">
@@ -102,8 +102,8 @@
 <!-- mulle&#45;core&#45;&gt;mulle&#45;c11 -->
 <g id="edge6" class="edge">
 <title>mulle&#45;core&#45;&gt;mulle&#45;c11</title>
-<path fill="none" stroke="black" d="M46.7,-873.28C47.99,-958.27 57.55,-1314.09 127,-1395 135.79,-1405.25 148.39,-1411.66 161.29,-1415.66"/>
-<polygon fill="black" stroke="black" points="160.09,-1418.97 170.65,-1418.11 161.86,-1412.2 160.09,-1418.97"/>
+<path fill="none" stroke="#666666" d="M46.7,-873.28C47.99,-958.27 57.55,-1314.09 127,-1395 136.32,-1405.86 149.92,-1412.42 163.61,-1416.36"/>
+<ellipse fill="#666666" stroke="#666666" cx="167.75" cy="-1417.4" rx="4" ry="4"/>
 </g>
 <!-- mulle&#45;concurrent -->
 <g id="node8" class="node">
@@ -117,38 +117,38 @@
 <!-- mulle&#45;core&#45;&gt;mulle&#45;concurrent -->
 <g id="edge7" class="edge">
 <title>mulle&#45;core&#45;&gt;mulle&#45;concurrent</title>
-<path fill="none" stroke="black" d="M47.03,-873.29C49.72,-952.99 64.24,-1269.07 127,-1341 129.77,-1344.17 132.9,-1346.98 136.3,-1349.46"/>
-<polygon fill="black" stroke="black" points="134.16,-1352.26 144.52,-1354.5 137.82,-1346.29 134.16,-1352.26"/>
-</g>
-<!-- mulle&#45;container -->
-<g id="node9" class="node">
-<title>mulle&#45;container</title>
-<g id="a_node9"><a xlink:href="https://github.com/mulle-c/mulle-container@*" xlink:title="mulle&#45;container">
-<polygon fill="lightgrey" stroke="black" points="279.12,-1332 151.38,-1332 151.38,-1296 279.12,-1296 279.12,-1332"/>
-<text xml:space="preserve" text-anchor="middle" x="215.25" y="-1309.33" font-family="Times,serif" font-size="14.00">mulle&#45;container</text>
-</a>
-</g>
-</g>
-<!-- mulle&#45;core&#45;&gt;mulle&#45;container -->
-<g id="edge8" class="edge">
-<title>mulle&#45;core&#45;&gt;mulle&#45;container</title>
-<path fill="none" stroke="black" d="M47.46,-873.49C51.68,-947.83 70.94,-1224.04 127,-1287 131.09,-1291.59 135.93,-1295.41 141.22,-1298.58"/>
-<polygon fill="black" stroke="black" points="139.29,-1301.53 149.79,-1302.95 142.47,-1295.29 139.29,-1301.53"/>
+<path fill="none" stroke="#666666" d="M47.03,-873.29C49.72,-952.99 64.24,-1269.07 127,-1341 130.26,-1344.73 134.02,-1347.96 138.12,-1350.74"/>
+<ellipse fill="#666666" stroke="#666666" cx="141.94" cy="-1353" rx="4" ry="4"/>
 </g>
 <!-- mulle&#45;container&#45;debug -->
-<g id="node10" class="node">
+<g id="node9" class="node">
 <title>mulle&#45;container&#45;debug</title>
-<g id="a_node10"><a xlink:href="https://github.com/mulle-c/mulle-container-debug@*" xlink:title="mulle&#45;container&#45;debug">
-<polygon fill="lightgrey" stroke="black" points="303.5,-1278 127,-1278 127,-1242 303.5,-1242 303.5,-1278"/>
-<text xml:space="preserve" text-anchor="middle" x="215.25" y="-1255.33" font-family="Times,serif" font-size="14.00">mulle&#45;container&#45;debug</text>
+<g id="a_node9"><a xlink:href="https://github.com/mulle-core/mulle-container-debug@*" xlink:title="mulle&#45;container&#45;debug">
+<polygon fill="lightgrey" stroke="black" points="303.5,-1332 127,-1332 127,-1296 303.5,-1296 303.5,-1332"/>
+<text xml:space="preserve" text-anchor="middle" x="215.25" y="-1309.33" font-family="Times,serif" font-size="14.00">mulle&#45;container&#45;debug</text>
 </a>
 </g>
 </g>
 <!-- mulle&#45;core&#45;&gt;mulle&#45;container&#45;debug -->
 <g id="edge9" class="edge">
 <title>mulle&#45;core&#45;&gt;mulle&#45;container&#45;debug</title>
-<path fill="none" stroke="black" d="M47.99,-873.47C53.87,-941.78 77.56,-1178.88 127,-1233 127.47,-1233.51 127.95,-1234.01 128.43,-1234.51"/>
-<polygon fill="black" stroke="black" points="125.95,-1237 135.87,-1240.73 130.44,-1231.63 125.95,-1237"/>
+<path fill="none" stroke="#666666" d="M47.46,-873.49C51.68,-947.83 70.94,-1224.04 127,-1287 127.89,-1288 128.82,-1288.96 129.77,-1289.89"/>
+<ellipse fill="#666666" stroke="#666666" cx="133.08" cy="-1292.64" rx="4" ry="4"/>
+</g>
+<!-- mulle&#45;container -->
+<g id="node10" class="node">
+<title>mulle&#45;container</title>
+<g id="a_node10"><a xlink:href="https://github.com/mulle-c/mulle-container@*" xlink:title="mulle&#45;container">
+<polygon fill="lightgrey" stroke="black" points="279.12,-1278 151.38,-1278 151.38,-1242 279.12,-1242 279.12,-1278"/>
+<text xml:space="preserve" text-anchor="middle" x="215.25" y="-1255.33" font-family="Times,serif" font-size="14.00">mulle&#45;container</text>
+</a>
+</g>
+</g>
+<!-- mulle&#45;core&#45;&gt;mulle&#45;container -->
+<g id="edge8" class="edge">
+<title>mulle&#45;core&#45;&gt;mulle&#45;container</title>
+<path fill="none" stroke="#666666" d="M47.99,-873.47C53.87,-941.78 77.56,-1178.88 127,-1233 131.66,-1238.1 137.27,-1242.25 143.36,-1245.62"/>
+<ellipse fill="#666666" stroke="#666666" cx="147.25" cy="-1247.52" rx="4" ry="4"/>
 </g>
 <!-- mulle&#45;data -->
 <g id="node11" class="node">
@@ -162,8 +162,8 @@
 <!-- mulle&#45;core&#45;&gt;mulle&#45;data -->
 <g id="edge10" class="edge">
 <title>mulle&#45;core&#45;&gt;mulle&#45;data</title>
-<path fill="none" stroke="black" d="M48.69,-873.35C56.38,-935.04 84.11,-1133.61 127,-1179 135.42,-1187.91 146.72,-1193.9 158.38,-1197.93"/>
-<polygon fill="black" stroke="black" points="157.09,-1201.19 167.67,-1200.67 159.07,-1194.48 157.09,-1201.19"/>
+<path fill="none" stroke="#666666" d="M48.69,-873.35C56.38,-935.04 84.11,-1133.61 127,-1179 135.94,-1188.46 148.11,-1194.63 160.53,-1198.64"/>
+<ellipse fill="#666666" stroke="#666666" cx="164.8" cy="-1199.86" rx="4" ry="4"/>
 </g>
 <!-- mulle&#45;dlfcn -->
 <g id="node12" class="node">
@@ -177,8 +177,8 @@
 <!-- mulle&#45;core&#45;&gt;mulle&#45;dlfcn -->
 <g id="edge11" class="edge">
 <title>mulle&#45;core&#45;&gt;mulle&#45;dlfcn</title>
-<path fill="none" stroke="black" d="M46.4,-873.33C47.14,-921.56 55.95,-1053.21 127,-1125 135.03,-1133.11 145.45,-1138.8 156.27,-1142.78"/>
-<polygon fill="black" stroke="black" points="155.12,-1146.09 165.71,-1145.77 157.23,-1139.41 155.12,-1146.09"/>
+<path fill="none" stroke="#666666" d="M46.4,-873.33C47.14,-921.56 55.95,-1053.21 127,-1125 135.62,-1133.71 146.98,-1139.62 158.64,-1143.63"/>
+<ellipse fill="#666666" stroke="#666666" cx="162.85" cy="-1144.91" rx="4" ry="4"/>
 </g>
 <!-- mulle&#45;dtostr -->
 <g id="node13" class="node">
@@ -192,8 +192,8 @@
 <!-- mulle&#45;core&#45;&gt;mulle&#45;dtostr -->
 <g id="edge12" class="edge">
 <title>mulle&#45;core&#45;&gt;mulle&#45;dtostr</title>
-<path fill="none" stroke="black" d="M47.99,-873.28C52.33,-914.61 68.68,-1015.89 127,-1071 134.2,-1077.8 143.09,-1082.9 152.4,-1086.71"/>
-<polygon fill="black" stroke="black" points="151.02,-1089.93 161.61,-1089.98 153.36,-1083.33 151.02,-1089.93"/>
+<path fill="none" stroke="#666666" d="M47.99,-873.28C52.33,-914.61 68.68,-1015.89 127,-1071 134.82,-1078.39 144.63,-1083.76 154.81,-1087.66"/>
+<ellipse fill="#666666" stroke="#666666" cx="158.78" cy="-1089.02" rx="4" ry="4"/>
 </g>
 <!-- mulle&#45;fifo -->
 <g id="node14" class="node">
@@ -207,8 +207,8 @@
 <!-- mulle&#45;core&#45;&gt;mulle&#45;fifo -->
 <g id="edge13" class="edge">
 <title>mulle&#45;core&#45;&gt;mulle&#45;fifo</title>
-<path fill="none" stroke="black" d="M50.53,-873.25C58.87,-906.71 81.19,-978.03 127,-1017 137.09,-1025.58 149.88,-1031.44 162.54,-1035.43"/>
-<polygon fill="black" stroke="black" points="161.53,-1038.79 172.1,-1038.08 163.4,-1032.04 161.53,-1038.79"/>
+<path fill="none" stroke="#666666" d="M50.53,-873.25C58.87,-906.71 81.19,-978.03 127,-1017 137.8,-1026.19 151.71,-1032.25 165.23,-1036.25"/>
+<ellipse fill="#666666" stroke="#666666" cx="169.22" cy="-1037.32" rx="4" ry="4"/>
 </g>
 <!-- mulle&#45;fprintf -->
 <g id="node15" class="node">
@@ -222,8 +222,8 @@
 <!-- mulle&#45;core&#45;&gt;mulle&#45;fprintf -->
 <g id="edge14" class="edge">
 <title>mulle&#45;core&#45;&gt;mulle&#45;fprintf</title>
-<path fill="none" stroke="black" d="M55.32,-873.09C67.94,-897.11 93.39,-939.25 127,-963 134.36,-968.2 142.76,-972.43 151.37,-975.85"/>
-<polygon fill="black" stroke="black" points="149.91,-979.04 160.5,-979.13 152.27,-972.46 149.91,-979.04"/>
+<path fill="none" stroke="#666666" d="M55.32,-873.09C67.94,-897.11 93.39,-939.25 127,-963 135.01,-968.66 144.25,-973.16 153.65,-976.74"/>
+<ellipse fill="#666666" stroke="#666666" cx="157.68" cy="-978.15" rx="4" ry="4"/>
 </g>
 <!-- mulle&#45;http -->
 <g id="node16" class="node">
@@ -237,8 +237,8 @@
 <!-- mulle&#45;core&#45;&gt;mulle&#45;http -->
 <g id="edge15" class="edge">
 <title>mulle&#45;core&#45;&gt;mulle&#45;http</title>
-<path fill="none" stroke="black" d="M70.06,-873.48C85.55,-884.94 106.65,-899.28 127,-909 137.09,-913.82 148.24,-918.03 159.1,-921.6"/>
-<polygon fill="black" stroke="black" points="157.78,-924.86 168.37,-924.51 159.87,-918.18 157.78,-924.86"/>
+<path fill="none" stroke="#666666" d="M70.06,-873.48C85.55,-884.94 106.65,-899.28 127,-909 137.82,-914.17 149.87,-918.64 161.47,-922.37"/>
+<ellipse fill="#666666" stroke="#666666" cx="165.51" cy="-923.63" rx="4" ry="4"/>
 </g>
 <!-- mulle&#45;linkedlist -->
 <g id="node17" class="node">
@@ -252,8 +252,8 @@
 <!-- mulle&#45;core&#45;&gt;mulle&#45;linkedlist -->
 <g id="edge16" class="edge">
 <title>mulle&#45;core&#45;&gt;mulle&#45;linkedlist</title>
-<path fill="none" stroke="black" d="M91.45,-862.24C106.66,-864.68 124.06,-867.48 140.88,-870.19"/>
-<polygon fill="black" stroke="black" points="139.91,-873.58 150.33,-871.71 141.02,-866.67 139.91,-873.58"/>
+<path fill="none" stroke="#666666" d="M91.45,-862.24C107.38,-864.8 125.72,-867.75 143.28,-870.58"/>
+<ellipse fill="#666666" stroke="#666666" cx="147.39" cy="-871.24" rx="4" ry="4"/>
 </g>
 <!-- mulle&#45;mmap -->
 <g id="node18" class="node">
@@ -267,8 +267,8 @@
 <!-- mulle&#45;core&#45;&gt;mulle&#45;mmap -->
 <g id="edge17" class="edge">
 <title>mulle&#45;core&#45;&gt;mulle&#45;mmap</title>
-<path fill="none" stroke="black" d="M91.45,-847.76C109.87,-844.8 131.51,-841.32 151.45,-838.11"/>
-<polygon fill="black" stroke="black" points="151.83,-841.59 161.15,-836.55 150.72,-834.68 151.83,-841.59"/>
+<path fill="none" stroke="#666666" d="M91.45,-847.76C110.65,-844.68 133.33,-841.02 153.95,-837.71"/>
+<ellipse fill="#666666" stroke="#666666" cx="158.2" cy="-837.02" rx="4" ry="4"/>
 </g>
 <!-- mulle&#45;multififo -->
 <g id="node19" class="node">
@@ -282,8 +282,8 @@
 <!-- mulle&#45;core&#45;&gt;mulle&#45;multififo -->
 <g id="edge18" class="edge">
 <title>mulle&#45;core&#45;&gt;mulle&#45;multififo</title>
-<path fill="none" stroke="black" d="M70.06,-836.52C85.55,-825.06 106.65,-810.72 127,-801 132.46,-798.4 138.22,-795.97 144.08,-793.72"/>
-<polygon fill="black" stroke="black" points="145.06,-797.09 153.27,-790.39 142.68,-790.51 145.06,-797.09"/>
+<path fill="none" stroke="#666666" d="M70.06,-836.52C85.55,-825.06 106.65,-810.72 127,-801 133.14,-798.07 139.67,-795.36 146.29,-792.89"/>
+<ellipse fill="#666666" stroke="#666666" cx="150.46" cy="-791.39" rx="4" ry="4"/>
 </g>
 <!-- mulle&#45;rbtree -->
 <g id="node20" class="node">
@@ -297,8 +297,8 @@
 <!-- mulle&#45;core&#45;&gt;mulle&#45;rbtree -->
 <g id="edge19" class="edge">
 <title>mulle&#45;core&#45;&gt;mulle&#45;rbtree</title>
-<path fill="none" stroke="black" d="M55.32,-836.91C67.94,-812.89 93.39,-770.75 127,-747 134.46,-741.73 142.97,-737.47 151.7,-734.02"/>
-<polygon fill="black" stroke="black" points="152.71,-737.37 160.96,-730.72 150.36,-730.78 152.71,-737.37"/>
+<path fill="none" stroke="#666666" d="M55.32,-836.91C67.94,-812.89 93.39,-770.75 127,-747 135.11,-741.27 144.48,-736.72 154,-733.13"/>
+<ellipse fill="#666666" stroke="#666666" cx="158.13" cy="-731.69" rx="4" ry="4"/>
 </g>
 <!-- mulle&#45;rbtree&#45;debug -->
 <g id="node21" class="node">
@@ -312,8 +312,8 @@
 <!-- mulle&#45;core&#45;&gt;mulle&#45;rbtree&#45;debug -->
 <g id="edge20" class="edge">
 <title>mulle&#45;core&#45;&gt;mulle&#45;rbtree&#45;debug</title>
-<path fill="none" stroke="black" d="M50.53,-836.75C58.87,-803.29 81.19,-731.97 127,-693 128.09,-692.08 129.21,-691.18 130.35,-690.32"/>
-<polygon fill="black" stroke="black" points="131.88,-693.5 138.36,-685.11 128.07,-687.63 131.88,-693.5"/>
+<path fill="none" stroke="#666666" d="M50.53,-836.75C58.87,-803.29 81.19,-731.97 127,-693 128.69,-691.56 130.46,-690.2 132.29,-688.91"/>
+<ellipse fill="#666666" stroke="#666666" cx="135.82" cy="-686.69" rx="4" ry="4"/>
 </g>
 <!-- mulle&#45;regex -->
 <g id="node22" class="node">
@@ -327,8 +327,8 @@
 <!-- mulle&#45;core&#45;&gt;mulle&#45;regex -->
 <g id="edge21" class="edge">
 <title>mulle&#45;core&#45;&gt;mulle&#45;regex</title>
-<path fill="none" stroke="black" d="M47.99,-836.72C52.33,-795.39 68.68,-694.11 127,-639 134.53,-631.88 143.91,-626.64 153.69,-622.78"/>
-<polygon fill="black" stroke="black" points="154.64,-626.15 162.97,-619.6 152.37,-619.53 154.64,-626.15"/>
+<path fill="none" stroke="#666666" d="M47.99,-836.72C52.33,-795.39 68.68,-694.11 127,-639 135.09,-631.35 145.31,-625.87 155.88,-621.94"/>
+<ellipse fill="#666666" stroke="#666666" cx="160.13" cy="-620.53" rx="4" ry="4"/>
 </g>
 <!-- mulle&#45;slug -->
 <g id="node23" class="node">
@@ -342,8 +342,8 @@
 <!-- mulle&#45;core&#45;&gt;mulle&#45;slug -->
 <g id="edge22" class="edge">
 <title>mulle&#45;core&#45;&gt;mulle&#45;slug</title>
-<path fill="none" stroke="black" d="M46.4,-836.67C47.14,-788.44 55.95,-656.79 127,-585 135.71,-576.2 147.23,-570.25 159.02,-566.24"/>
-<polygon fill="black" stroke="black" points="159.8,-569.66 168.41,-563.5 157.83,-562.95 159.8,-569.66"/>
+<path fill="none" stroke="#666666" d="M46.4,-836.67C47.14,-788.44 55.95,-656.79 127,-585 136.33,-575.57 148.89,-569.42 161.56,-565.41"/>
+<ellipse fill="#666666" stroke="#666666" cx="165.53" cy="-564.29" rx="4" ry="4"/>
 </g>
 <!-- mulle&#45;socket -->
 <g id="node24" class="node">
@@ -357,8 +357,8 @@
 <!-- mulle&#45;core&#45;&gt;mulle&#45;socket -->
 <g id="edge23" class="edge">
 <title>mulle&#45;core&#45;&gt;mulle&#45;socket</title>
-<path fill="none" stroke="black" d="M48.69,-836.65C56.38,-774.96 84.11,-576.39 127,-531 133.65,-523.96 142.1,-518.74 151.11,-514.88"/>
-<polygon fill="black" stroke="black" points="152.25,-518.18 160.44,-511.46 149.85,-511.61 152.25,-518.18"/>
+<path fill="none" stroke="#666666" d="M48.69,-836.65C56.38,-774.96 84.11,-576.39 127,-531 134.23,-523.35 143.58,-517.85 153.47,-513.9"/>
+<ellipse fill="#666666" stroke="#666666" cx="157.62" cy="-512.43" rx="4" ry="4"/>
 </g>
 <!-- mulle&#45;spawn -->
 <g id="node25" class="node">
@@ -372,8 +372,8 @@
 <!-- mulle&#45;core&#45;&gt;mulle&#45;spawn -->
 <g id="edge24" class="edge">
 <title>mulle&#45;core&#45;&gt;mulle&#45;spawn</title>
-<path fill="none" stroke="black" d="M47.99,-836.53C53.87,-768.22 77.56,-531.12 127,-477 133.68,-469.69 142.3,-464.33 151.51,-460.42"/>
-<polygon fill="black" stroke="black" points="152.46,-463.8 160.67,-457.1 150.07,-457.22 152.46,-463.8"/>
+<path fill="none" stroke="#666666" d="M47.99,-836.53C53.87,-768.22 77.56,-531.12 127,-477 134.19,-469.13 143.61,-463.54 153.6,-459.56"/>
+<ellipse fill="#666666" stroke="#666666" cx="157.84" cy="-458.07" rx="4" ry="4"/>
 </g>
 <!-- mulle&#45;sprintf -->
 <g id="node26" class="node">
@@ -387,8 +387,8 @@
 <!-- mulle&#45;core&#45;&gt;mulle&#45;sprintf -->
 <g id="edge25" class="edge">
 <title>mulle&#45;core&#45;&gt;mulle&#45;sprintf</title>
-<path fill="none" stroke="black" d="M47.46,-836.51C51.68,-762.17 70.94,-485.96 127,-423 133.37,-415.85 141.58,-410.57 150.42,-406.68"/>
-<polygon fill="black" stroke="black" points="151.45,-410.03 159.59,-403.25 149,-403.47 151.45,-410.03"/>
+<path fill="none" stroke="#666666" d="M47.46,-836.51C51.68,-762.17 70.94,-485.96 127,-423 133.92,-415.23 143.02,-409.67 152.74,-405.69"/>
+<ellipse fill="#666666" stroke="#666666" cx="156.78" cy="-404.24" rx="4" ry="4"/>
 </g>
 <!-- mulle&#45;storage -->
 <g id="node27" class="node">
@@ -402,8 +402,8 @@
 <!-- mulle&#45;core&#45;&gt;mulle&#45;storage -->
 <g id="edge26" class="edge">
 <title>mulle&#45;core&#45;&gt;mulle&#45;storage</title>
-<path fill="none" stroke="black" d="M47.03,-836.71C49.72,-757.01 64.24,-440.93 127,-369 132.58,-362.6 139.64,-357.7 147.32,-353.95"/>
-<polygon fill="black" stroke="black" points="148.41,-357.29 156.31,-350.23 145.73,-350.82 148.41,-357.29"/>
+<path fill="none" stroke="#666666" d="M47.03,-836.71C49.72,-757.01 64.24,-440.93 127,-369 133.08,-362.03 140.93,-356.83 149.41,-352.96"/>
+<ellipse fill="#666666" stroke="#666666" cx="153.53" cy="-351.32" rx="4" ry="4"/>
 </g>
 <!-- mulle&#45;thread -->
 <g id="node28" class="node">
@@ -417,8 +417,8 @@
 <!-- mulle&#45;core&#45;&gt;mulle&#45;thread -->
 <g id="edge27" class="edge">
 <title>mulle&#45;core&#45;&gt;mulle&#45;thread</title>
-<path fill="none" stroke="black" d="M46.7,-836.72C47.99,-751.73 57.55,-395.91 127,-315 133.31,-307.65 141.58,-302.27 150.51,-298.34"/>
-<polygon fill="black" stroke="black" points="151.65,-301.65 159.8,-294.88 149.21,-295.09 151.65,-301.65"/>
+<path fill="none" stroke="#666666" d="M46.7,-836.72C47.99,-751.73 57.55,-395.91 127,-315 133.86,-307.01 143.03,-301.35 152.85,-297.35"/>
+<ellipse fill="#666666" stroke="#666666" cx="156.98" cy="-295.87" rx="4" ry="4"/>
 </g>
 <!-- mulle&#45;time -->
 <g id="node29" class="node">
@@ -432,8 +432,8 @@
 <!-- mulle&#45;core&#45;&gt;mulle&#45;time -->
 <g id="edge28" class="edge">
 <title>mulle&#45;core&#45;&gt;mulle&#45;time</title>
-<path fill="none" stroke="black" d="M46.43,-836.74C46.43,-746.72 50.83,-350.94 127,-261 135,-251.55 146.24,-245.35 158,-241.3"/>
-<polygon fill="black" stroke="black" points="158.78,-244.72 167.41,-238.58 156.83,-238 158.78,-244.72"/>
+<path fill="none" stroke="#666666" d="M46.43,-836.74C46.43,-746.72 50.83,-350.94 127,-261 135.57,-250.88 147.86,-244.49 160.53,-240.47"/>
+<ellipse fill="#666666" stroke="#666666" cx="164.53" cy="-239.36" rx="4" ry="4"/>
 </g>
 <!-- mulle&#45;unicode -->
 <g id="node30" class="node">
@@ -447,8 +447,8 @@
 <!-- mulle&#45;core&#45;&gt;mulle&#45;unicode -->
 <g id="edge29" class="edge">
 <title>mulle&#45;core&#45;&gt;mulle&#45;unicode</title>
-<path fill="none" stroke="black" d="M46.2,-836.68C44.99,-741.72 44.12,-305.97 127,-207 132.32,-200.65 139.1,-195.76 146.53,-192.01"/>
-<polygon fill="black" stroke="black" points="147.75,-195.3 155.59,-188.16 145.01,-188.85 147.75,-195.3"/>
+<path fill="none" stroke="#666666" d="M46.2,-836.68C44.99,-741.72 44.12,-305.97 127,-207 132.86,-200 140.5,-194.78 148.83,-190.9"/>
+<ellipse fill="#666666" stroke="#666666" cx="152.81" cy="-189.27" rx="4" ry="4"/>
 </g>
 <!-- mulle&#45;url -->
 <g id="node31" class="node">
@@ -462,8 +462,8 @@
 <!-- mulle&#45;core&#45;&gt;mulle&#45;url -->
 <g id="edge30" class="edge">
 <title>mulle&#45;core&#45;&gt;mulle&#45;url</title>
-<path fill="none" stroke="black" d="M47.41,-836.77C52.81,-731.81 81.92,-207.35 127,-153 136.19,-141.93 149.82,-135.31 163.6,-131.38"/>
-<polygon fill="black" stroke="black" points="164.2,-134.84 173.12,-129.13 162.59,-128.03 164.2,-134.84"/>
+<path fill="none" stroke="#666666" d="M47.41,-836.77C52.81,-731.81 81.92,-207.35 127,-153 136.73,-141.27 151.46,-134.54 166.06,-130.71"/>
+<ellipse fill="#666666" stroke="#666666" cx="170.21" cy="-129.77" rx="4" ry="4"/>
 </g>
 <!-- mulle&#45;utf -->
 <g id="node32" class="node">
@@ -477,8 +477,8 @@
 <!-- mulle&#45;core&#45;&gt;mulle&#45;utf -->
 <g id="edge31" class="edge">
 <title>mulle&#45;core&#45;&gt;mulle&#45;utf</title>
-<path fill="none" stroke="black" d="M47.25,-836.82C51.94,-727.28 78.52,-157.93 127,-99 136.14,-87.89 149.76,-81.26 163.54,-77.34"/>
-<polygon fill="black" stroke="black" points="164.15,-80.79 173.07,-75.08 162.53,-73.98 164.15,-80.79"/>
+<path fill="none" stroke="#666666" d="M47.25,-836.82C51.94,-727.28 78.52,-157.93 127,-99 136.68,-87.23 151.4,-80.49 166,-76.67"/>
+<ellipse fill="#666666" stroke="#666666" cx="170.16" cy="-75.73" rx="4" ry="4"/>
 </g>
 <!-- mulle&#45;vararg -->
 <g id="node33" class="node">
@@ -492,8 +492,8 @@
 <!-- mulle&#45;core&#45;&gt;mulle&#45;vararg -->
 <g id="edge32" class="edge">
 <title>mulle&#45;core&#45;&gt;mulle&#45;vararg</title>
-<path fill="none" stroke="black" d="M47.12,-836.65C51.16,-722.15 75.15,-108.48 127,-45 133.27,-37.33 141.67,-31.79 150.8,-27.81"/>
-<polygon fill="black" stroke="black" points="151.74,-31.19 159.91,-24.46 149.32,-24.62 151.74,-31.19"/>
+<path fill="none" stroke="#666666" d="M47.12,-836.65C51.16,-722.15 75.15,-108.48 127,-45 133.74,-36.75 142.95,-30.97 152.87,-26.93"/>
+<ellipse fill="#666666" stroke="#666666" cx="157.09" cy="-25.44" rx="4" ry="4"/>
 </g>
 </g>
 </svg>

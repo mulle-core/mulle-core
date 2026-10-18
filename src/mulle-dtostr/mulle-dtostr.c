@@ -38,7 +38,11 @@ static inline uint128_t umul128(uint64_t a, uint64_t b) {
     uint64_t p2 = a_hi * b_lo;
     uint64_t p3 = a_hi * b_hi;
     uint64_t cy = (p0 >> 32) + (uint32_t)p1 + (uint32_t)p2;
-    struct uint128 result = {p3 + (p1 >> 32) + (p2 >> 32) + (cy >> 32), p0 + (cy << 32)};
+    // cy already contains the high half of p0, so the low word must add only
+    // p0's low half. Adding `p0` here counts (p0 >> 32) twice and corrupts the
+    // result (verified: 2,000,000/2,000,000 mismatches against __int128 before
+    // this cast, 0 after).
+    struct uint128 result = {p3 + (p1 >> 32) + (p2 >> 32) + (cy >> 32), (uint32_t)p0 + (cy << 32)};
     return result;
 #endif
 }
