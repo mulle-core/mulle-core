@@ -6,7 +6,7 @@
 - mulle-core is an **amalgamated** library that bundles many small C libraries (allocator, buffer, container, rbtree, regex, slug, unicode, url, utf, time, thread, concurrent primitives, printf family, mmap, etc.) into a single library and a single envelope header `<mulle-core/mulle-core.h>`.
 - It solves the problem of repeatedly pulling, building, and linking two dozen small libraries: one include, one link target (`-lmulle-core`), faster builds.
 - It is *not* a second implementation: each constituent (e.g. `mulle-c/mulle-allocator`, `mulle-concurrent/mulle-concurrent`) is the canonical source; this repository gathers versioned constituent snapshots. Fixes are made upstream and brought in by the next amalgamation.
-- Current envelope version: `MULLE__CORE_VERSION` is `0.10.0` (`((0UL << 20) | (10 << 8) | 0)`).
+- Current envelope version: `MULLE__CORE_VERSION` is `0.10.1` (`((0UL << 20) | (10 << 8) | 1)`).
 - Notable recent additions (since the previous TOC commit): a resizable **wait-free hashtable** (`mulle_concurrent_hashtable`), a bump **arena allocator** (`mulle_arena`, subclasses `struct mulle_allocator`), UTF-8-preserving **slugify** variants with custom delimiters, **flexible/inflexible** buffer constructors and `mulle_buffer_do_*` builder macros, **`reallocarray`** allocator variants, C11 **rotate** helpers, and an expanded thread portability layer (once-init, recursive mutex, extra atomics). The latest migration additionally brings **process spawning** (`mulle_spawn_options`/`mulle_spawn_open_with_options`), **ASCII-only unicode predicates**, **container mutation pointers**, C11 **clz/log2** helpers, **regex character-class extensions** (`MULLE_UTF32REGEX_EXTENDED`) and `mulle_mmap_get_allocation_granularity`.
 
 ## 2. Key Concepts & Design Philosophy
@@ -26,7 +26,7 @@ This section summarizes each constituent. Signatures are copied verbatim from th
 - Purpose: single public include; defines the version and includes all constituent public headers.
 - Version macros/functions:
   ```c
-  #define MULLE__CORE_VERSION  ((0UL << 20) | (10 << 8) | 0)
+  #define MULLE__CORE_VERSION  ((0UL << 20) | (10 << 8) | 1)
 
   static inline unsigned int   mulle_core_get_version_major( void)
   static inline unsigned int   mulle_core_get_version_minor( void)
@@ -39,6 +39,19 @@ This section summarizes each constituent. Signatures are copied verbatim from th
 
 - Version `MULLE__C11_VERSION ((4UL << 20) | (9 << 8) | 1)`.
 - Provides portability macros only (no runtime code): `MULLE_C_GLOBAL`, `MULLE_C_EXTERN_GLOBAL`, `MULLE_C_NONNULL_FIRST`, `MULLE_C_NO_RETURN`, `MULLE_C_DEPRECATED`, `MULLE_C_UNUSED`, `MULLE_C_UNUSED_FUNCTION`, `MULLE_C_LIKELY`/`MULLE_C_UNLIKELY`, `MULLE_C_CONSTRUCTOR`/`MULLE_C_DESTRUCTOR`, `alignas`/`alignof`, plus `mulle_c_popcount*`. Optional headers (`MULLE_C11_INCLUDE_ALL`): `mulle-c11-align.h`, `mulle-c11-eval.h`, `mulle-c11-swap.h`.
+- **NEW C23 split** (`mulle-c23-feature.h`, `mulle-c23-eval.h`): the `typeof`- and `__VA_OPT__`-dependent macros moved out of the C11 headers so those stay C99/C11 clean. Capability probes `MULLE_C_HAS_TYPEOF` and `MULLE_C_HAS_VA_OPT` (both now overridable) live in `mulle-c11-feature.h`/`mulle-c11-eval.h`; `mulle-c11.h` pulls the C23 headers in under `MULLE_C11_INCLUDE_ALL` when the corresponding probe is set.
+  ```c
+  #define MULLE_C_TYPE_OF( expr)        __typeof__( expr)   // mulle-c23-feature.h
+
+  #define MULLE_C_VA_ARGS_COUNT( ...)
+  #define MULLE_C_HAS_ARGS( ...)
+  #define MULLE_C_IS_EMPTY( ...)
+  #define MULLE_C_VA_ARGS_WITH_DEFAULT( d, ...)
+  #define MULLE_C_VA_ARGS_0_WITH_DEFAULT( d, ...)
+  #define MULLE_C_FOR_EACH( macro, first, ...)
+  #define MULLE_C_FOR_EACH_WITH_SEPARATOR( macro, s, sep, first, ...)
+  #define MULLE_C_FOR_EACH_WITH_COMMA_SEPARATOR( macro, first, ...)   // mulle-c23-eval.h
+  ```
 - **NEW** `mulle-c11-rotate.h` (added in the latest migration), all `static inline`:
   ```c
   static inline uint32_t   mulle_rotate_right_uint32( uint32_t value, unsigned shift)
@@ -105,6 +118,7 @@ This section summarizes each constituent. Signatures are copied verbatim from th
                                            void *block, size_t size) MULLE_C_NO_RETURN;
   ```
 - `mulle-alloca.h` stack/heap hybrid macros: `mulle_alloca_do( name, type, count)`, `mulle_calloca_do_*`, `mulle_malloc_do`, `mulle_calloc_do`, `mulle_alloca_do_flexible`, `mulle_calloca_do_flexible`, ... (alloca when it fits the fixed `MULLE_ALLOCA_STACKSIZE` (128 bytes), else malloc; automatic free at scope end). The legacy alias `mulle_flexarray_do( a, b, c, d)` now maps to `mulle_alloca_do_flexible( a, b, (c) * sizeof( b), d)` (the old stack-size argument was a count of `type` elements).
+- **NEW** `mulle-alloca-c23.h`: the `__typeof__`-dependent macros moved here so `mulle-alloca.h` stays C99/C11 clean (included automatically when `MULLE_C_HAS_TYPEOF`): `mulle_malloc_for( name, len, p)`, `mulle_alloca_do_for( name, p)`, `mulle_calloc_for( name, len, p)`, `mulle_calloca_do_for( name, p)`, `_mulle_alloca_do_return( name, value)`, `_mulle_calloca_do_return( name, value)`, `_mulle_flexarray_return( a, b)`.
 
 ### 3.4. `mulle-data` — hash functions, ranges, qsort
 
@@ -187,7 +201,7 @@ This section summarizes each constituent. Signatures are copied verbatim from th
   - `mulle_buffer_do_flexible( name, data, len)`, `mulle_buffer_do_flexible_filled( name, data, len)`
   - `mulle_buffer_do_inflexible( name, data, len)`, `mulle_buffer_do_inflexible_filled( name, data, len)`
   - `mulle_buffer_do_string( name, allocator, s)` — builds a string, assigns result to `s`
-  - `mulle_buffer_return( name, value)` — `typeof`-based done+return helper
+  - `mulle_buffer_return( name, value)` — `typeof`-based done+return helper; **NEW** it now lives in `mulle-buffer-c23.h` (included automatically when `MULLE_C_HAS_TYPEOF`), so `mulle-buffer.h` stays C11 clean
 - Core writes (all `static inline` unless noted): `mulle_buffer_add_byte/char/bytes/chars/string/c_string`, `mulle_buffer_append_string`, `mulle_buffer_add_string_with_maxlength`, `mulle_buffer_strcat/strcpy`, `mulle_buffer_add_buffer/_range`, `mulle_buffer_memset`, `mulle_buffer_guarantee`, `mulle_buffer_advance`, `mulle_buffer_pop_byte`, `mulle_buffer_remove_last_byte`, `void   mulle_buffer_add_bytes_callback( void *buffer, void *bytes, size_t length)`.
 - Reads/seeks: `mulle_buffer_get_bytes/get_string/get_length/get_capacity`, `mulle_buffer_extract_data/string/bytes` (transfer ownership), `mulle_buffer_get_byte/get_last_byte/next_byte/peek_byte`, `mulle_buffer_seek_byte`, `mulle_buffer_set_seek/get_seek/get_lseek/lseek`, `mulle_buffer_memcmp`, `mulle_buffer_copy_range`, `mulle_buffer_has_overflown`.
 - Sizing: `mulle_buffer_grow`, `mulle_buffer_size_to_fit`, `mulle_buffer_set_length( buffer, length, options)` with `MULLE_BUFFER_NO_SHRINK/NO_ZEROFILL` flags.
@@ -524,7 +538,7 @@ This section summarizes each constituent. Signatures are copied verbatim from th
 
 ### 3.16. `mulle-concurrent` — lock-/wait-free hashtables, sets, arrays
 
-- Version `MULLE__CONCURRENT_VERSION ((4UL << 20) | (1 << 8) | 0)`. Coordination relies on `mulle-aba` for safe reclamation (see 3.17).
+- Version `MULLE__CONCURRENT_VERSION ((4UL << 20) | (1 << 8) | 1)`. Coordination relies on `mulle-aba` for safe reclamation (see 3.17).
 - **NEW `mulle-concurrent-math.h`** bit-twiddling helpers (namespaced to avoid collision with `mulle-container-math.h`; `0` counts as a power of two for `_mulle_concurrent_is_pow2`):
   ```c
   static inline int        _mulle_concurrent_is_pow2( size_t x);
@@ -532,23 +546,37 @@ This section summarizes each constituent. Signatures are copied verbatim from th
   static inline uint64_t   _mulle_concurrent_pow2roundup_64( uint64_t v);
   static inline size_t     _mulle_concurrent_pow2roundup( size_t v);
   ```
-- **NEW resizable wait-free `mulle_concurrent_hashtable`** (`mulle-concurrent-hashtable.h`). The *hash word* carries the migration "FROZEN" state, so values are never overwritten during resize (no tombstones; a removed slot keeps its hash claim and is immediately reusable). `NULL` is the only reserved payload. Process must call `mulle_aba_init(NULL)` once; each worker thread must `mulle_aba_register()`/`mulle_aba_unregister()`.
+- **NEW resizable wait-free `mulle_concurrent_hashtable`** (`mulle-concurrent-hashtable.h`). A wait-free map from a `hash` key to a value with a concurrent remove; it follows Cliff Click's NonBlockingHashMap state machine, marking states with reserved bits instead of boxing every value: the *hash word* has a FROZEN bit and the *value word* has a SEALED bit plus a reserved TOMB value for "removed". Every generation links to its own successor. `NULL` is not a legal payload. Process must call `mulle_aba_init(NULL)` once; each worker thread must `mulle_aba_register()`/`mulle_aba_unregister()`.
   ```c
   struct _mulle_concurrent_hashtablepair
   {
-     mulle_atomic_pointer_t   hash;    // intptr_t, 0 == unclaimed, FROZEN bit
-     mulle_atomic_pointer_t   value;   // payload or NULL
+     mulle_atomic_pointer_t   hash;    // 0 == unclaimed, may carry FROZEN
+     mulle_atomic_pointer_t   value;   // EMPTY, V, TOMB, may carry SEALED
   };
 
   struct mulle_concurrent_hashtable
   {
      union mulle_concurrent_atomichashtablestorage_t   storage;
-     union mulle_concurrent_atomichashtablestorage_t   next_storage;
-     mulle_atomic_pointer_t   allocator;
-     uintptr_t                frozen_bit;
-     uintptr_t                hash_mask;
+     mulle_atomic_pointer_t                           allocator;
+     uintptr_t                                        frozen_bit;
+     uintptr_t                                        hash_mask;
+     uintptr_t                                        sealed_bit;
+     void                                             *tombstone;
   };
 
+  #define MULLE_CONCURRENT_HASHTABLE_POSITIVE_HASH    0x0
+  #define MULLE_CONCURRENT_HASHTABLE_EVEN_HASH        0x1
+  #define MULLE_CONCURRENT_HASHTABLE_EVEN_VALUE       0x0
+  #define MULLE_CONCURRENT_HASHTABLE_POSITIVE_VALUE   0x2
+
+  void   _mulle_concurrent_hashtable_init_with_mode( struct mulle_concurrent_hashtable *map,
+                                                     size_t size,
+                                                     unsigned int mode,
+                                                     struct mulle_allocator *allocator);
+  static inline void   mulle_concurrent_hashtable_init_with_mode( struct mulle_concurrent_hashtable *map,
+                                                                  size_t size,
+                                                                  unsigned int mode,
+                                                                  struct mulle_allocator *allocator);
   void   mulle_concurrent_hashtable_init( struct mulle_concurrent_hashtable *map,
                                           size_t size, struct mulle_allocator *allocator);
   void   mulle_concurrent_hashtable_init_positive( struct mulle_concurrent_hashtable *map,
@@ -566,8 +594,11 @@ This section summarizes each constituent. Signatures are copied verbatim from th
   static inline int
      mulle_concurrent_hashtable_hash_is_valid( struct mulle_concurrent_hashtable *map,
                                                intptr_t hash);
+  static inline int
+     mulle_concurrent_hashtable_value_is_valid( struct mulle_concurrent_hashtable *map,
+                                                void *value);
   ```
-  Hash keys must be `intptr_t` in `[1, INTPTR_MAX]` (positive mode, FROZEN is the top bit; `0 == MULLE_CONCURRENT_NO_HASH`). An out-of-range hash is **rejected**: mutating calls return `EINVAL` and `lookup` returns NULL, exactly like an absent key — use the NEW `mulle_concurrent_hashtable_hash_is_valid` to distinguish the two. Sentinel macros: `MULLE_CONCURRENT_NO_HASH 0`, `MULLE_CONCURRENT_NO_POINTER ((void *) 0)`, `MULLE_CONCURRENT_INVALID_POINTER`, `MULLE_CONCURRENT_TOMBSTONE_POINTER`. Return codes: `insert` → `0`/`EEXIST`/`EINVAL`; `remove` → `0`/`ENOENT`/`EINVAL`; enumerators → `1`=next, `0`=end, `ECANCELED`=storage migrated (restart enumeration).
+  Hash keys must be `intptr_t` in `[1, INTPTR_MAX]` (positive hash mode, FROZEN is the top bit; `0 == MULLE_CONCURRENT_NO_HASH`); even hash mode uses bit 0 as FROZEN and accepts even, non-zero hashes. The mode bits combine one hash mode (`MULLE_CONCURRENT_HASHTABLE_POSITIVE_HASH`/`..._EVEN_HASH`) with one value mode (`MULLE_CONCURRENT_HASHTABLE_EVEN_VALUE`/`..._POSITIVE_VALUE`); `0` is the default (positive hashes, even values). An out-of-range hash is **rejected**: mutating calls return `EINVAL` and `lookup` returns NULL, exactly like an absent key — use `mulle_concurrent_hashtable_hash_is_valid` to distinguish the two. An illegal payload (NULL, the SEALED bit set, or the TOMB value) is likewise rejected with `EINVAL`; test with the NEW `mulle_concurrent_hashtable_value_is_valid`. Sentinel macros: `MULLE_CONCURRENT_NO_HASH 0`, `MULLE_CONCURRENT_NO_POINTER ((void *) 0)`, `MULLE_CONCURRENT_INVALID_POINTER`, `MULLE_CONCURRENT_TOMBSTONE_POINTER`. Return codes: `insert` → `0`/`EEXIST`/`EINVAL`; `remove` → `0`/`ENOENT`/`EINVAL`; enumerators → `1`=next, `0`=end, `ECANCELED`=storage migrated (restart enumeration).
   Enumeration with the `mulle_concurrent_hashtable_for( name, hash, value)` / `..._for_rval` macros (plus explicit `mulle_concurrent_hashtable_enumerate`/`enumerator_next`/`enumerator_done`).
 - `mulle_concurrent_hashmap` (legacy, when you must store `NULL` payloads or want a backing value-sentinel scheme):
   ```c
