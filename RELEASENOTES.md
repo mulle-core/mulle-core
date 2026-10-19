@@ -1,3 +1,26 @@
+### 0.10.1
+
+
+
+
+
+
+
+
+* updated mulle-c11, mulle-concurrent, mulle-dtostr, mulle-container
+
+
+
+
+
+
+
+
+
+* sprintf utf8/utf16/utf32 tests now verify format truncation and `*` width/precision agreement internally instead of printing to stdout
+* buffer growstress test validates buffer contents and length, reporting failures via stderr and exit status
+* removed golden .stdout files now that tests assert their own correctness
+
 ## 0.10.0
 
 
