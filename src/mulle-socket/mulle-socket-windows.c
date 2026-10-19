@@ -32,6 +32,14 @@
  *  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  *  POSSIBILITY OF SUCH DAMAGE.
  */
+//
+// inet_addr is used deliberately (see mulle_socket_listen): it is declared by
+// every winsock SDK, while InetPton needs a newer _WIN32_WINNT. Silence the
+// MSVC deprecation warning instead of rewriting the call.
+//
+#ifndef _WINSOCK_DEPRECATED_NO_WARNINGS
+# define _WINSOCK_DEPRECATED_NO_WARNINGS
+#endif
 #ifdef _WIN32
 
 #include "include-private.h"
