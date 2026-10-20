@@ -1,6 +1,6 @@
 {
    "name" : "mulle-core",
-   "version" : "0.10.1",
+   "version" : "0.10.2",
    "description" : "🌋 Amalgamated library of mulle-core + mulle-concurrent + mulle-c",
    "homepage" : "https://github.com/mulle-core/mulle-core",
    "bugs" : "https://github.com/mulle-core/mulle-core/issues",

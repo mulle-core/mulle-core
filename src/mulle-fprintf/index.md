@@ -107,7 +107,7 @@ All functions take `void *buffer` as the stream handle (a `struct mulle_buffer *
 #### Flush
 
 - `int mulle_buffer_fflush( void *buffer);`
-  In text mode zero-terminates the last byte (no truncate); if the buffer is flushable, flushes it. Returns 0, or EOF with `errno = EBADF` if buffer is NULL.
+  In text mode zero-terminates the last byte (no truncate), but only for writable streams: a read-only stream (e.g. an `fmemopen` opened `"r"`) is left untouched, since it has no end to terminate and the backing store may be caller-owned. If the buffer is flushable, flushes it. Returns 0, or EOF with `errno = EBADF` if buffer is NULL.
 
 #### `struct mulle_buffer_stdio_functions` and prepared vtables
 

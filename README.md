@@ -194,7 +194,7 @@ mulle-sde install --prefix /usr/local \
    https://github.com/mulle-core/mulle-core/archive/latest.tar.gz
 ```
 
-### Legacy Installation
+### Manual Installation
 
 Download the latest [tar](https://github.com/mulle-core/mulle-core/archive/refs/tags/latest.tar.gz) or [zip](https://github.com/mulle-core/mulle-core/archive/refs/tags/latest.zip) archive and unpack it.
 

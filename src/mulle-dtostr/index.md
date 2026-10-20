@@ -33,7 +33,7 @@ Unlike libc `strtod`, `mulle_strtod` never looks at `localeconv`. Instead the ca
 
 ### C89 Compatibility
 
-The implementation provides fallback code for systems without 128-bit integer support, ensuring broad compatibility while leveraging native `__int128` operations when available.
+The implementation provides fallback code for systems without 128-bit integer support, ensuring broad compatibility while leveraging native `__int128` operations when available. The software 64×64→128-bit multiply fallback is verified to agree with native `__int128`, so conversions produce identical results on platforms without the native type.
 
 ## 3. Core API & Data Structures
 

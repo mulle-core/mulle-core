@@ -1,3 +1,7 @@
+### 0.10.2
+
+* fixes and better tests for mulle-concurrent
+
 ### 0.10.1
 
 

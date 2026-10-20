@@ -8,7 +8,7 @@
 #
 cmake_minimum_required( VERSION 3.19...99.99) # for REAL_PATH
 
-project( mulle-core VERSION 0.10.1 LANGUAGES C)
+project( mulle-core VERSION 0.10.2 LANGUAGES C)
 
 #
 # The vendored constituent tests in test/ are opt-in. mulle-core is normally
